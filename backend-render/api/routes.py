@@ -42,3 +42,9 @@ async def latest_version():
         "apkSizeBytes": 8500000,
         "isMandatory": False
     }
+
+@router.get("/stream/{video_id}")
+async def stream_audio(video_id: str):
+    from services.extractor import get_audio_stream
+    url = await get_audio_stream(video_id)
+    return {"success": True, "url": url}

@@ -28,3 +28,14 @@ async def extract_audio(url: str, format: str = "mp3"):
 
         mime_type = f"audio/{format}" if format != "mp3" else "audio/mpeg"
         return audio_bytes, filename, mime_type
+
+async def get_audio_stream(video_id: str):
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'quiet': True,
+        'no_warnings': True,
+    }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+        return info.get('url', '')
