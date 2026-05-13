@@ -5,7 +5,6 @@ export default function SongModal({ song, onClose }) {
   const [related, setRelated] = useState([]);
   const [loadingRelated, setLoadingRelated] = useState(true);
   const [format, setFormat] = useState('mp3');
-  const [showDownload, setShowDownload] = useState(true);
 
   function thumb(id) { return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`; }
   function dur(s) { if(!s)return''; const m=Math.floor(s/60),sec=Math.floor(s%60); return m+':'+String(sec).padStart(2,'0'); }
@@ -31,7 +30,7 @@ export default function SongModal({ song, onClose }) {
         </div>
 
         <div style={{textAlign:'center',padding:'0 24px 20px'}}>
-          <div style={{width:180,height:100,borderRadius:10,overflow:'hidden',margin:'0 auto 16px',background:'#f0f0f0'}}>
+          <div style={{width:200,height:112,borderRadius:10,overflow:'hidden',margin:'0 auto 16px',background:'#f0f0f0'}}>
             <img src={thumb(song.id)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none'}} />
           </div>
           <h2 style={{fontSize:20,fontWeight:700,marginBottom:4,lineHeight:1.3}}>{song.title}</h2>
@@ -41,7 +40,6 @@ export default function SongModal({ song, onClose }) {
           </div>
         </div>
 
-        {/* Download Section — always visible */}
         <div style={{padding:'0 24px 20px'}}>
           <div style={{background:'#fafafa',borderRadius:12,padding:16}}>
             <p style={{fontWeight:600,fontSize:14,marginBottom:12}}>Download Options:</p>
@@ -60,7 +58,6 @@ export default function SongModal({ song, onClose }) {
           </div>
         </div>
 
-        {/* Related Songs */}
         <div style={{borderTop:'1px solid #eee',padding:'20px 24px'}}>
           <h3 style={{fontSize:16,fontWeight:700,marginBottom:12}}>Related Songs</h3>
           {loadingRelated ? [1,2,3,4].map(i => <div key={i} style={{display:'flex',gap:10,marginBottom:8}}><div className="skeleton" style={{width:48,height:48,borderRadius:6}}></div><div style={{flex:1}}><div className="skeleton" style={{height:14,width:'80%',marginBottom:6}}></div><div className="skeleton" style={{height:12,width:'40%'}}></div></div></div>)
