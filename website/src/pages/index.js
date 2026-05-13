@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '../components/Layout';
+import SongModal from '../components/SongModal';
 import { searchMusic } from '../lib/api';
 
 export default function Home() {
@@ -9,42 +10,23 @@ export default function Home() {
   const [newReleases, setNewReleases] = useState([]);
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedSong, setSelectedSong] = useState(null);
 
   const genreList = ['Gospel','Dancehall','Afrobeat','Hip Hop','Reggae','Bongo Flava','Zouk','R&B','Amapiano','Singeli'];
-
-  // Random queries for fresh content on each page load
-  const trendingQueries = [
-    'Eddy Kenzo','Sheebah','John Blaq','Vinka','Spice Diana','David Lutalo',
-    'Rema Namakula','Bebe Cool','Chameleone','Juliana Kanyomozi','A Pass','Lydia Jazmine'
-  ];
-  const newReleaseQueries = [
-    'new ugandan music 2026','latest ugandan songs','uganda music this week',
-    'new release uganda','ugandan hit 2026'
-  ];
+  const trendingQueries = ['Eddy Kenzo','Sheebah','John Blaq','Vinka','Spice Diana','David Lutalo','Rema Namakula','Bebe Cool'];
 
   useEffect(() => {
-    // Randomly pick queries for fresh content each load
     const shuffled = trendingQueries.sort(() => Math.random() - 0.5);
     const picked = shuffled.slice(0, 4);
-    
-    Promise.all([
-      ...picked.map(q => searchMusic(q)),
-      searchMusic(newReleaseQueries[Math.floor(Math.random() * newReleaseQueries.length)])
-    ]).then(results => {
-      const trendingResults = results.slice(0, 4).flatMap(r => (r.data?.videos || []).slice(0, 2));
-      const newResults = results[4]?.data?.videos?.slice(0, 6) || [];
-      
+    Promise.all(picked.map(q => searchMusic(q))).then(results => {
+      const trendingResults = results.flatMap(r => (r.data?.videos || []).slice(0, 2));
+      const newResults = results[Math.floor(Math.random()*results.length)]?.data?.videos?.slice(0, 6) || [];
       setTrending(trendingResults);
       setNewReleases(newResults);
-      
-      // Build artist cards from trending data
       const uniqueArtists = [];
       const seen = new Set();
       trendingResults.forEach(s => {
-        if (s.artist && !seen.has(s.artist)) {
-          seen.add(s.artist);
-          uniqueArtists.push({ name: s.artist, songs: Math.floor(Math.random()*20)+5, id: s.id, icon: '🎤' });
-        }
+        if (s.artist && !seen.has(s.artist)) { seen.add(s.artist); uniqueArtists.push({ name:s.artist, songs:Math.floor(Math.random()*20)+5, id:s.id }); }
       });
       setArtists(uniqueArtists.slice(0, 6));
       setLoading(false);
@@ -59,14 +41,12 @@ export default function Home() {
     <Layout>
       <Head><title>MediaVault — Free Music Downloads | Uganda</title></Head>
 
-      {/* Genre Buttons — clean separated */}
       <div style={{display:'flex',flexWrap:'wrap',gap:8,justifyContent:'center',padding:'24px 0 32px'}}>
         {genreList.map(g => (
-          <Link href={'/search?q='+g.toLowerCase()} key={g} style={{padding:'8px 18px',borderRadius:20,fontSize:13,fontWeight:500,background:'#f8f8f8',color:'#555',border:'1px solid #e8e8e8',transition:'all .15s'}}>{g}</Link>
+          <Link href={'/search?q='+g.toLowerCase()} key={g} style={{padding:'8px 18px',borderRadius:20,fontSize:13,fontWeight:500,background:'#f8f8f8',color:'#555',border:'1px solid #e8e8e8'}}>{g}</Link>
         ))}
       </div>
 
-      {/* Two Column: Trending + New Releases */}
       <div className="two-col">
         <div className="section">
           <h2 className="section-title">🔥 Trending Now</h2>
@@ -74,13 +54,13 @@ export default function Home() {
             {loading ? Array.from({length:6}).map((_,i) => (
               <div key={i} style={{display:'flex',gap:10,padding:'10px 0'}}><div className="skeleton" style={{width:48,height:48,borderRadius:6}}></div><div style={{flex:1}}><div className="skeleton" style={{height:14,width:'80%',marginBottom:6}}></div><div className="skeleton" style={{height:12,width:'40%'}}></div></div></div>
             )) : trending.map((s,i) => (
-              <Link href={'/songs/'+s.id} key={s.id} className="song-row">
+              <div key={s.id} className="song-row" onClick={() => setSelectedSong(s)}>
                 <span className="song-num">{i+1}</span>
                 <div className="song-thumb"><img src={thumb(s.id)} alt="" onError={e=>{e.target.style.display='none'}} /></div>
                 <div className="song-info"><div className="song-name">{s.title}</div><div className="song-artist">{s.artist}</div></div>
                 <span className="song-meta">{dur(s.duration)}</span>
                 <span className="song-dl">⬇</span>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
@@ -89,30 +69,25 @@ export default function Home() {
           <div className="song-list">
             {loading ? Array.from({length:6}).map((_,i) => (
               <div key={i} style={{display:'flex',gap:10,padding:'10px 0'}}><div className="skeleton" style={{width:48,height:48,borderRadius:6}}></div><div style={{flex:1}}><div className="skeleton" style={{height:14,width:'80%',marginBottom:6}}></div><div className="skeleton" style={{height:12,width:'40%'}}></div></div></div>
-            )) : newReleases.map((s,i) => (
-              <Link href={'/songs/'+s.id} key={s.id} className="song-row">
+            )) : newReleases.map(s => (
+              <div key={s.id} className="song-row" onClick={() => setSelectedSong(s)}>
                 <div className="song-thumb"><img src={thumb(s.id)} alt="" onError={e=>{e.target.style.display='none'}} /></div>
                 <div className="song-info"><div className="song-name">{s.title}</div><div className="song-artist">{s.artist}</div></div>
                 <span className="song-meta">{dur(s.duration)}<br/>{vw(s.views)}</span>
                 <span className="song-dl">⬇</span>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Artist Cards — with images like song cards */}
       <div className="section" style={{marginTop:20}}>
         <h2 className="section-title">🎤 Top Artists</h2>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12}}>
           {loading ? Array.from({length:6}).map((_,i) => (
-            <div key={i} style={{background:'#fafafa',borderRadius:10,padding:16,textAlign:'center'}}>
-              <div className="skeleton" style={{width:64,height:64,borderRadius:'50%',margin:'0 auto 8px'}}></div>
-              <div className="skeleton" style={{height:14,width:'70%',margin:'0 auto 6px'}}></div>
-              <div className="skeleton" style={{height:12,width:'40%',margin:'0 auto'}}></div>
-            </div>
+            <div key={i} style={{background:'#fafafa',borderRadius:10,padding:16,textAlign:'center'}}><div className="skeleton" style={{width:64,height:64,borderRadius:'50%',margin:'0 auto 8px'}}></div><div className="skeleton" style={{height:14,width:'70%',margin:'0 auto 6px'}}></div><div className="skeleton" style={{height:12,width:'40%',margin:'0 auto'}}></div></div>
           )) : artists.map(a => (
-            <Link href={'/search?q='+encodeURIComponent(a.name)} key={a.name} style={{background:'#fafafa',borderRadius:10,padding:16,textAlign:'center',display:'block',cursor:'pointer',border:'1px solid transparent',transition:'all .15s'}}>
+            <Link href={'/search?q='+encodeURIComponent(a.name)} key={a.name} style={{background:'#fafafa',borderRadius:10,padding:16,textAlign:'center',display:'block',cursor:'pointer',border:'1px solid transparent'}}>
               <div style={{width:64,height:64,borderRadius:'50%',background:'#f0f0f0',display:'flex',alignItems:'center',justifyContent:'center',fontSize:24,margin:'0 auto 8px'}}>🎤</div>
               <div style={{fontSize:14,fontWeight:600,color:'#1a1a1a',marginBottom:2}}>{a.name}</div>
               <div style={{fontSize:12,color:'#888'}}>{a.songs} songs</div>
@@ -121,21 +96,17 @@ export default function Home() {
         </div>
       </div>
 
-      {/* App Banner */}
       <div className="app-banner">
         <div style={{flex:1}}>
           <h3>Get the Full Experience</h3>
           <p>The MediaVault app gives you everything the website offers, plus:</p>
-          <ul>
-            <li>Video downloads in HD (up to 4K)</li>
-            <li>WhatsApp Status Saver</li>
-            <li>Private Vault with PIN protection</li>
-            <li>Phone cleaning tools</li>
-            <li>Works offline</li>
-          </ul>
+          <ul><li>Video downloads in HD (up to 4K)</li><li>WhatsApp Status Saver</li><li>Private Vault with PIN protection</li><li>Phone cleaning tools</li><li>Works offline</li></ul>
           <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" className="btn btn-primary" style={{marginTop:16}}>Download on APKPure — Free</a>
         </div>
       </div>
+
+      {/* Song Modal */}
+      {selectedSong && <SongModal song={selectedSong} onClose={() => setSelectedSong(null)} />}
     </Layout>
   );
 }

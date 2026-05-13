@@ -5,6 +5,17 @@ export async function searchMusic(query, platform = 'youtube') {
   return res.json();
 }
 
+export async function getSongDetails(videoId) {
+  const res = await fetch(`${API_BASE}/video/${videoId}`);
+  return res.json();
+}
+
+export async function getRelatedSongs(title, artist) {
+  const query = artist ? `${artist} similar songs` : title;
+  const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&limit=10`);
+  return res.json();
+}
+
 export async function downloadAudio(url, format = 'mp3') {
   const res = await fetch(`${API_BASE}/download/audio`, {
     method: 'POST',
