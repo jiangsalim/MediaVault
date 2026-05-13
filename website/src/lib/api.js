@@ -16,10 +16,6 @@ export async function searchMusic(query, platform = 'youtube') {
   return cachedFetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&platform=${platform}&limit=25`);
 }
 
-export async function getSongDetails(videoId) {
-  return cachedFetch(`${API_BASE}/video/${videoId}`, 600000);
-}
-
 export async function getRelatedSongs(title, artist) {
   const query = artist ? `${artist} similar songs` : title;
   return cachedFetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&limit=10`);
@@ -31,13 +27,9 @@ export async function getAudioStreamUrl(videoId) {
   return data.url;
 }
 
-export async function downloadAudio(videoId, format = 'mp3') {
-  const url = `https://youtube.com/watch?v=${videoId}`;
-  window.open(`${API_BASE}/download/audio?url=${encodeURIComponent(url)}&format=${format}`, '_blank');
-}
-
-export async function getTrending(region = 'UG') {
-  return cachedFetch(`${API_BASE}/trending?region=${region}`, 120000);
+export function getDownloadUrl(videoId, format = 'mp3') {
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+  return `${API_BASE}/download/audio?url=${encodeURIComponent(url)}&format=${format}`;
 }
 
 export async function getLatestVersion() {
