@@ -5,6 +5,43 @@ const DownloadPage = (function () {
   let currentPage = 1;
   let isLoading = false;
   let hasMore = true;
+  let selectedFormat = 'm4a-128';
+  let activePlatform = 'all';
+
+  const morePlatforms = [
+    { id: 'youtube', name: 'YouTube', icon: '▶', status: 'active' },
+    { id: 'whatsapp', name: 'WhatsApp Status', icon: '📱', status: 'how-to' },
+    { id: 'tiktok', name: 'TikTok', icon: '🎵', status: 'how-to' },
+    { id: 'instagram', name: 'Instagram', icon: '📷', status: 'how-to' },
+    { id: 'facebook', name: 'Facebook', icon: '📘', status: 'how-to' },
+    { id: 'twitter', name: 'Twitter/X', icon: '🐦', status: 'how-to' },
+    { id: 'spotify', name: 'Spotify', icon: '🟢', status: 'active' },
+    { id: 'snapchat', name: 'SnapChat', icon: '👻', status: 'how-to' },
+    { id: 'pinterest', name: 'Pinterest', icon: '📌', status: 'how-to' },
+    { id: 'kwai', name: 'Kwai', icon: '🎬', status: 'how-to' },
+    { id: 'threads', name: 'Threads', icon: '🧵', status: 'how-to' },
+    { id: 'dailymotion', name: 'DailyMotion', icon: '📺', status: 'how-to' },
+    { id: 'soundcloud', name: 'SoundCloud', icon: '🎧', status: 'how-to' },
+    { id: 'bluesky', name: 'BlueSky', icon: '🦋', status: 'how-to' },
+    { id: 'okru', name: 'OkRu', icon: '📺', status: 'how-to' },
+  ];
+
+  const musicFormats = [
+    { id: 'm4a-128', name: 'Fast', desc: 'M4A (128K), best for mobile play', size: '3.5 MB', tag: '' },
+    { id: 'mp3-70', name: 'Classic MP3 (70K)', desc: 'Support Bluetooth speaker, mobile phone, car, watch etc.', size: '1.5 MB', tag: 'Low' },
+    { id: 'mp3-128', name: 'Classic MP3 (128K)', desc: 'Support Bluetooth speaker, mobile phone, car, watch etc.', size: '3.5 MB', tag: '' },
+    { id: 'mp3-160', name: 'Classic MP3', desc: 'MP3 (160K), support Bluetooth speaker, mobile phone, car, watch etc.', size: '3.9 MB', tag: '' },
+    { id: 'mp3-320', name: 'Classic MP3 (320K)', desc: 'Support Bluetooth speaker, mobile phone, car, watch etc.', size: '7.8 MB', tag: 'Slow' },
+  ];
+
+  const videoFormats = [
+    { id: '144p', name: 'Fast (144p)', desc: 'Low', detail: 'Poor video quality', size: '' },
+    { id: '240p', name: 'Fast (240p)', desc: 'Low quality for quick play', detail: '', size: '' },
+    { id: '360p', name: 'Fast (360p)', desc: 'Normal quality for quick play', detail: '', size: '' },
+    { id: '480p', name: 'Fast (480p)', desc: 'Normal quality for quick play', detail: '', size: '14.8 MB' },
+    { id: '720p', name: 'High quality (720p)', desc: 'Clear view and quick play', detail: '', size: '23.2 MB' },
+    { id: '1080p', name: 'High quality (1080p)', desc: 'High details for full screen play', detail: '', size: '45 MB' },
+  ];
 
   function init() {
     searchInput = document.getElementById('search-input');
@@ -13,21 +50,73 @@ const DownloadPage = (function () {
     searchInput.addEventListener('input', handleInput);
     searchInput.addEventListener('keydown', handleKeydown);
     document.getElementById('btn-voice')?.addEventListener('click', handleVoice);
-    document.querySelectorAll('.tab-chip').forEach(chip => {
-      chip.addEventListener('click', function () {
-        document.querySelectorAll('.tab-chip').forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        if (currentQuery) search(currentQuery);
-      });
-    });
-    document.querySelectorAll('.tab-chip').forEach(chip => {
-      chip.addEventListener('click', function () {
-        document.querySelectorAll('.tab-chip').forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-      });
-    });
+    setupPlatformTabs();
     showTrending();
     checkClipboard();
+  }
+
+  function setupPlatformTabs() {
+    document.querySelectorAll('.tab-chip').forEach(chip => {
+      chip.addEventListener('click', function () {
+        document.querySelectorAll('.tab-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        const tabText = this.textContent.toLowerCase();
+        if (tabText === 'more') { showMorePlatforms(); return; }
+        if (tabText === 'sub') { showSubTab(); return; }
+        if (tabText === 'music') {
+          activePlatform = 'music';
+          if (currentQuery) searchMusic(currentQuery);
+          else showMusicTrending();
+          return;
+        }
+        activePlatform = tabText === 'all' ? 'all' : tabText === 'youtube' ? 'youtube' : 'all';
+        if (currentQuery) search(currentQuery);
+        else showTrending();
+      });
+    });
+  }
+
+  function showMorePlatforms() {
+    let html = '<div class="more-platforms">';
+    morePlatforms.forEach(p => {
+      html += '<div class="more-platform-item">';
+      html += '<span class="platform-icon">' + p.icon + '</span>';
+      html += '<div class="platform-info">';
+      html += '<span class="platform-name">' + p.name + '</span>';
+      html += '<span class="platform-status">' + (p.status === 'active' ? 'Active' : 'How to start') + '</span>';
+      html += '</div>';
+      html += '<span class="item-chevron">›</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+    downloadContent.innerHTML = html;
+  }
+
+  function showSubTab() {
+    downloadContent.innerHTML = '<div style="text-align:center;padding:60px 20px;"><div style="font-size:3rem;margin-bottom:16px;">📺</div><p style="color:var(--color-text-primary);margin-bottom:8px;">Your sign-in has expired, please sign in again to continue.</p><button class="btn btn-primary btn-lg" style="margin-top:16px;">Sign in</button></div>';
+  }
+
+  function showMusicTrending() {
+    downloadContent.innerHTML = '<div style="text-align:center;padding:40px;color:var(--color-text-secondary);"><div style="font-size:3rem;margin-bottom:12px;">🎵</div><p>Search for music to see results</p></div>';
+  }
+
+  function searchMusic(query) {
+    currentQuery = query;
+    showSkeletons();
+    setTimeout(() => {
+      const results = [];
+      for (let i = 0; i < 15; i++) {
+        results.push({
+          id: 'music' + i,
+          title: query + ' - Music Result ' + (i + 1),
+          channel: 'Artist ' + (i % 5 + 1),
+          views: Math.floor(Math.random() * 5000000),
+          duration: Math.floor(Math.random() * 300) + 60,
+          isMusic: true,
+        });
+      }
+      renderResults(results, true);
+    }, 800);
   }
 
   function handleInput() {
@@ -35,25 +124,22 @@ const DownloadPage = (function () {
     if (searchTimeout) clearTimeout(searchTimeout);
     if (query.length >= 2) {
       searchTimeout = setTimeout(() => {
-        if (isYouTubeUrl(query)) {
-          extractFromUrl(query);
-        }
+        if (isYouTubeUrl(query)) extractFromUrl(query);
+        else if (isSpotifyUrl(query)) extractSpotify(query);
       }, 300);
     }
-    if (query.length === 0) {
-      showTrending();
-    }
+    if (query.length === 0 && activePlatform === 'music') showMusicTrending();
+    else if (query.length === 0) showTrending();
   }
 
   function handleKeydown(e) {
     if (e.key === 'Enter') {
       const query = searchInput.value.trim();
       if (!query) return;
-      if (isYouTubeUrl(query)) {
-        extractFromUrl(query);
-      } else {
-        search(query);
-      }
+      if (isYouTubeUrl(query)) extractFromUrl(query);
+      else if (isSpotifyUrl(query)) extractSpotify(query);
+      else if (activePlatform === 'music') searchMusic(query);
+      else search(query);
     }
   }
 
@@ -61,10 +147,29 @@ const DownloadPage = (function () {
     return text.includes('youtube.com') || text.includes('youtu.be');
   }
 
+  function isSpotifyUrl(text) {
+    return text.includes('spotify.com') || text.includes('open.spotify');
+  }
+
+  function extractSpotify(url) {
+    let trackName = 'Spotify Track';
+    const trackMatch = url.match(/track\/([a-zA-Z0-9]+)/);
+    if (trackMatch) {
+      trackName = 'Spotify Track ' + trackMatch[1].substring(0, 6);
+    }
+    const toast = document.createElement('div');
+    toast.className = 'clipboard-toast';
+    toast.textContent = 'Spotify detected - searching YouTube: ' + trackName;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+    search(trackName);
+  }
+
   function extractFromUrl(url) {
     const videoId = extractVideoId(url);
     if (videoId) {
-      showDownloadSheet(videoId, 'Sample Video from URL', 'Unknown Channel');
+      searchInput.value = '';
+      showDownloadSheet(videoId, 'Video from URL', 'Unknown Channel');
     }
   }
 
@@ -112,7 +217,7 @@ const DownloadPage = (function () {
     return new Promise(resolve => {
       setTimeout(() => {
         const allVideos = [];
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 50; i++) {
           allVideos.push({
             id: 'vid' + i + '_' + page,
             title: query + ' - Result ' + ((page - 1) * 20 + i + 1),
@@ -120,7 +225,7 @@ const DownloadPage = (function () {
             views: Math.floor(Math.random() * 5000000),
             duration: Math.floor(Math.random() * 600) + 30,
             uploadDate: '2026-05-' + String(Math.floor(Math.random() * 30) + 1).padStart(2, '0'),
-            thumbnail: '',
+            isMusic: activePlatform === 'music',
           });
         }
         const start = (page - 1) * 20;
@@ -139,30 +244,27 @@ const DownloadPage = (function () {
 
   function renderResults(videos, clear = false) {
     if (clear) downloadContent.innerHTML = '';
-    if (videos.length === 0 && clear) {
-      showNoResults(currentQuery);
-      return;
-    }
+    if (videos.length === 0 && clear) { showNoResults(currentQuery); return; }
     let html = '<div class="search-results">';
     videos.forEach(v => {
       const views = v.views >= 1000000 ? (v.views / 1000000).toFixed(1) + 'M' : v.views >= 1000 ? (v.views / 1000).toFixed(1) + 'K' : v.views;
       const dur = formatDuration(v.duration);
+      const icon = v.isMusic ? '🎵' : '▶';
       html += '<div class="video-card">';
-      html += '<div class="thumb-wrap"><div style="background:#333;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;">▶</div><span class="duration">' + dur + '</span></div>';
+      html += '<div class="thumb-wrap"><div style="background:#333;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;">' + icon + '</div><span class="duration">' + dur + '</span></div>';
       html += '<div class="video-info">';
       html += '<div class="video-title">' + escapeHtml(v.title) + '</div>';
-      html += '<div class="video-meta">' + escapeHtml(v.channel) + ' · ' + views + ' views</div>';
+      html += '<div class="video-meta">' + escapeHtml(v.channel) + ' - ' + views + ' views</div>';
       html += '</div>';
-      html += '<button class="download-arrow" data-id="' + v.id + '" data-title="' + escapeHtml(v.title) + '" data-channel="' + escapeHtml(v.channel) + '">⬇</button>';
+      html += '<button class="download-arrow" data-id="' + v.id + '" data-title="' + escapeHtml(v.title) + '" data-channel="' + escapeHtml(v.channel) + '" data-music="' + (v.isMusic ? '1' : '0') + '">⬇</button>';
       html += '</div>';
     });
     html += '</div>';
     if (hasMore && videos.length >= 20) {
       html += '<div class="load-more" id="load-more"><button class="btn btn-primary btn-sm">Load More</button></div>';
     }
-    if (clear) {
-      downloadContent.innerHTML = html;
-    } else {
+    if (clear) { downloadContent.innerHTML = html; }
+    else {
       const loadMoreEl = document.getElementById('load-more');
       if (loadMoreEl) loadMoreEl.remove();
       downloadContent.insertAdjacentHTML('beforeend', html);
@@ -178,13 +280,14 @@ const DownloadPage = (function () {
     videos.forEach(v => {
       const views = v.views >= 1000000 ? (v.views / 1000000).toFixed(1) + 'M' : v.views >= 1000 ? (v.views / 1000).toFixed(1) + 'K' : v.views;
       const dur = formatDuration(v.duration);
+      const icon = v.isMusic ? '🎵' : '▶';
       html += '<div class="video-card">';
-      html += '<div class="thumb-wrap"><div style="background:#333;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;">▶</div><span class="duration">' + dur + '</span></div>';
+      html += '<div class="thumb-wrap"><div style="background:#333;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem;">' + icon + '</div><span class="duration">' + dur + '</span></div>';
       html += '<div class="video-info">';
       html += '<div class="video-title">' + escapeHtml(v.title) + '</div>';
-      html += '<div class="video-meta">' + escapeHtml(v.channel) + ' · ' + views + ' views</div>';
+      html += '<div class="video-meta">' + escapeHtml(v.channel) + ' - ' + views + ' views</div>';
       html += '</div>';
-      html += '<button class="download-arrow" data-id="' + v.id + '" data-title="' + escapeHtml(v.title) + '" data-channel="' + escapeHtml(v.channel) + '">⬇</button>';
+      html += '<button class="download-arrow" data-id="' + v.id + '" data-title="' + escapeHtml(v.title) + '" data-channel="' + escapeHtml(v.channel) + '" data-music="' + (v.isMusic ? '1' : '0') + '">⬇</button>';
       html += '</div>';
     });
     const loadMoreEl = document.getElementById('load-more');
@@ -208,7 +311,8 @@ const DownloadPage = (function () {
         const id = this.dataset.id;
         const title = this.dataset.title;
         const channel = this.dataset.channel;
-        showDownloadSheet(id, title, channel);
+        const isMusic = this.dataset.music === '1';
+        showDownloadSheet(id, title, channel, isMusic);
       });
     });
   }
@@ -221,130 +325,152 @@ const DownloadPage = (function () {
       const scrollTop = mainContent.scrollTop;
       const scrollHeight = mainContent.scrollHeight;
       const clientHeight = mainContent.clientHeight;
-      if (scrollHeight - scrollTop - clientHeight < 200) {
-        loadMore();
-      }
+      if (scrollHeight - scrollTop - clientHeight < 200) loadMore();
     };
   }
 
-  function showDownloadSheet(videoId, title, channel) {
+  function showDownloadSheet(videoId, title, channel, isMusic = false) {
     const overlay = document.getElementById('download-sheet-overlay');
     const sheet = document.getElementById('download-sheet');
     const body = document.getElementById('download-sheet-body');
     if (!overlay || !sheet || !body) return;
+    selectedFormat = isMusic ? 'm4a-128' : '720p';
     body.innerHTML = '';
     body.innerHTML += '<div class="sheet-title">Download video as</div>';
-    body.innerHTML += '<div class="format-section"><div class="format-section-label">🎵 Music</div>';
-    body.innerHTML += '<div class="format-option selected" data-format="m4a-128"><div class="radio-circle"></div><div class="format-info"><div class="format-name">Fast</div><div class="format-size">2.7 MB</div></div></div>';
-    body.innerHTML += '<div class="format-option" data-format="mp3-128"><div class="radio-circle"></div><div class="format-info"><div class="format-name">Classic MP3</div><div class="format-size">2.7 MB</div></div></div>';
+    if (isMusic) {
+      body.innerHTML += '<div class="format-section"><div class="format-section-label">Music</div>';
+      musicFormats.slice(0, 3).forEach((f, i) => {
+        body.innerHTML += '<div class="format-option' + (i === 0 ? ' selected' : '') + '" data-format="' + f.id + '"><div class="radio-circle"></div><div class="format-info"><div class="format-name">' + f.name + (f.tag ? ' <span style="color:var(--color-warning);font-size:10px;">' + f.tag + '</span>' : '') + '</div><div class="format-size">' + f.size + '</div></div></div>';
+      });
+    } else {
+      body.innerHTML += '<div class="format-section"><div class="format-section-label">Music</div>';
+      body.innerHTML += '<div class="format-option selected" data-format="m4a-128"><div class="radio-circle"></div><div class="format-info"><div class="format-name">Fast</div><div class="format-size">2.7 MB</div></div></div>';
+      body.innerHTML += '<div class="format-option" data-format="mp3-128"><div class="radio-circle"></div><div class="format-info"><div class="format-name">Classic MP3</div><div class="format-size">2.7 MB</div></div></div>';
+    }
     body.innerHTML += '</div>';
-    body.innerHTML += '<div class="format-section"><div class="format-section-label">🎬 Video</div>';
-    body.innerHTML += '<div class="format-option" data-format="480p"><div class="radio-circle"></div><div class="format-info"><div class="format-name">Fast (480p)</div><div class="format-size">14.8 MB</div></div></div>';
-    body.innerHTML += '<div class="format-option" data-format="720p"><div class="radio-circle"></div><div class="format-info"><div class="format-name">High quality (720p)</div><div class="format-size">23.2 MB</div></div></div>';
-    body.innerHTML += '<div class="format-option" style="justify-content:center;color:var(--color-primary);" data-format="more"><span>More formats ›</span></div>';
+    body.innerHTML += '<div class="format-section"><div class="format-section-label">Video</div>';
+    videoFormats.slice(3, 5).forEach(f => {
+      body.innerHTML += '<div class="format-option' + (!isMusic && f.id === '720p' ? ' selected' : '') + '" data-format="' + f.id + '"><div class="radio-circle"></div><div class="format-info"><div class="format-name">' + f.name + '</div><div class="format-size">' + f.size + '</div></div></div>';
+    });
+    body.innerHTML += '<div class="format-option" style="justify-content:center;color:var(--color-primary);" data-format="more"><span>More formats</span></div>';
     body.innerHTML += '</div>';
     body.innerHTML += '<button class="btn btn-primary btn-block btn-lg" id="btn-download-now">Download</button>';
     overlay.classList.add('active');
     sheet.classList.add('active');
     document.querySelectorAll('.format-option').forEach(opt => {
       opt.addEventListener('click', function () {
-        if (this.dataset.format === 'more') {
-          showFullFormatSheet(videoId, title, channel);
-          return;
-        }
+        if (this.dataset.format === 'more') { showFullFormatSheet(videoId, title, channel); return; }
         document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected'));
         this.classList.add('selected');
+        selectedFormat = this.dataset.format;
       });
     });
     document.getElementById('btn-download-now').addEventListener('click', function () {
-      const selected = document.querySelector('.format-option.selected');
-      const format = selected ? selected.dataset.format : 'm4a-128';
-      startDownload(videoId, title, format);
+      startDownload(videoId, title, selectedFormat);
       overlay.classList.remove('active');
       sheet.classList.remove('active');
     });
-    overlay.onclick = function () {
-      overlay.classList.remove('active');
-      sheet.classList.remove('active');
-    };
+    overlay.onclick = function () { overlay.classList.remove('active'); sheet.classList.remove('active'); };
   }
 
   function showFullFormatSheet(videoId, title, channel) {
     const body = document.getElementById('download-sheet-body');
     body.innerHTML = '';
     body.innerHTML += '<div class="sheet-title">More formats</div>';
-    body.innerHTML += '<div class="format-section"><div class="format-section-label">🎵 Music</div>';
-    const musicFormats = [
-      { id: 'm4a-128', name: 'Fast', desc: 'M4A (128K), best for mobile play', size: '3.5 MB' },
-      { id: 'mp3-70', name: 'Classic MP3 (70K) Low', desc: 'Support Bluetooth speaker, mobile phone, car, watch etc.', size: '1.5 MB' },
-      { id: 'mp3-128', name: 'Classic MP3 (128K)', desc: 'Support Bluetooth speaker, mobile phone, car, watch etc.', size: '3.5 MB' },
-      { id: 'mp3-160', name: 'Classic MP3 (160K)', desc: 'Support Bluetooth speaker, mobile phone, car, watch etc.', size: '3.9 MB' },
-      { id: 'mp3-320', name: 'Classic MP3 (320K) Slow', desc: 'Support Bluetooth speaker, mobile phone, car, watch etc.', size: '7.8 MB' },
-    ];
+    body.innerHTML += '<div class="format-section"><div class="format-section-label">Music</div>';
     musicFormats.forEach((f, i) => {
-      body.innerHTML += '<div class="format-option' + (i === 0 ? ' selected' : '') + '" data-format="' + f.id + '"><div class="radio-circle"></div><div class="format-info"><div class="format-name">' + f.name + '</div><div class="format-size">' + f.desc + '</div><div class="format-size" style="margin-top:2px;">' + f.size + '</div></div></div>';
+      body.innerHTML += '<div class="format-option' + (i === 0 ? ' selected' : '') + '" data-format="' + f.id + '"><div class="radio-circle"></div><div class="format-info"><div class="format-name">' + f.name + (f.tag ? ' <span style="color:var(--color-warning);font-size:10px;">' + f.tag + '</span>' : '') + '</div><div class="format-size">' + f.desc + '</div><div class="format-size" style="margin-top:2px;">' + f.size + '</div></div></div>';
     });
     body.innerHTML += '</div>';
-    body.innerHTML += '<div class="format-section"><div class="format-section-label">🎬 Video</div>';
-    const videoFormats = [
-      { id: '144p', name: 'Fast (144p)', desc: 'Low, Poor video quality', size: '' },
-      { id: '240p', name: 'Fast (240p)', desc: 'Low quality for quick play', size: '' },
-      { id: '360p', name: 'Fast (360p)', desc: 'Normal quality for quick play', size: '' },
-      { id: '480p', name: 'Fast (480p)', desc: 'Normal quality for quick play', size: '14.8 MB' },
-      { id: '720p', name: 'High quality (720p)', desc: 'Clear view and quick play', size: '23.2 MB' },
-      { id: '1080p', name: 'High quality (1080p)', desc: 'High details for full screen play', size: '45 MB' },
-    ];
+    body.innerHTML += '<div class="format-section"><div class="format-section-label">Video</div>';
     videoFormats.forEach(f => {
-      body.innerHTML += '<div class="format-option" data-format="' + f.id + '"><div class="radio-circle"></div><div class="format-info"><div class="format-name">' + f.name + '</div><div class="format-size">' + f.desc + '</div>' + (f.size ? '<div class="format-size" style="margin-top:2px;">' + f.size + '</div>' : '') + '</div></div>';
+      body.innerHTML += '<div class="format-option" data-format="' + f.id + '"><div class="radio-circle"></div><div class="format-info"><div class="format-name">' + f.name + '</div><div class="format-size">' + f.desc + (f.detail ? ', ' + f.detail : '') + '</div>' + (f.size ? '<div class="format-size" style="margin-top:2px;">' + f.size + '</div>' : '') + '</div></div>';
     });
+    body.innerHTML += '</div>';
+    body.innerHTML += '<div class="format-section"><div class="format-section-label">Subtitles/CC</div>';
+    body.innerHTML += '<div class="format-option" data-format="subtitles"><div class="radio-circle"></div><div class="format-info"><div class="format-name">Download Subtitles</div><div class="format-size">Include available subtitles (SRT)</div></div></div>';
     body.innerHTML += '</div>';
     body.innerHTML += '<button class="btn btn-primary btn-block btn-lg" id="btn-download-now">Download</button>';
     document.querySelectorAll('.format-option').forEach(opt => {
       opt.addEventListener('click', function () {
         document.querySelectorAll('.format-option').forEach(o => o.classList.remove('selected'));
         this.classList.add('selected');
+        selectedFormat = this.dataset.format;
       });
     });
     document.getElementById('btn-download-now').addEventListener('click', function () {
-      const selected = document.querySelector('.format-option.selected');
-      const format = selected ? selected.dataset.format : 'm4a-128';
-      startDownload(videoId, title, format);
+      startDownload(videoId, title, selectedFormat);
       document.getElementById('download-sheet-overlay').classList.remove('active');
       document.getElementById('download-sheet').classList.remove('active');
     });
   }
 
   function startDownload(videoId, title, format) {
-    console.log('Download started:', title, format);
+    const formatNames = {
+      'm4a-128': 'Fast M4A', 'mp3-70': 'MP3 70K', 'mp3-128': 'MP3 128K',
+      'mp3-160': 'MP3 160K', 'mp3-320': 'MP3 320K',
+      '144p': '144p', '240p': '240p', '360p': '360p',
+      '480p': '480p', '720p': '720p', '1080p': '1080p',
+    };
+    const formatName = formatNames[format] || format;
     const toast = document.createElement('div');
     toast.className = 'clipboard-toast';
-    toast.textContent = '⬇ Download started: ' + title.substring(0, 30) + '...';
+    toast.textContent = 'Downloading: ' + title.substring(0, 35) + '... (' + formatName + ')';
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
+    addToPlayTab(videoId, title, formatName);
+  }
+
+  function addToPlayTab(videoId, title, format) {
+    let downloads = [];
+    try { downloads = JSON.parse(localStorage.getItem('mv_downloads') || '[]'); } catch (e) {}
+    downloads.unshift({
+      id: videoId, title: title, format: format,
+      progress: 0, status: 'downloading', time: new Date().toISOString()
+    });
+    localStorage.setItem('mv_downloads', JSON.stringify(downloads));
   }
 
   function showNoResults(query) {
-    downloadContent.innerHTML = '<div class="no-results"><div class="no-results-icon">🔍</div><div class="no-results-title">No results found</div><p style="color:var(--color-text-secondary);font-size:var(--font-size-sm);">Try different keywords for "' + escapeHtml(query) + '"</p></div>';
+    downloadContent.innerHTML = '<div class="no-results"><div class="no-results-icon">Search</div><div class="no-results-title">No results found</div><p style="color:var(--color-text-secondary);font-size:var(--font-size-sm);">Try different keywords for "' + escapeHtml(query) + '"</p></div>';
   }
 
   function showTrending() {
     downloadContent.innerHTML = '';
-    downloadContent.innerHTML += '<div class="trending-section"><div class="trending-title">🔥 Trending in Uganda</div><div class="trending-scroll">';
-    for (let i = 1; i <= 8; i++) {
-      downloadContent.innerHTML += '<div class="trending-card"><div class="trending-thumb"><div style="background:#333;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🎵</div></div><div class="trending-name">Trending Song ' + i + '</div><div class="trending-meta">Artist ' + i + '</div></div>';
-    }
+    downloadContent.innerHTML += '<div class="trending-section"><div class="trending-title">Trending in Uganda</div><div class="trending-scroll">';
+    const trendingItems = [
+      { title: 'Tweyagale', artist: 'Eddy Kenzo' },
+      { title: 'Chips Na Ketchup', artist: 'Vinka' },
+      { title: 'Beera Nange', artist: 'Sheebah' },
+      { title: 'Sunday', artist: 'Eddy Kenzo ft Martha' },
+      { title: 'Semyekozo', artist: 'Eddy Kenzo' },
+      { title: 'Jambole', artist: 'John Blaq' },
+      { title: 'Eroina', artist: 'Alan Walker' },
+      { title: 'Weekend', artist: 'Sheebah ft Runtown' },
+    ];
+    trendingItems.forEach(t => {
+      downloadContent.innerHTML += '<div class="trending-card" data-query="' + escapeHtml(t.title + ' ' + t.artist) + '"><div class="trending-thumb"><div style="background:#333;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;">Music</div></div><div class="trending-name">' + escapeHtml(t.title) + '</div><div class="trending-meta">' + escapeHtml(t.artist) + '</div></div>';
+    });
     downloadContent.innerHTML += '</div></div>';
+    document.querySelectorAll('.trending-card').forEach(card => {
+      card.addEventListener('click', function () {
+        const q = this.dataset.query;
+        searchInput.value = q;
+        search(q);
+      });
+    });
     showRecentSearches();
   }
 
   function showRecentSearches() {
     const history = getSearchHistory();
     if (history.length === 0) return;
-    downloadContent.innerHTML += '<div class="recent-searches"><div class="recent-title">Recent Searches</div>';
+    let html = '<div class="recent-searches"><div class="recent-title">Recent Searches</div>';
     history.slice(0, 5).forEach(q => {
-      downloadContent.innerHTML += '<div class="recent-item" data-query="' + escapeHtml(q) + '"><span class="recent-clock">🕐</span><span>' + escapeHtml(q) + '</span></div>';
+      html += '<div class="recent-item" data-query="' + escapeHtml(q) + '"><span class="recent-clock">History</span><span>' + escapeHtml(q) + '</span></div>';
     });
-    downloadContent.innerHTML += '</div>';
+    html += '</div>';
+    downloadContent.innerHTML += html;
     document.querySelectorAll('.recent-item').forEach(item => {
       item.addEventListener('click', function () {
         const q = this.dataset.query;
@@ -370,18 +496,14 @@ const DownloadPage = (function () {
   function handleVoice() {
     const btn = document.getElementById('btn-voice');
     btn.classList.add('listening');
-    setTimeout(() => {
-      btn.classList.remove('listening');
-      searchInput.value = 'Voice search demo';
-      search('Voice search demo');
-    }, 2000);
+    setTimeout(() => { btn.classList.remove('listening'); searchInput.value = 'Voice search demo'; search('Voice search demo'); }, 2000);
   }
 
   function checkClipboard() {
     setTimeout(() => {
       const toast = document.createElement('div');
       toast.className = 'clipboard-toast';
-      toast.textContent = '📋 YouTube link detected — tap to download';
+      toast.textContent = 'YouTube link detected - tap to download';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 3000);
     }, 1500);

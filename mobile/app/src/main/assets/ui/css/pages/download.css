@@ -30,3 +30,10 @@
 @keyframes spin{to{transform:rotate(360deg)}}
 .clipboard-toast{position:fixed;bottom:calc(var(--bottom-nav-height) + var(--space-md));left:50%;transform:translateX(-50%);background-color:var(--color-surface);color:var(--color-text-primary);padding:var(--space-sm) var(--space-md);border-radius:var(--radius-full);font-size:var(--font-size-sm);box-shadow:0 4px 12px rgba(0,0,0,0.3);z-index:300;white-space:nowrap;animation:slideUp 0.3s ease}
 @keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.more-platforms{display:flex;flex-direction:column;padding:var(--space-sm) 0}
+.more-platform-item{display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);border-bottom:1px solid var(--color-divider);cursor:pointer}
+.more-platform-item:active{background-color:var(--color-surface-hover)}
+.platform-icon{font-size:1.5rem;width:40px;text-align:center;flex-shrink:0}
+.platform-info{flex:1;display:flex;flex-direction:column}
+.platform-name{font-size:var(--font-size-sm);font-weight:500;color:var(--color-text-primary)}
+.platform-status{font-size:var(--font-size-xs);color:var(--color-text-secondary)}
