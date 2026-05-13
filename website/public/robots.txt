@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://media-vault-website.vercel.app/sitemap.xml
