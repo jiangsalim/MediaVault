@@ -7,7 +7,10 @@ export default function Layout({ children }) {
     <>
       <header className="header">
         <div className="container">
-          <Link href="/" className="logo">⬇ MediaVault</Link>
+          <Link href="/" style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+            <img src="/logo.svg" alt="MediaVault" style={{height:32,width:32}} />
+            <span style={{fontSize:22,fontWeight:800,color:'#fff'}}>Media<span style={{color:'#FF0000'}}>Vault</span></span>
+          </Link>
           <form className="search-bar" onSubmit={handleSearch}>
             <input type="text" name="q" placeholder="Search songs, artists..." />
             <button type="submit">🔍</button>
