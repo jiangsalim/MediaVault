@@ -24,33 +24,39 @@ export default function Layout({ children }) {
         </div>
       </header>
       <main className="container">{children}</main>
-      <footer style={{borderTop:'1px solid #e5e5e5',marginTop:60,padding:'40px 0',display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:32,maxWidth:1100,margin:'60px auto 0',padding:'40px 20px'}}>
-        <div>
-          <h4 style={{fontSize:14,fontWeight:700,marginBottom:12}}>MediaVault</h4>
-          <p style={{fontSize:13,color:'#888',lineHeight:1.6}}>Free music downloads from YouTube, Spotify, TikTok & more. Built in Uganda for East Africa.</p>
-        </div>
-        <div>
-          <h4 style={{fontSize:14,fontWeight:700,marginBottom:12}}>Platforms</h4>
-          <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-            <a href="#" title="YouTube" style={{fontSize:20,opacity:0.7}}>▶️</a>
-            <a href="#" title="Spotify" style={{fontSize:20,opacity:0.7}}>🟢</a>
-            <a href="#" title="TikTok" style={{fontSize:20,opacity:0.7}}>🎵</a>
-            <a href="#" title="Instagram" style={{fontSize:20,opacity:0.7}}>📷</a>
+      <footer style={{borderTop:'1px solid #e5e5e5',marginTop:60,padding:'40px 0'}}>
+        <div style={{maxWidth:1100,margin:'0 auto',padding:'0 20px',display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:32}}>
+          <div>
+            <h4 style={{fontSize:14,fontWeight:700,marginBottom:12,color:'#1a1a1a'}}>MediaVault</h4>
+            <p style={{fontSize:13,color:'#888',lineHeight:1.6}}>Free music downloads from YouTube, Spotify, TikTok & more. Built in Uganda for East Africa.</p>
+            <div style={{display:'flex',gap:10,marginTop:14}}>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="YouTube">▶</a>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="Spotify">🟢</a>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="TikTok">🎵</a>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="Instagram">📷</a>
+            </div>
           </div>
-        </div>
-        <div>
-          <h4 style={{fontSize:14,fontWeight:700,marginBottom:12}}>Links</h4>
-          <Link href="/search" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>Search</Link>
-          <Link href="/about" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>About</Link>
-          <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" style={{display:'block',fontSize:13,color:'#888'}}>Get App</a>
-        </div>
-        <div>
-          <h4 style={{fontSize:14,fontWeight:700,marginBottom:12}}>Contact</h4>
-          <a href="mailto:jaingsalim@gmail.com" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>Email</a>
-          <p style={{fontSize:13,color:'#888'}}>Jinja, Uganda</p>
-        </div>
-        <div style={{gridColumn:'1/-1',textAlign:'center',paddingTop:20,borderTop:'1px solid #f0f0f0',fontSize:13,color:'#aaa'}}>
-          © 2026 MediaVault. Free Music Downloads for East Africa.
+          <div>
+            <h4 style={{fontSize:14,fontWeight:700,marginBottom:12,color:'#1a1a1a'}}>Platforms</h4>
+            <a href="#" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>YouTube</a>
+            <a href="#" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>Spotify</a>
+            <a href="#" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>TikTok</a>
+            <a href="#" style={{display:'block',fontSize:13,color:'#888'}}>Instagram</a>
+          </div>
+          <div>
+            <h4 style={{fontSize:14,fontWeight:700,marginBottom:12,color:'#1a1a1a'}}>Links</h4>
+            <Link href="/search" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>Search</Link>
+            <Link href="/about" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>About</Link>
+            <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" style={{display:'block',fontSize:13,color:'#888'}}>Get App</a>
+          </div>
+          <div>
+            <h4 style={{fontSize:14,fontWeight:700,marginBottom:12,color:'#1a1a1a'}}>Contact</h4>
+            <a href="mailto:jaingsalim@gmail.com" style={{display:'block',fontSize:13,color:'#888',marginBottom:6}}>Email</a>
+            <p style={{fontSize:13,color:'#888'}}>Jinja, Uganda</p>
+          </div>
+          <div style={{gridColumn:'1/-1',textAlign:'center',paddingTop:20,borderTop:'1px solid #f0f0f0',fontSize:13,color:'#aaa'}}>
+            © 2026 MediaVault. Free Music Downloads for East Africa.
+          </div>
         </div>
       </footer>
     </>
