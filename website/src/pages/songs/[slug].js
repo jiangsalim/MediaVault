@@ -1,60 +1,60 @@
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
-import { getSongSEO } from '../../lib/seo';
+import { downloadAudio } from '../../lib/api';
 
-export default function SongPage({ song }) {
-  const seo = getSongSEO(song);
+export default function SongPage() {
+  const router = useRouter();
+  const { slug } = router.query;
+  const [format, setFormat] = useState('mp3-128');
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const url = 'https://youtube.com/watch?v=' + slug;
+      const blob = await downloadAudio(url, 'mp3');
+      const downloadUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = (slug||'song')+'.mp3';
+      a.click();
+    } catch(e) { alert('Download failed. Please try again.'); }
+    setDownloading(false);
+  };
+
   return (
     <Layout>
-      <Head>
-        <title>{seo.title}</title>
-        <meta name="description" content={seo.description} />
-      </Head>
-      <div className="container" style={{padding:'40px 0'}}>
-        <Link href="/" style={{color:'#999',fontSize:14}}>← Back to Home</Link>
-        <div style={{textAlign:'center',padding:'40px 0'}}>
-          <div style={{fontSize:'5rem',marginBottom:20}}>🎵</div>
-          <h1 style={{fontSize:28,marginBottom:8}}>{song.title}</h1>
-          <p style={{fontSize:18,color:'#999',marginBottom:16}}>{song.artist}</p>
-          <div style={{display:'flex',gap:16,justifyContent:'center',marginBottom:24,color:'#666',fontSize:14}}>
-            <span>{song.genre}</span><span>{song.duration}</span><span>{song.size}</span>
-          </div>
-          <div style={{background:'#2A2A2A',borderRadius:12,padding:24,maxWidth:400,margin:'0 auto',textAlign:'left'}}>
-            <p style={{fontWeight:600,marginBottom:16}}>Download Options:</p>
-            <label style={{display:'flex',alignItems:'center',gap:12,padding:'12px 0',borderBottom:'1px solid #333',cursor:'pointer'}}>
-              <input type="radio" name="quality" defaultChecked style={{accentColor:'#FF0000'}} /> MP3 128kbps - 3.5 MB (Standard)
-            </label>
-            <label style={{display:'flex',alignItems:'center',gap:12,padding:'12px 0',borderBottom:'1px solid #333',cursor:'pointer'}}>
-              <input type="radio" name="quality" style={{accentColor:'#FF0000'}} /> MP3 256kbps - 7.8 MB (High Quality)
-            </label>
-            <label style={{display:'flex',alignItems:'center',gap:12,padding:'12px 0',cursor:'pointer'}}>
-              <input type="radio" name="quality" style={{accentColor:'#FF0000'}} /> M4A 128kbps - 3.5 MB (Fast)
-            </label>
-          </div>
-          <button className="btn btn-primary btn-block" style={{maxWidth:400,margin:'20px auto',fontSize:18,padding:'16px'}}>⬇ Download Now</button>
+      <Head><title>Download MP3 | MediaVault</title></Head>
+      <Link href="/" className="back-btn" style={{display:'inline-flex',marginTop:16}}>← Back</Link>
+      <div className="download-card">
+        <div className="dl-icon">🎵</div>
+        <h2>{slug ? slug.replace(/-/g,' ').replace(/\b\w/g,l=>l.toUpperCase()) : 'Song'}</h2>
+        <p className="dl-artist">MP3 Download</p>
+        <div>
+          <label className={'quality-option'+(format==='mp3-128'?' selected':'')}>
+            <input type="radio" name="fmt" checked={format==='mp3-128'} onChange={()=>setFormat('mp3-128')} />
+            <div className="q-info"><div className="q-name">MP3 128kbps</div><div className="q-size">Standard quality · ~3.5 MB</div></div>
+          </label>
+          <label className={'quality-option'+(format==='mp3-256'?' selected':'')}>
+            <input type="radio" name="fmt" checked={format==='mp3-256'} onChange={()=>setFormat('mp3-256')} />
+            <div className="q-info"><div className="q-name">MP3 256kbps</div><div className="q-size">High quality · ~7.8 MB</div></div>
+          </label>
+          <label className={'quality-option'+(format==='m4a-128'?' selected':'')}>
+            <input type="radio" name="fmt" checked={format==='m4a-128'} onChange={()=>setFormat('m4a-128')} />
+            <div className="q-info"><div className="q-name">M4A 128kbps</div><div className="q-size">Fast download · ~3.5 MB</div></div>
+          </label>
         </div>
-        <div className="app-banner">
-          <h2>📱 Want videos too?</h2>
-          <p>Get the MediaVault app for video downloads, WhatsApp status saver, private vault, and more!</p>
-          <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" className="btn" style={{background:'#fff',color:'#FF0000',fontSize:18,padding:'14px 32px'}}>Get MediaVault App - Free</a>
-        </div>
+        <button className="btn btn-primary btn-block btn-lg" onClick={handleDownload} disabled={downloading}>
+          {downloading ? 'Downloading...' : '⬇ Download MP3'}
+        </button>
+      </div>
+      <div className="app-banner" style={{marginTop:30}}>
+        <div className="app-banner-text"><h3>📱 Want videos too?</h3><p>Get the app for video downloads, WhatsApp status saver & more</p></div>
+        <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" className="btn">Get App — Free</a>
       </div>
     </Layout>
   );
-}
-
-export async function getServerSideProps({ params }) {
-  const slug = params.slug.replace(/-/g, ' ');
-  return {
-    props: {
-      song: {
-        title: slug.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        artist: 'Artist Name',
-        genre: 'Afrobeat',
-        duration: '3:35',
-        size: '3.5 MB',
-      }
-    }
-  };
 }
