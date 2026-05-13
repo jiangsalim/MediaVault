@@ -1,9 +1,0 @@
-{
-  "version": "1.0.0",
-  "versionCode": 1,
-  "apkUrl": "https://apkpure.com/mediavault/download",
-  "apkSizeBytes": 8500000,
-  "changelog": "Initial release - Download videos & music, WhatsApp status saver, Private vault, Phone tools",
-  "isMandatory": false,
-  "minAndroidVersion": 7
-}
