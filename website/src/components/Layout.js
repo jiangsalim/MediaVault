@@ -5,19 +5,21 @@ export default function Layout({ children }) {
   const handleSearch = (e) => { e.preventDefault(); const q = e.target.q.value; if(q) router.push('/search?q='+encodeURIComponent(q)); };
   return (
     <>
-      <header className="header">
-        <div className="container">
-          <Link href="/" style={{display:'flex',alignItems:'center',gap:8}}>
-            <img src="/logo.svg" alt="" style={{height:28,width:28}} />
-            <span className="logo-text">Media<span>Vault</span></span>
+      <header style={{background:'#fff',borderBottom:'1px solid #eee',padding:'24px 0 16px',textAlign:'center'}}>
+        <div style={{maxWidth:1100,margin:'0 auto',padding:'0 20px'}}>
+          <Link href="/" style={{display:'inline-block',marginBottom:12}}>
+            <img src="/logo.svg" alt="MediaVault" style={{height:48,width:48}} />
           </Link>
-          <form className="search-bar" onSubmit={handleSearch}>
-            <input type="text" name="q" placeholder="Search songs, artists..." />
-            <button type="submit">🔍</button>
+          <Link href="/" style={{display:'block',fontSize:24,fontWeight:800,color:'#1a1a1a',marginBottom:16}}>
+            Media<span style={{color:'#e53935'}}>Vault</span>
+          </Link>
+          <form className="search-bar" onSubmit={handleSearch} style={{maxWidth:500,margin:'0 auto',display:'flex',alignItems:'center',background:'#f5f5f5',border:'1px solid #e0e0e0',borderRadius:24,padding:'8px 16px'}}>
+            <input type="text" name="q" placeholder="Search songs, artists..." style={{flex:1,background:'none',border:'none',fontSize:15,outline:'none',color:'#1a1a1a'}} />
+            <button type="submit" style={{background:'none',border:'none',fontSize:18,cursor:'pointer',color:'#666'}}>🔍</button>
           </form>
-          <div className="nav-right">
-            <Link href="/search">Browse</Link>
-            <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" className="btn-app">Get App</a>
+          <div style={{marginTop:12,display:'flex',justifyContent:'center',gap:20}}>
+            <Link href="/search" style={{color:'#555',fontSize:14,fontWeight:500}}>Browse</Link>
+            <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" style={{background:'#e53935',color:'#fff',padding:'6px 16px',borderRadius:20,fontSize:13,fontWeight:600}}>Get App</a>
           </div>
         </div>
       </header>
@@ -29,15 +31,11 @@ export default function Layout({ children }) {
         </div>
         <div>
           <h4>Platforms</h4>
-          <a href="#">YouTube</a>
-          <a href="#">Spotify</a>
-          <a href="#">TikTok</a>
-          <a href="#">Instagram</a>
+          <a href="#">YouTube</a><a href="#">Spotify</a><a href="#">TikTok</a><a href="#">Instagram</a>
         </div>
         <div>
           <h4>Links</h4>
-          <Link href="/search">Search</Link>
-          <Link href="/about">About</Link>
+          <Link href="/search">Search</Link><Link href="/about">About</Link>
           <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener">Get App</a>
         </div>
         <div>
@@ -45,9 +43,7 @@ export default function Layout({ children }) {
           <a href="mailto:jaingsalim@gmail.com">Email</a>
           <p>Jinja, Uganda</p>
         </div>
-        <div className="footer-bottom">
-          © 2026 MediaVault. Free Music Downloads for East Africa.
-        </div>
+        <div className="footer-bottom">© 2026 MediaVault. Free Music Downloads for East Africa.</div>
       </footer>
     </>
   );
