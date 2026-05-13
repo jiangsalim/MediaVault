@@ -5,17 +5,41 @@ export default function Layout({ children }) {
       <header className="header">
         <div className="container">
           <Link href="/" className="logo">⬇ MediaVault</Link>
-          <div className="search-bar">
-            <input type="text" placeholder="Search for songs..." id="searchInput" onKeyDown={(e) => { if (e.key === 'Enter') window.location.href = '/search?q=' + encodeURIComponent(e.target.value); }} />
-            <button onClick={() => { const q = document.getElementById('searchInput').value; if (q) window.location.href = '/search?q=' + encodeURIComponent(q); }}>🔍</button>
-          </div>
+          <nav className="nav-links">
+            <Link href="/search">Search Music</Link>
+            <Link href="/trending">Trending</Link>
+            <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener">Get the App</a>
+          </nav>
         </div>
       </header>
       <main>{children}</main>
       <footer className="footer">
         <div className="container">
-          <p>© 2026 MediaVault · <Link href="/about">About</Link> · <Link href="/feedback">Feedback</Link></p>
-          <p style={{marginTop:4}}>Free music downloads from Uganda and East Africa</p>
+          <div className="footer-grid">
+            <div className="footer-col">
+              <h4>MediaVault</h4>
+              <p style={{color:'#999',fontSize:14}}>Free music downloads from YouTube, Spotify, TikTok & more. Built in Uganda for East Africa.</p>
+            </div>
+            <div className="footer-col">
+              <h4>Platforms</h4>
+              <a href="#">YouTube</a>
+              <a href="#">Spotify</a>
+              <a href="#">TikTok</a>
+              <a href="#">Instagram</a>
+            </div>
+            <div className="footer-col">
+              <h4>Links</h4>
+              <Link href="/about">About</Link>
+              <Link href="/search">Search</Link>
+              <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener">Get the App</a>
+            </div>
+            <div className="footer-col">
+              <h4>Contact</h4>
+              <a href="mailto:jaingsalim@gmail.com">jaingsalim@gmail.com</a>
+              <p style={{color:'#999',fontSize:14}}>Jinja, Uganda</p>
+            </div>
+          </div>
+          <p>© 2026 MediaVault. Free Music Downloads for East Africa.</p>
         </div>
       </footer>
     </>
