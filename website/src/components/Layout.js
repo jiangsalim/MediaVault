@@ -51,8 +51,10 @@ export default function Layout({ children }) {
           </div>
           <div style={{flex:'1 1 120px',minWidth:100}}>
             <h4 style={{fontSize:13,fontWeight:700,marginBottom:8,color:'#1a1a1a'}}>Contact</h4>
-            <a href="mailto:jaingsalim@gmail.com" style={{display:'block',fontSize:12,color:'#888',marginBottom:4}}>Email</a>
-            <a href="https://herman-software-website.vercel.app" target="_blank" rel="noopener" style={{display:'block',fontSize:12,color:'#888',marginBottom:4}}>Website</a>
+
+<a href="mailto:jaingsalim@gmail.com" style="display:block;fontSize:12;color:#888;marginBottom:4">Email</a>
+<a href="https://herman-software-website.vercel.app" target="_blank" rel="noopener" style="display:block;fontSize:12;color:#888;marginBottom:4">Website</a>
+<p style="fontSize:12;color:#888">Jinja, Uganda</p>
             <p style={{fontSize:12,color:'#888'}}>Jinja, Uganda</p>
           </div>
         </div>
