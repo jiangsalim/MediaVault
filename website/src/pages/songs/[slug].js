@@ -1,17 +1,15 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import Layout from '../../components/Layout';
-import { getSongSEO, getSongSchema } from '../../lib/seo';
+import { getSongSEO } from '../../lib/seo';
 
 export default function SongPage({ song }) {
   const seo = getSongSEO(song);
-  const schema = getSongSchema(song);
   return (
     <Layout>
       <Head>
         <title>{seo.title}</title>
         <meta name="description" content={seo.description} />
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
       </Head>
       <div className="container" style={{padding:'40px 0'}}>
         <Link href="/" style={{color:'#999',fontSize:14}}>← Back to Home</Link>
