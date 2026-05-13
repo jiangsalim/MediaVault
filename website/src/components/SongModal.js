@@ -4,19 +4,10 @@ import { getRelatedSongs } from '../lib/api';
 export default function SongModal({ song, onClose }) {
   const [related, setRelated] = useState([]);
   const [loadingRelated, setLoadingRelated] = useState(true);
-  const [selectedFormat, setSelectedFormat] = useState('mp3');
 
   function thumb(id) { return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`; }
   function dur(s) { if(!s)return''; const m=Math.floor(s/60),sec=Math.floor(s%60); return m+':'+String(sec).padStart(2,'0'); }
   function vw(n) { if(!n)return''; if(n>=1e6)return (n/1e6).toFixed(1)+'M views'; if(n>=1e3)return (n/1e3).toFixed(0)+'K views'; return n+' views'; }
-
-  // Calculate estimated file size based on duration and format
-  function estimateSize(durationSec, bitrate) {
-    if (!durationSec) return '';
-    const bits = durationSec * bitrate * 1000;
-    const mb = bits / (8 * 1024 * 1024);
-    return mb.toFixed(1) + ' MB';
-  }
 
   useEffect(() => {
     if (!song) return;
@@ -30,44 +21,44 @@ export default function SongModal({ song, onClose }) {
   if (!song) return null;
 
   const durationSec = song.duration || 180;
-  const formats = [
-    { id: 'mp3-128', label: 'MP3 128kbps', bitrate: 128, quality: 'Standard', size: estimateSize(durationSec, 128) },
-    { id: 'mp3-192', label: 'MP3 192kbps', bitrate: 192, quality: 'Good', size: estimateSize(durationSec, 192) },
-    { id: 'mp3-256', label: 'MP3 256kbps', bitrate: 256, quality: 'High', size: estimateSize(durationSec, 256) },
-    { id: 'mp3-320', label: 'MP3 320kbps', bitrate: 320, quality: 'Best', size: estimateSize(durationSec, 320) },
-    { id: 'm4a-128', label: 'M4A 128kbps', bitrate: 128, quality: 'Fast', size: estimateSize(durationSec, 128) },
-  ];
-
-  function getDownloadUrl(formatId) {
-    const youtubeUrl = `https://www.youtube.com/watch?v=${song.id}`;
-    const fmt = formatId.includes('m4a') ? 'm4a' : 'mp3';
-    return `https://mediavault-website-api.onrender.com/api/download/audio?url=${encodeURIComponent(youtubeUrl)}&format=${fmt}`;
-  }
 
   return (
     <div style={{position:'fixed',inset:0,zIndex:200,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
       <div style={{background:'#fff',borderRadius:16,maxWidth:550,width:'100%',maxHeight:'90vh',overflow:'auto',boxShadow:'0 20px 60px rgba(0,0,0,0.3)'}} onClick={e => e.stopPropagation()}>
-        <div style={{display:'flex',justifyContent:'flex-end',padding:'12px 16px 0'}}><button onClick={onClose} style={{width:32,height:32,borderRadius:'50%',border:'none',background:'#f0f0f0',fontSize:18,cursor:'pointer'}}>✕</button></div>
+        
+        <div style={{display:'flex',justifyContent:'flex-end',padding:'12px 16px 0'}}>
+          <button onClick={onClose} style={{width:32,height:32,borderRadius:'50%',border:'none',background:'#f0f0f0',fontSize:18,cursor:'pointer'}}>✕</button>
+        </div>
+
         <div style={{textAlign:'center',padding:'0 24px 20px'}}>
-          <div style={{width:200,height:112,borderRadius:10,overflow:'hidden',margin:'0 auto 16px',background:'#f0f0f0'}}><img src={thumb(song.id)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none'}} /></div>
+          <div style={{width:200,height:112,borderRadius:10,overflow:'hidden',margin:'0 auto 16px',background:'#f0f0f0'}}>
+            <img src={thumb(song.id)} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none'}} />
+          </div>
           <h2 style={{fontSize:20,fontWeight:700,marginBottom:4,lineHeight:1.3}}>{song.title}</h2>
           <p style={{color:'#888',fontSize:15,marginBottom:8}}>{song.artist}</p>
-          <div style={{display:'flex',gap:16,justifyContent:'center',fontSize:13,color:'#aaa'}}><span>{dur(durationSec)}</span><span>{vw(song.views)}</span></div>
+          <div style={{display:'flex',gap:16,justifyContent:'center',fontSize:13,color:'#aaa'}}>
+            <span>{dur(durationSec)}</span>
+            <span>{vw(song.views)}</span>
+          </div>
         </div>
-        <div style={{padding:'0 24px 20px'}}>
-          <div style={{background:'#fafafa',borderRadius:12,padding:16}}>
-            <p style={{fontWeight:600,fontSize:14,marginBottom:12}}>Download Options — {dur(durationSec)}</p>
-            {formats.map(f => (
-              <label key={f.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',marginBottom:6,borderRadius:8,cursor:'pointer',border:selectedFormat===f.id?'2px solid #e53935':'2px solid #eee',background:selectedFormat===f.id?'#fde8e8':'#fff'}}>
-                <input type="radio" name="fmt" checked={selectedFormat===f.id} onChange={()=>setSelectedFormat(f.id)} style={{accentColor:'#e53935'}} />
-                <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>{f.label}</div><div style={{fontSize:12,color:'#888'}}>{f.quality} quality · {f.size}</div></div>
-              </label>
-            ))}
-            <a href={getDownloadUrl(selectedFormat)} target="_blank" rel="noopener" style={{display:'block',width:'100%',marginTop:12,padding:'14px',borderRadius:8,fontWeight:600,fontSize:15,border:'none',cursor:'pointer',background:'#e53935',color:'#fff',textAlign:'center',textDecoration:'none'}}>
-              ⬇ Download {selectedFormat.toUpperCase()}
+
+        {/* App Download CTA */}
+        <div style={{padding:'0 24px 24px'}}>
+          <div style={{background:'linear-gradient(135deg,#e53935,#c5303c)',borderRadius:12,padding:24,textAlign:'center',color:'#fff'}}>
+            <div style={{fontSize:40,marginBottom:8}}>📱</div>
+            <h3 style={{fontSize:18,fontWeight:700,marginBottom:4}}>Get the App to Download</h3>
+            <p style={{fontSize:14,opacity:0.9,marginBottom:16,lineHeight:1.5}}>
+              Download this song and more — MP3, HD video, multiple qualities.<br/>
+              Free on APKPure. No registration needed.
+            </p>
+            <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" 
+              style={{display:'inline-block',background:'#fff',color:'#e53935',padding:'14px 32px',borderRadius:8,fontWeight:700,fontSize:15,textDecoration:'none'}}>
+              Get MediaVault — Free
             </a>
           </div>
         </div>
+
+        {/* Related Songs */}
         <div style={{borderTop:'1px solid #eee',padding:'20px 24px'}}>
           <h3 style={{fontSize:16,fontWeight:700,marginBottom:12}}>Related Songs</h3>
           {loadingRelated ? [1,2,3,4].map(i => <div key={i} style={{display:'flex',gap:10,marginBottom:8}}><div className="skeleton" style={{width:48,height:48,borderRadius:6}}></div><div style={{flex:1}}><div className="skeleton" style={{height:14,width:'80%',marginBottom:6}}></div><div className="skeleton" style={{height:12,width:'40%'}}></div></div></div>)
