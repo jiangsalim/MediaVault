@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/components/inputs.css">
   <link rel="stylesheet" href="css/components/cards.css">
   <link rel="stylesheet" href="css/pages/download.css">
+  <link rel="stylesheet" href="css/pages/music.css">
 </head>
 <body>
   <div id="app">
@@ -24,9 +25,7 @@
       </div>
       <div class="header-right">
         <button class="icon-button" id="btn-search-icon">🔍</button>
-        <button class="icon-button download-icon" id="btn-download-icon">
-          ⬇<span class="icon-badge"></span>
-        </button>
+        <button class="icon-button download-icon" id="btn-download-icon">⬇<span class="icon-badge"></span></button>
       </div>
     </header>
     <div class="platform-tabs">
@@ -43,28 +42,21 @@
     </div>
     <main id="main-content">
       <div id="page-container">
-        <section id="page-download" class="page active">
-          <div id="download-content"></div>
-        </section>
+        <section id="page-download" class="page active"><div id="download-content"></div></section>
         <section id="page-play" class="page">
           <div id="play-content">
             <div class="section-title">Downloaded</div>
-            <div style="text-align:center;padding:40px;color:var(--color-text-secondary);">
-              <div style="font-size:3rem;margin-bottom:12px;">📁</div>
-              <p>No downloads yet</p>
-            </div>
+            <div style="text-align:center;padding:40px;color:var(--color-text-secondary);"><div style="font-size:3rem;margin-bottom:12px;">📁</div><p>No downloads yet</p></div>
           </div>
         </section>
         <section id="page-settings" class="page">
           <div id="settings-content">
-            <div class="settings-section">
-              <div class="settings-section-title">General</div>
+            <div class="settings-section"><div class="settings-section-title">General</div>
               <div class="list-item"><span class="item-info"><span class="item-title">Download settings</span></span><span class="item-chevron">›</span></div>
               <div class="list-item"><span class="item-info"><span class="item-title">Notification settings</span></span><span class="item-chevron">›</span></div>
               <div class="list-item"><span class="item-info"><span class="item-title">Theme</span></span><span class="item-value">Dark</span><span class="item-chevron">›</span></div>
             </div>
-            <div class="settings-section">
-              <div class="settings-section-title">Download tools</div>
+            <div class="settings-section"><div class="settings-section-title">Download tools</div>
               <div class="list-item"><span class="item-info"><span class="item-title">Recover deleted files</span></span><span class="item-chevron">›</span></div>
               <div class="list-item"><span class="item-info"><span class="item-title">WhatsApp status saver</span></span><span class="item-chevron">›</span></div>
               <div class="list-item"><span class="item-info"><span class="item-title">Vault</span></span><span class="item-chevron">›</span></div>
