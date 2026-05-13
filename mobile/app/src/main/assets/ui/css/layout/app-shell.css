@@ -1,0 +1,38 @@
+#app{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh;max-width:100vw;overflow:hidden;background-color:var(--color-background)}
+#main-content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:var(--bottom-nav-height);-webkit-overflow-scrolling:touch}
+.page{display:none;padding:var(--space-md)}
+.page.active{display:block;animation:fadeIn var(--transition-normal)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:var(--font-size-xs);font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:0.05em;padding:var(--space-sm) var(--space-md);margin-top:var(--space-sm)}
+.list-item{display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);border-bottom:1px solid var(--color-divider)}
+.list-item:first-of-type{border-top:1px solid var(--color-divider)}
+.list-item .item-icon{font-size:1.2rem;width:24px;text-align:center;flex-shrink:0}
+.list-item .item-info{flex:1;min-width:0}
+.list-item .item-title{font-size:var(--font-size-sm);font-weight:500;color:var(--color-text-primary)}
+.list-item .item-meta{font-size:var(--font-size-xs);color:var(--color-text-secondary)}
+.list-item .item-value{font-size:var(--font-size-sm);color:var(--color-text-secondary);flex-shrink:0}
+.list-item .item-chevron{color:var(--color-text-tertiary);flex-shrink:0}
+.settings-section{margin-bottom:var(--space-lg)}
+.settings-section-title{font-size:var(--font-size-xs);font-weight:600;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:0.05em;padding:var(--space-md) var(--space-md) var(--space-sm)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--space-sm);padding:10px 20px;font-size:var(--font-size-sm);font-weight:600;border-radius:var(--radius-md);border:none;cursor:pointer;transition:all var(--transition-fast);min-height:44px}
+.btn-primary{background-color:var(--color-primary);color:#fff}
+.btn-primary:active{background-color:var(--color-primary-hover);transform:scale(0.97)}
+.btn-block{width:100%}
+.btn-lg{padding:14px 28px;font-size:var(--font-size-base);border-radius:var(--radius-lg)}
+.bottom-sheet-overlay{position:fixed;inset:0;z-index:200;background-color:rgba(0,0,0,0.5);opacity:0;visibility:hidden;transition:all var(--transition-normal)}
+.bottom-sheet-overlay.active{opacity:1;visibility:visible}
+.bottom-sheet{position:fixed;bottom:0;left:0;right:0;z-index:201;background-color:var(--color-surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform var(--transition-normal)}
+.bottom-sheet.active{transform:translateY(0)}
+.sheet-handle{width:36px;height:4px;background-color:var(--color-border);border-radius:var(--radius-full);margin:var(--space-sm) auto}
+.sheet-title{text-align:center;font-size:var(--font-size-base);font-weight:600;padding:var(--space-sm) var(--space-md) var(--space-md);color:var(--color-text-primary)}
+.sheet-body{padding:0 var(--space-md) var(--space-lg)}
+.format-section{margin-bottom:var(--space-lg)}
+.format-section-label{font-size:var(--font-size-xs);font-weight:600;color:var(--color-text-secondary);margin-bottom:var(--space-sm)}
+.format-option{display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) var(--space-md);border:2px solid var(--color-border);border-radius:var(--radius-md);margin-bottom:var(--space-xs);cursor:pointer;transition:all var(--transition-fast)}
+.format-option.selected{border-color:var(--color-primary);background-color:rgba(255,0,0,0.05)}
+.radio-circle{width:20px;height:20px;border:2px solid var(--color-border);border-radius:var(--radius-circle);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.format-option.selected .radio-circle{border-color:var(--color-primary)}
+.format-option.selected .radio-circle::after{content:'';width:10px;height:10px;background-color:var(--color-primary);border-radius:var(--radius-circle)}
+.format-info{flex:1}
+.format-name{font-size:var(--font-size-sm);font-weight:500;color:var(--color-text-primary)}
+.format-size{font-size:var(--font-size-xs);color:var(--color-text-secondary)}

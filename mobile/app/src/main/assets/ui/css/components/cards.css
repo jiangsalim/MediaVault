@@ -1,0 +1,11 @@
+.video-card{display:flex;gap:var(--space-sm);padding:var(--space-sm);cursor:pointer}
+.video-card:active{background-color:var(--color-surface-hover)}
+.video-card .thumb-wrap{position:relative;width:120px;min-width:120px;aspect-ratio:16/9;border-radius:var(--radius-sm);overflow:hidden;background-color:var(--color-surface)}
+.video-card .thumb-wrap img{width:100%;height:100%;object-fit:cover}
+.video-card .duration{position:absolute;bottom:4px;right:4px;padding:1px 5px;font-size:10px;font-weight:600;color:#fff;background-color:rgba(0,0,0,0.8);border-radius:4px}
+.video-card .video-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:2px 0}
+.video-card .video-title{font-size:var(--font-size-sm);font-weight:500;color:var(--color-text-primary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.video-card .video-meta{font-size:var(--font-size-xs);color:var(--color-text-secondary)}
+.video-card .download-arrow{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:var(--radius-circle);font-size:1.2rem;color:var(--color-text-secondary);flex-shrink:0}
+.video-card .download-arrow:active{background-color:var(--color-surface-hover);color:var(--color-primary)}
+.downloaded-indicator{color:var(--color-success);font-size:0.8rem}

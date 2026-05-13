@@ -1,0 +1,10 @@
+#app-header{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;height:var(--header-height);padding:0 var(--space-md);background-color:var(--color-background);border-bottom:1px solid var(--color-divider)}
+.header-left{display:flex;align-items:center;gap:var(--space-sm)}
+.header-right{display:flex;align-items:center;gap:var(--space-xs)}
+.app-logo{font-size:var(--font-size-lg);font-weight:700;color:var(--color-text-primary)}
+.icon-button{display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:var(--radius-circle);font-size:1.25rem;color:var(--color-text-primary)}
+.icon-button:active{background-color:var(--color-surface-hover)}
+.hamburger-btn{font-size:1.5rem}
+.download-icon{position:relative}
+.download-icon .icon-badge{position:absolute;top:-2px;right:-4px;width:16px;height:16px;background-color:var(--color-primary);border-radius:var(--radius-circle);display:flex;align-items:center;justify-content:center}
+.download-icon .icon-badge::after{content:'';width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #fff}
