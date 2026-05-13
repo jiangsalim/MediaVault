@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="css/components/inputs.css">
   <link rel="stylesheet" href="css/components/cards.css">
   <link rel="stylesheet" href="css/components/hamburger.css">
+  <link rel="stylesheet" href="css/components/system.css">
   <link rel="stylesheet" href="css/pages/download.css">
   <link rel="stylesheet" href="css/pages/music.css">
   <link rel="stylesheet" href="css/pages/play.css">
@@ -23,6 +24,7 @@
 </head>
 <body>
   <div id="app">
+    <div class="offline-banner" id="offline-banner">⚠ No internet connection</div>
     <header id="app-header"><div class="header-left"><button class="icon-button hamburger-btn" id="btn-hamburger">☰</button><span class="app-logo">MediaVault</span></div><div class="header-right"><button class="icon-button" id="btn-search-icon">🔍</button><button class="icon-button download-icon" id="btn-download-icon">⬇<span class="icon-badge"></span></button></div></header>
     <div class="platform-tabs"><button class="tab-chip active">All</button><button class="tab-chip">YouTube</button><button class="tab-chip">Music</button><button class="tab-chip">More</button><button class="tab-chip">Sub</button></div>
     <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Search or paste URL..." autocomplete="off"><button class="voice-search-btn" id="btn-voice">🎤</button></div>
@@ -42,6 +44,7 @@
   <script src="js/config.js"></script>
   <script src="js/core/router.js"></script>
   <script src="js/ui/hamburger.js"></script>
+  <script src="js/ui/system.js"></script>
   <script src="js/pages/download.js"></script>
   <script src="js/pages/play.js"></script>
   <script src="js/pages/settings.js"></script>
