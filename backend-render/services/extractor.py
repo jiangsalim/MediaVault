@@ -1,27 +1,24 @@
-import io
 import yt_dlp
 import httpx
+import io
 
 async def extract_audio(url: str, format: str = "mp3"):
     ydl_opts = {
         'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': format,
-            'preferredquality': '128',
-        }],
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
         'ignoreerrors': True,
-        'no_color': True,
+        'extract_flat': False,
+        'geo_bypass': True,
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+            title = info.get('title', 'audio')[:50]
+            safe_title = "".join(c for c in title if c.isalnum() or c in ' _-').strip()
+            filename = f"{safe_title}.{format}"
             audio_url = info.get('url', '')
-            title = info.get('title', 'audio')
-            filename = f"{title[:50]}.{format}"
             if not audio_url:
                 formats = info.get('formats', [])
                 for f in formats:
@@ -29,14 +26,22 @@ async def extract_audio(url: str, format: str = "mp3"):
                         audio_url = f.get('url', '')
                         break
             if not audio_url:
-                raise Exception("No audio URL found")
-            async with httpx.AsyncClient(timeout=30) as client:
+                formats = info.get('formats', [])
+                for f in formats:
+                    if f.get('url'):
+                        audio_url = f.get('url', '')
+                        break
+            if not audio_url:
+                raise Exception("Cannot extract audio URL - video may be restricted")
+            async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
                 response = await client.get(audio_url)
+                if response.status_code != 200:
+                    raise Exception(f"Download failed with status {response.status_code}")
                 audio_bytes = io.BytesIO(response.content)
             mime_type = "audio/mpeg" if format == "mp3" else "audio/mp4"
             return audio_bytes, filename, mime_type
     except Exception as e:
-        raise e
+        raise Exception(f"Audio extraction failed: {str(e)}")
 
 async def get_audio_stream(video_id: str):
     url = f"https://www.youtube.com/watch?v={video_id}"
@@ -45,18 +50,10 @@ async def get_audio_stream(video_id: str):
         'quiet': True,
         'no_warnings': True,
         'nocheckcertificate': True,
-        'ignoreerrors': True,
     }
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
-            audio_url = info.get('url', '')
-            if not audio_url:
-                formats = info.get('formats', [])
-                for f in formats:
-                    if f.get('acodec') != 'none' and f.get('vcodec') == 'none':
-                        audio_url = f.get('url', '')
-                        break
-            return audio_url
+            return info.get('url', '')
     except:
         return ''

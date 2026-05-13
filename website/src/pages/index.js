@@ -13,39 +13,54 @@ export default function Home() {
   const [selectedSong, setSelectedSong] = useState(null);
 
   const genreList = ['Gospel','Dancehall','Afrobeat','Hip Hop','Reggae','Bongo Flava','Zouk','R&B','Amapiano','Singeli'];
-  const allQueries = [
-    'Eddy Kenzo','Sheebah','John Blaq','Vinka','Spice Diana','David Lutalo',
-    'Rema Namakula','Bebe Cool','Chameleone','Juliana Kanyomozi','A Pass','Lydia Jazmine',
-    'Fik Fameica','Winnie Nwagi','Karole Kasita','Azawi','Pallaso','King Saha',
-    'new ugandan music','latest uganda songs','ugandan hits 2026'
-  ];
 
   useEffect(() => {
-    // Randomly pick different queries each page load
-    const shuffled = [...allQueries].sort(() => Math.random() - 0.5);
-    const trendingPicks = shuffled.slice(0, 5);
-    const newReleasePick = shuffled[Math.floor(Math.random() * shuffled.length)];
+    const trendingArtists = ['Eddy Kenzo','Sheebah','John Blaq','Vinka','Spice Diana'];
+    const newReleaseQueries = ['latest ugandan music 2026','new uganda songs this week','ugandan hits today','trending uganda music'];
 
-    Promise.all(trendingPicks.map(q => searchMusic(q))).then(tResults => {
-      const allTrending = tResults.flatMap(r => (r.data?.videos || []).slice(0, 3));
-      const trendingIds = new Set(allTrending.map(s => s.id));
+    Promise.all([
+      ...trendingArtists.map(q => searchMusic(q)),
+      searchMusic(newReleaseQueries[Math.floor(Math.random() * newReleaseQueries.length)])
+    ]).then(results => {
+      const tResults = results.slice(0, 5);
+      const nResult = results[5];
       
-      // Get new releases — ensure no overlap with trending
-      searchMusic(newReleasePick + ' ' + Date.now()).then(nResult => {
-        const newSongs = (nResult.data?.videos || []).filter(s => !trendingIds.has(s.id)).slice(0, 6);
-        setTrending(allTrending.slice(0, 8));
-        setNewReleases(newSongs);
-        
-        // Build artist cards with real data
-        const artistMap = {};
-        allTrending.forEach(s => {
-          if (s.artist && !artistMap[s.artist]) {
-            artistMap[s.artist] = { name: s.artist, songs: Math.floor(Math.random()*25)+5, image: `https://i.ytimg.com/vi/${s.id}/mqdefault.jpg`, id: s.id };
+      const allTrending = [];
+      const trendingIds = new Set();
+      tResults.forEach(r => {
+        (r.data?.videos || []).slice(0, 3).forEach(s => {
+          if (!trendingIds.has(s.id)) {
+            trendingIds.add(s.id);
+            allTrending.push(s);
           }
         });
-        setArtists(Object.values(artistMap).slice(0, 6));
-        setLoading(false);
       });
+
+      const newSongs = (nResult.data?.videos || [])
+        .filter(s => !trendingIds.has(s.id))
+        .slice(0, 6);
+
+      // If new releases is empty, use a backup query
+      if (newSongs.length === 0) {
+        searchMusic('brand new ugandan music 2026').then(backup => {
+          const backupSongs = (backup.data?.videos || [])
+            .filter(s => !trendingIds.has(s.id))
+            .slice(0, 6);
+          setNewReleases(backupSongs.length > 0 ? backupSongs : allTrending.slice(6, 12));
+        });
+      }
+
+      setTrending(allTrending.slice(0, 8));
+      setNewReleases(newSongs.length > 0 ? newSongs : allTrending.slice(6, 12));
+      
+      const artistMap = {};
+      allTrending.forEach(s => {
+        if (s.artist && !artistMap[s.artist]) {
+          artistMap[s.artist] = { name: s.artist, songs: Math.floor(Math.random()*25)+5, image: `https://i.ytimg.com/vi/${s.id}/mqdefault.jpg`, id: s.id };
+        }
+      });
+      setArtists(Object.values(artistMap).slice(0, 6));
+      setLoading(false);
     }).catch(() => setLoading(false));
   }, []);
 
@@ -60,21 +75,20 @@ export default function Home() {
         {genreList.map(g => <Link href={'/search?q='+g.toLowerCase()} key={g} style={{padding:'8px 18px',borderRadius:20,fontSize:13,fontWeight:500,background:'#f8f8f8',color:'#555',border:'1px solid #e8e8e8'}}>{g}</Link>)}
       </div>
       <div className="two-col">
-        <div className="section"><h2 className="section-title">🔥 Trending Now</h2><div className="song-list">
+        <div className="section"><h2 className="section-title">Trending Now</h2><div className="song-list">
           {loading ? Array.from({length:6}).map((_,i)=><div key={i} style={{display:'flex',gap:10,padding:'10px 0'}}><div className="skeleton" style={{width:48,height:48,borderRadius:6}}></div><div style={{flex:1}}><div className="skeleton" style={{height:14,width:'80%',marginBottom:6}}></div><div className="skeleton" style={{height:12,width:'40%'}}></div></div></div>)
           : trending.map((s,i)=><div key={s.id} className="song-row" onClick={()=>setSelectedSong(s)}><span className="song-num">{i+1}</span><div className="song-thumb"><img src={thumb(s.id)} alt="" onError={e=>{e.target.style.display='none'}}/></div><div className="song-info"><div className="song-name">{s.title}</div><div className="song-artist">{s.artist}</div></div><span className="song-meta">{dur(s.duration)}</span><span className="song-dl">⬇</span></div>)}
         </div></div>
-        <div className="section"><h2 className="section-title">🆕 New Releases</h2><div className="song-list">
+        <div className="section"><h2 className="section-title">New Releases</h2><div className="song-list">
           {loading ? Array.from({length:6}).map((_,i)=><div key={i} style={{display:'flex',gap:10,padding:'10px 0'}}><div className="skeleton" style={{width:48,height:48,borderRadius:6}}></div><div style={{flex:1}}><div className="skeleton" style={{height:14,width:'80%',marginBottom:6}}></div><div className="skeleton" style={{height:12,width:'40%'}}></div></div></div>)
           : newReleases.map(s=><div key={s.id} className="song-row" onClick={()=>setSelectedSong(s)}><div className="song-thumb"><img src={thumb(s.id)} alt="" onError={e=>{e.target.style.display='none'}}/></div><div className="song-info"><div className="song-name">{s.title}</div><div className="song-artist">{s.artist}</div></div><span className="song-meta">{dur(s.duration)}<br/>{vw(s.views)}</span><span className="song-dl">⬇</span></div>)}
         </div></div>
       </div>
-
-      <div className="section" style={{marginTop:20}}><h2 className="section-title">🎤 Top Artists</h2>
+      <div className="section" style={{marginTop:20}}><h2 className="section-title">Top Artists</h2>
         <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:12}}>
           {loading ? Array.from({length:6}).map((_,i)=><div key={i} style={{background:'#fafafa',borderRadius:10,padding:16,textAlign:'center'}}><div className="skeleton" style={{width:80,height:80,borderRadius:'50%',margin:'0 auto 8px'}}></div><div className="skeleton" style={{height:14,width:'70%',margin:'0 auto 6px'}}></div><div className="skeleton" style={{height:12,width:'40%',margin:'0 auto'}}></div></div>)
           : artists.map(a => (
-            <Link href={'/search?q='+encodeURIComponent(a.name)} key={a.name} style={{background:'#fafafa',borderRadius:12,padding:16,textAlign:'center',display:'block',cursor:'pointer',border:'1px solid #eee',transition:'all .15s'}}>
+            <Link href={'/search?q='+encodeURIComponent(a.name)} key={a.name} style={{background:'#fafafa',borderRadius:12,padding:16,textAlign:'center',display:'block',cursor:'pointer',border:'1px solid #eee'}}>
               <div style={{width:80,height:80,borderRadius:'50%',overflow:'hidden',margin:'0 auto 10px',background:'#f0f0f0'}}>
                 <img src={a.image} alt={a.name} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={e=>{e.target.style.display='none';e.target.parentElement.innerHTML='<div style=display:flex;align-items:center;justify-content:center;height:100%;font-size:28px;>🎤</div>'}} />
               </div>
@@ -84,7 +98,6 @@ export default function Home() {
           ))}
         </div>
       </div>
-
       <div className="app-banner"><div style={{flex:1}}><h3>Get the Full Experience</h3><p>The MediaVault app gives you everything the website offers, plus:</p><ul><li>Video downloads in HD (up to 4K)</li><li>WhatsApp Status Saver</li><li>Private Vault with PIN protection</li><li>Phone cleaning tools</li><li>Works offline</li></ul><a href="https://apkpure.com/mediavault" target="_blank" rel="noopener" className="btn btn-primary" style={{marginTop:16}}>Download on APKPure — Free</a></div></div>
       {selectedSong && <SongModal song={selectedSong} onClose={() => setSelectedSong(null)} />}
     </Layout>
