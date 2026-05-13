@@ -1,0 +1,17 @@
+# Android
+*.apk
+*.aab
+*.keystore
+*.jks
+build/
+.gradle/
+local.properties
+
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+
+# IDE
+.vscode/
+.idea/
