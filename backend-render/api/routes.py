@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from services.extractor import extract_audio, get_audio_stream
+from services.extractor import extract_audio, get_audio_stream, get_video_formats
 from services.search import search_music, get_trending
-import io
 
 router = APIRouter()
 
@@ -18,6 +17,15 @@ async def search(q: str = Query(...), platform: str = Query("youtube"), limit: i
         return {"success": True, "data": results}
     except Exception as e:
         return {"success": False, "error": str(e), "data": {"videos": []}}
+
+@router.get("/formats/{video_id}")
+async def get_formats(video_id: str):
+    """Get all available download formats with real file sizes."""
+    try:
+        formats = await get_video_formats(video_id)
+        return {"success": True, "data": {"video_id": video_id, "formats": formats}}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
 
 @router.get("/download/audio")
 async def download_audio_get(url: str = Query(...), format: str = Query("mp3")):
@@ -42,11 +50,6 @@ async def download_audio_post(request: DownloadRequest):
         )
     except Exception as e:
         return {"success": False, "error": str(e)}
-
-@router.get("/stream/{video_id}")
-async def stream_audio(video_id: str):
-    url = await get_audio_stream(video_id)
-    return {"success": True, "url": url}
 
 @router.get("/trending")
 async def trending(region: str = Query("UG")):

@@ -1,33 +1,42 @@
 import { useState, useEffect } from 'react';
-import { getRelatedSongs, getDownloadUrl } from '../lib/api';
+import { getRelatedSongs, getVideoFormats, getDownloadUrl } from '../lib/api';
 
 export default function SongModal({ song, onClose }) {
   const [related, setRelated] = useState([]);
   const [loadingRelated, setLoadingRelated] = useState(true);
-  const [format, setFormat] = useState('mp3');
+  const [formats, setFormats] = useState([]);
+  const [loadingFormats, setLoadingFormats] = useState(true);
+  const [selectedFormat, setSelectedFormat] = useState('');
 
   function thumb(id) { return `https://i.ytimg.com/vi/${id}/mqdefault.jpg`; }
   function dur(s) { if(!s)return''; const m=Math.floor(s/60),sec=Math.floor(s%60); return m+':'+String(sec).padStart(2,'0'); }
   function vw(n) { if(!n)return''; if(n>=1e6)return (n/1e6).toFixed(1)+'M views'; if(n>=1e3)return (n/1e3).toFixed(0)+'K views'; return n+' views'; }
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    if (bytes >= 1048576) return (bytes/1048576).toFixed(1) + ' MB';
+    if (bytes >= 1024) return (bytes/1024).toFixed(0) + ' KB';
+    return bytes + ' B';
+  }
 
   useEffect(() => {
     if (!song) return;
     setLoadingRelated(true);
+    setLoadingFormats(true);
+    
     getRelatedSongs(song.title, song.artist).then(data => {
       setRelated((data.data?.videos || []).filter(s => s.id !== song.id).slice(0, 8));
       setLoadingRelated(false);
     }).catch(() => setLoadingRelated(false));
+
+    getVideoFormats(song.id).then(data => {
+      const fmts = data.data?.formats || [];
+      setFormats(fmts);
+      if (fmts.length > 0) setSelectedFormat(fmts[0].id);
+      setLoadingFormats(false);
+    }).catch(() => setLoadingFormats(false));
   }, [song]);
 
   if (!song) return null;
-
-  const formats = [
-    {id:'mp3',name:'MP3 128kbps',size:'~3.5 MB',desc:'Standard quality'},
-    {id:'m4a',name:'M4A 128kbps',size:'~3.5 MB',desc:'Fast download'},
-    {id:'mp3-256',name:'MP3 256kbps',size:'~7.8 MB',desc:'High quality'},
-    {id:'mp3-320',name:'MP3 320kbps',size:'~10 MB',desc:'Best quality'},
-    {id:'m4a-64',name:'M4A 64kbps',size:'~1.8 MB',desc:'Data saver'},
-  ];
 
   return (
     <div style={{position:'fixed',inset:0,zIndex:200,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
@@ -42,13 +51,19 @@ export default function SongModal({ song, onClose }) {
         <div style={{padding:'0 24px 20px'}}>
           <div style={{background:'#fafafa',borderRadius:12,padding:16}}>
             <p style={{fontWeight:600,fontSize:14,marginBottom:12}}>Download Options:</p>
-            {formats.map(f => (
-              <label key={f.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',marginBottom:6,borderRadius:8,cursor:'pointer',border:format===f.id?'2px solid #e53935':'2px solid #eee',background:format===f.id?'#fde8e8':'#fff'}}>
-                <input type="radio" name="fmt" checked={format===f.id} onChange={()=>setFormat(f.id)} style={{accentColor:'#e53935'}} />
-                <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>{f.name}</div><div style={{fontSize:12,color:'#888'}}>{f.desc} · {f.size}</div></div>
+            {loadingFormats ? <p style={{color:'#888',fontSize:13,textAlign:'center',padding:20}}>Loading available formats...</p>
+            : formats.length === 0 ? <p style={{color:'#888',fontSize:13,textAlign:'center',padding:20}}>No formats available. Try another song.</p>
+            : formats.map(f => (
+              <label key={f.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 12px',marginBottom:6,borderRadius:8,cursor:'pointer',border:selectedFormat===f.id?'2px solid #e53935':'2px solid #eee',background:selectedFormat===f.id?'#fde8e8':'#fff'}}>
+                <input type="radio" name="fmt" checked={selectedFormat===f.id} onChange={()=>setSelectedFormat(f.id)} style={{accentColor:'#e53935'}} />
+                <div style={{flex:1}}><div style={{fontWeight:600,fontSize:14}}>{f.label}</div><div style={{fontSize:12,color:'#888'}}>{f.type === 'audio' ? 'Audio' : 'Video'} · {f.ext.toUpperCase()}{f.filesize ? ' · ' + formatSize(f.filesize) : ''}</div></div>
               </label>
             ))}
-            <a href={getDownloadUrl(song.id, format)} target="_blank" rel="noopener" style={{display:'block',width:'100%',marginTop:12,padding:'14px',borderRadius:8,fontWeight:600,fontSize:15,border:'none',cursor:'pointer',background:'#e53935',color:'#fff',textAlign:'center',textDecoration:'none'}}>⬇ Download Now</a>
+            {selectedFormat && (
+              <a href={getDownloadUrl(song.id, selectedFormat.split('_')[1] || 'mp3')} target="_blank" rel="noopener" style={{display:'block',width:'100%',marginTop:12,padding:'14px',borderRadius:8,fontWeight:600,fontSize:15,border:'none',cursor:'pointer',background:'#e53935',color:'#fff',textAlign:'center',textDecoration:'none'}}>
+                ⬇ Download Now
+              </a>
+            )}
           </div>
         </div>
         <div style={{borderTop:'1px solid #eee',padding:'20px 24px'}}>

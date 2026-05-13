@@ -11,6 +11,11 @@ export async function getRelatedSongs(title, artist) {
   return res.json();
 }
 
+export async function getVideoFormats(videoId) {
+  const res = await fetch(`${API_BASE}/formats/${videoId}`);
+  return res.json();
+}
+
 export function getDownloadUrl(videoId, format = 'mp3') {
   const url = `https://www.youtube.com/watch?v=${videoId}`;
   return `${API_BASE}/download/audio?url=${encodeURIComponent(url)}&format=${format}`;
