@@ -30,10 +30,10 @@ export default function Layout({ children }) {
             <h4 style={{fontSize:14,fontWeight:700,marginBottom:12,color:'#1a1a1a'}}>MediaVault</h4>
             <p style={{fontSize:13,color:'#888',lineHeight:1.6}}>Free music downloads from YouTube, Spotify, TikTok & more. Built in Uganda for East Africa.</p>
             <div style={{display:'flex',gap:10,marginTop:14}}>
-              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="YouTube">▶</a>
-              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="Spotify">🟢</a>
-              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="TikTok">🎵</a>
-              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:16,transition:'all .2s'}} title="Instagram">📷</a>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:14,fontWeight:700,transition:'all .2s'}} title="YouTube">▶</a>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:14,fontWeight:700,transition:'all .2s'}} title="Spotify">S</a>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:14,fontWeight:700,transition:'all .2s'}} title="TikTok">T</a>
+              <a href="#" style={{width:34,height:34,borderRadius:'50%',border:'1px solid #ddd',display:'flex',alignItems:'center',justifyContent:'center',color:'#888',fontSize:14,fontWeight:700,transition:'all .2s'}} title="Instagram">I</a>
             </div>
           </div>
           <div>
