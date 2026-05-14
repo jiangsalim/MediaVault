@@ -116,7 +116,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Bottom Bar */}
           <div className="border-t border-navy mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-            <p className="text-xs text-gray-medium">© {new Date().getFullYear()} MediaVault. Built by <a href="https://herman-software-website.vercel.app" target="_blank" rel="noopener noreferrer" className="text-teal hover:underline">HERMAN Software Solutions</a>.</p>
+            <p className="text-xs text-gray-medium">© {new Date().getFullYear()} MediaVault. Built by <a href="https://herman-software-website.vercel.app" target="_blank" rel="noopener noreferrer" className="text-teal hover:underline">HERMAN Software Solutions</a>. &nbsp;|&nbsp; <a href="/sitemap.xml" className="text-gray-medium hover:text-teal transition-colors">Sitemap</a></p>
           </div>
         </div>
       </footer>
