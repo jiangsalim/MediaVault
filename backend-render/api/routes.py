@@ -143,3 +143,27 @@ async def download_audio(video_id: str):
         return {"success": True, "fallback": True, "youtubeUrl": f"https://youtube.com/watch?v={video_id}"}
     except:
         return {"success": True, "fallback": True, "youtubeUrl": f"https://youtube.com/watch?v={video_id}"}
+
+@router.get("/suggest")
+async def suggest(q: str = Query(...)):
+    """Get search suggestions from YouTube"""
+    import httpx
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q={q}",
+                timeout=10
+            )
+            # Response is JSONP format: window.google.ac.h(["q", [...], ...])
+            text = resp.text
+            # Extract the array part
+            import json, re
+            match = re.search(r'\["([^"]+)",(\[.*?\]),', text)
+            if match:
+                suggestions = json.loads(match.group(2))
+                return {"success": True, "data": suggestions}
+    except:
+        pass
+    
+    return {"success": True, "data": []}
