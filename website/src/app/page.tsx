@@ -3,11 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/shared/Button";
-import { searchMusic } from "@/lib/api";
+import { searchMusic, getTrendingChannels } from "@/lib/api";
 
 const genreList = ['Gospel','Dancehall','Afrobeat','Hip Hop','Reggae','Bongo Flava','Zouk','R&B','Amapiano','Singeli'];
 
-// Generic popular music searches — YouTube returns trending based on region
 const trendingSearches = [
   'trending music', 'top hits', 'popular songs', 'best music',
   'viral songs', 'chart hits', 'most played', 'new hits',
@@ -25,68 +24,51 @@ export default function Home() {
     if (fetched.current) return;
     fetched.current = true;
 
-    // Shuffle and pick random queries each load
     const shuffled = [...trendingSearches].sort(() => Math.random() - 0.5);
-    const q1 = shuffled[0];
-    const q2 = shuffled[1];
+    Promise.all([
+      searchMusic(shuffled[0]),
+      searchMusic(shuffled[1]),
+      getTrendingChannels(),
+    ]).then(([r1, r2, channelsRes]) => {
+      const allSongs: any[] = [];
+      const ids = new Set<string>();
+      (r1.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); } });
+      const secondBatch: any[] = [];
+      (r2.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); secondBatch.push(s); } });
 
-    Promise.all([searchMusic(q1), searchMusic(q2)])
-      .then(results => {
-        const allSongs: any[] = [];
-        const ids = new Set<string>();
-
-        // Collect from first query
-        (results[0].data?.videos || []).forEach((s: any) => {
-          if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); }
-        });
-
-        // Collect from second query, skip duplicates
-        const secondBatch: any[] = [];
-        (results[1].data?.videos || []).forEach((s: any) => {
-          if (!ids.has(s.id)) { ids.add(s.id); secondBatch.push(s); }
-        });
-
-        // Trending = first 8 from first query
-        const balancedTrending = allSongs.slice(0, 8);
-        // New Releases = from second query, fill to 8 with unique songs from first
-        const balancedNew = secondBatch.length >= 8
-          ? secondBatch.slice(0, 8)
-          : [...secondBatch, ...allSongs.filter(s => !secondBatch.find(n => n.id === s.id))].slice(0, 8);
-
-        setTrending(balancedTrending);
-        setNewReleases(balancedNew);
-
-        // Build artists from all songs
-        const artistMap: any = {};
-        [...balancedTrending, ...balancedNew].forEach((s: any) => {
-          if (s.artist && !artistMap[s.artist]) {
-            artistMap[s.artist] = {
-              name: s.artist,
-              songs: Math.floor(Math.random() * 25) + 5,
-              image: `https://i.ytimg.com/vi/${s.id}/mqdefault.jpg`,
-              id: s.id,
-            };
-          }
-        });
-        setArtists(Object.values(artistMap).slice(0, 6));
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      setTrending(allSongs.slice(0, 8));
+      setNewReleases(secondBatch.length >= 8 ? secondBatch.slice(0, 8) : [...secondBatch, ...allSongs.filter(s => !secondBatch.find(n => n.id === s.id))].slice(0, 8));
+      
+      const realChannels = (channelsRes.data || []).map((c: any) => ({
+        name: c.title, videoCount: c.videoCount, subscribers: c.subscriberCount,
+        image: c.thumbnail, id: c.id, customUrl: c.customUrl,
+      }));
+      setArtists(realChannels.length > 0 ? realChannels.slice(0, 6) : []);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
-  const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
-  const dur = (s: number) => {
-    if (!s) return '';
-    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
-    return m + ':' + String(sec).padStart(2, '0');
+  const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  const formatNum = (n: number) => {
+    if (!n) return '';
+    if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+    if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+    if (n >= 1e3) return (n/1e3).toFixed(0)+'K';
+    return n.toString();
+  };
+  const formatSubs = (n: number) => {
+    if (n >= 1e6) return (n/1e6).toFixed(1)+'M subs';
+    if (n >= 1e3) return (n/1e3).toFixed(0)+'K subs';
+    return n + ' subs';
   };
 
   const Skeleton = () => (
-    <div className="flex gap-3 p-3 animate-pulse">
-      <div className="h-12 w-12 rounded-md bg-gray-light flex-shrink-0" />
-      <div className="flex-1 min-w-0 space-y-2">
-        <div className="h-3 w-3/4 rounded bg-gray-light" />
-        <div className="h-2 w-1/2 rounded bg-gray-light" />
+    <div className="flex gap-4 py-3 animate-pulse">
+      <div className="h-20 w-36 rounded-lg bg-gray-light flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-4 w-3/4 rounded bg-gray-light" />
+        <div className="h-3 w-1/3 rounded bg-gray-light" />
+        <div className="h-3 w-1/4 rounded bg-gray-light" />
       </div>
     </div>
   );
@@ -94,11 +76,11 @@ export default function Home() {
   return (
     <Layout>
       {/* Genre Pills */}
-      <div className="py-8">
+      <div className="py-6">
         <div className="container-site">
-          <div className="flex flex-wrap justify-center gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {genreList.map(g => (
-              <a key={g} href={`/search?q=${g.toLowerCase()}`} className="rounded-full border border-gray-light bg-white px-4 py-1.5 text-xs font-medium text-charcoal transition-all hover:border-teal hover:text-teal dark:bg-navy dark:text-gray-light dark:hover:border-teal">
+              <a key={g} href={`/search?q=${g.toLowerCase()}`} className="rounded-full bg-gray-light dark:bg-navy px-4 py-1.5 text-xs font-medium text-charcoal dark:text-gray-light whitespace-nowrap hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">
                 {g}
               </a>
             ))}
@@ -107,43 +89,45 @@ export default function Home() {
       </div>
 
       {/* Trending + New Releases */}
-      <div className="pb-12">
+      <div className="pb-8">
         <div className="container-site">
           <div className="grid gap-8 lg:grid-cols-2">
-            {/* Trending */}
-            <div className="overflow-hidden">
+            <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🔥 Trending Now</h2>
-              <div className="card-base divide-y divide-gray-light dark:divide-navy-light overflow-hidden">
+              <div className="divide-y divide-gray-light dark:divide-navy-light">
                 {loading ? Array.from({length:8}).map((_,i) => <Skeleton key={i} />) :
                   trending.map((s,i) => (
-                    <div key={s.id} onClick={() => setSelectedSong(s)} className="flex cursor-pointer items-center gap-3 p-3 transition-colors hover:bg-gray-light dark:hover:bg-navy-light overflow-hidden">
-                      <span className="w-5 text-center text-sm font-bold text-teal flex-shrink-0">{i+1}</span>
-                      <img src={thumb(s.id)} alt="" className="h-10 w-10 rounded object-cover flex-shrink-0" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="truncate text-sm font-medium text-navy dark:text-white">{s.title}</div>
-                        <div className="truncate text-xs text-gray-medium">{s.artist}</div>
+                    <a key={s.id} href={`/song/${s.id}`} className="flex gap-3 py-3 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
+                      <span className="w-5 text-center text-sm font-bold text-teal flex-shrink-0 pt-1">{i+1}</span>
+                      <div className="relative flex-shrink-0 w-36 aspect-video rounded-lg overflow-hidden bg-navy">
+                        <img src={thumb(s.id)} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
                       </div>
-                      <span className="text-xs text-gray-medium flex-shrink-0">{dur(s.duration)}</span>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-navy dark:text-white line-clamp-2 group-hover:text-teal transition-colors">{s.title}</div>
+                        <div className="text-xs text-gray-medium mt-1">{s.artist}</div>
+                        <div className="text-xs text-gray-medium">{formatNum(s.views)} views</div>
+                      </div>
+                    </a>
                   ))
                 }
               </div>
             </div>
 
-            {/* New Releases */}
-            <div className="overflow-hidden">
+            <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🆕 New Releases</h2>
-              <div className="card-base divide-y divide-gray-light dark:divide-navy-light overflow-hidden">
+              <div className="divide-y divide-gray-light dark:divide-navy-light">
                 {loading ? Array.from({length:8}).map((_,i) => <Skeleton key={i} />) :
                   newReleases.map(s => (
-                    <div key={s.id} onClick={() => setSelectedSong(s)} className="flex cursor-pointer items-center gap-3 p-3 transition-colors hover:bg-gray-light dark:hover:bg-navy-light overflow-hidden">
-                      <img src={thumb(s.id)} alt="" className="h-10 w-10 rounded object-cover flex-shrink-0" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="truncate text-sm font-medium text-navy dark:text-white">{s.title}</div>
-                        <div className="truncate text-xs text-gray-medium">{s.artist}</div>
+                    <a key={s.id} href={`/song/${s.id}`} className="flex gap-3 py-3 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
+                      <div className="relative flex-shrink-0 w-36 aspect-video rounded-lg overflow-hidden bg-navy">
+                        <img src={thumb(s.id)} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
                       </div>
-                      <span className="text-xs text-gray-medium flex-shrink-0">{dur(s.duration)}</span>
-                    </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-navy dark:text-white line-clamp-2 group-hover:text-teal transition-colors">{s.title}</div>
+                        <div className="text-xs text-gray-medium mt-1">{s.artist}</div>
+                        <div className="text-xs text-gray-medium">{formatNum(s.views)} views</div>
+                      </div>
+                    </a>
                   ))
                 }
               </div>
@@ -152,24 +136,24 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Top Artists */}
-      <div className="py-12 bg-gray-light dark:bg-navy">
+      {/* Trending Channels */}
+      <div className="py-10 bg-gray-light dark:bg-navy">
         <div className="container-site">
-          <h2 className="mb-6 text-xl font-bold text-navy dark:text-white">🎤 Top Artists</h2>
-          <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          <h2 className="mb-6 text-xl font-bold text-navy dark:text-white">🎤 Trending Channels</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {loading ? Array.from({length:6}).map((_,i) => (
-              <div key={i} className="card-base p-3 text-center animate-pulse">
+              <div key={i} className="card-base p-4 text-center animate-pulse">
                 <div className="h-16 w-16 rounded-full bg-gray-light mx-auto mb-2" />
                 <div className="h-3 w-2/3 rounded bg-gray-light mx-auto mb-1" />
-                <div className="h-2 w-1/3 rounded bg-gray-light mx-auto" />
+                <div className="h-2 w-1/2 rounded bg-gray-light mx-auto" />
               </div>
             )) : artists.map(a => (
-              <a key={a.name} href={`/search?q=${encodeURIComponent(a.name)}`} className="card-base p-3 text-center transition-all hover:shadow-cardHover hover:-translate-y-1">
+              <a key={a.id} href={`https://youtube.com/${a.customUrl || 'channel/'+a.id}`} target="_blank" rel="noopener noreferrer" className="card-base p-4 text-center transition-all hover:shadow-cardHover hover:-translate-y-1">
                 <div className="h-16 w-16 rounded-full overflow-hidden mx-auto mb-2 bg-gray-light">
-                  <img src={a.image} alt={a.name} className="h-full w-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
+                  <img src={a.image} alt={a.name} className="h-full w-full object-cover" />
                 </div>
-                <div className="text-xs font-semibold text-navy dark:text-white truncate">{a.name}</div>
-                <div className="text-[10px] text-gray-medium">{a.songs} songs</div>
+                <div className="text-sm font-semibold text-navy dark:text-white truncate">{a.name}</div>
+                <div className="text-xs text-gray-medium">{formatSubs(a.subscribers)}</div>
               </a>
             ))}
           </div>
@@ -190,7 +174,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Song Modal */}
       {selectedSong && <SongModal song={selectedSong} onClose={() => setSelectedSong(null)} />}
     </Layout>
   );
@@ -206,8 +189,7 @@ function SongModal({ song, onClose }: { song: any; onClose: () => void }) {
         </div>
         <img src={`https://i.ytimg.com/vi/${song.id}/hqdefault.jpg`} alt="" className="w-full rounded-md mb-4" />
         <p className="text-sm text-charcoal dark:text-gray-light mb-2"><strong>Artist:</strong> {song.artist}</p>
-        <p className="text-sm text-charcoal dark:text-gray-light mb-4"><strong>Duration:</strong> {song.duration ? Math.floor(song.duration/60)+':'+String(Math.floor(song.duration%60)).padStart(2,'0') : 'N/A'}</p>
-        <Button href={`https://youtube.com/watch?v=${song.id}`} variant="primary" className="w-full">Watch on YouTube</Button>
+        <Button href={`/song/${song.id}`} variant="primary" className="w-full">View Details</Button>
       </div>
     </div>
   );
