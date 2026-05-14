@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/shared/Button";
@@ -12,7 +12,7 @@ export default function SongPage() {
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
-  const playerRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -54,6 +54,22 @@ export default function SongPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const res = await fetch(`https://mediavault-website-api.onrender.com/api/download/audio/${id}`);
+      const data = await res.json();
+      if (data.redirectUrl) {
+        window.open(data.redirectUrl, '_blank');
+      } else {
+        window.open(`https://youtube.com/watch?v=${id}`, '_blank');
+      }
+    } catch {
+      window.open(`https://youtube.com/watch?v=${id}`, '_blank');
+    }
+    setDownloading(false);
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -74,120 +90,60 @@ export default function SongPage() {
     <Layout>
       <div className="max-w-[1400px] mx-auto">
         <div className="flex flex-col lg:flex-row gap-0">
-          {/* Left: Sticky Video + Info */}
           <div className="lg:w-[65%] lg:max-h-screen lg:overflow-y-auto">
-            {/* Sticky Video Player */}
             <div className="lg:sticky lg:top-16 z-30 bg-black">
               <div className="aspect-video">
-                <iframe
-                  src={`https://www.youtube.com/embed/${id}?autoplay=1`}
-                  className="w-full h-full"
-                  allowFullScreen
-                  allow="autoplay; encrypted-media"
-                />
+                <iframe src={`https://www.youtube.com/embed/${id}?autoplay=1`} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
               </div>
             </div>
 
-            {/* Video Info */}
             <div className="p-4 md:p-6">
               <h1 className="text-xl md:text-2xl font-bold text-navy dark:text-white mb-2">{song.title}</h1>
               
-              {/* Channel Row */}
               <div className="flex items-center gap-3 mb-4">
-                {song.channel?.thumbnail && (
-                  <img src={song.channel.thumbnail} alt="" className="h-10 w-10 rounded-full object-cover" />
-                )}
+                {song.channel?.thumbnail && <img src={song.channel.thumbnail} alt="" className="h-10 w-10 rounded-full object-cover" />}
                 <div>
-                  <a href={`https://youtube.com/channel/${song.channel?.id}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-navy dark:text-white hover:text-teal">
-                    {song.artist}
-                  </a>
-                  {song.channel?.subscriberCount > 0 && (
-                    <p className="text-xs text-gray-medium">{formatNum(song.channel.subscriberCount)} subscribers</p>
-                  )}
+                  <a href={`https://youtube.com/channel/${song.channel?.id}`} target="_blank" rel="noopener noreferrer" className="font-semibold text-navy dark:text-white hover:text-teal">{song.artist}</a>
+                  {song.channel?.subscriberCount > 0 && <p className="text-xs text-gray-medium">{formatNum(song.channel.subscriberCount)} subscribers</p>}
                 </div>
                 {song.channel?.id && (
-                  <a
-                    href={`https://youtube.com/channel/${song.channel.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-auto rounded-full bg-navy dark:bg-white text-white dark:text-navy px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity"
-                  >
-                    Subscribe
-                  </a>
+                  <a href={`https://youtube.com/channel/${song.channel.id}`} target="_blank" rel="noopener noreferrer" className="ml-auto rounded-full bg-navy dark:bg-white text-white dark:text-navy px-4 py-2 text-sm font-medium hover:opacity-80 transition-opacity">Subscribe</a>
                 )}
               </div>
 
-              {/* Stats Bar */}
               <div className="flex flex-wrap items-center gap-4 mb-4 p-3 rounded-md bg-gray-light dark:bg-navy">
-                {song.views > 0 && (
-                  <span className="text-sm text-charcoal dark:text-gray-light">👁 {formatNum(song.views)} views</span>
-                )}
-                {song.likes > 0 && (
-                  <span className="text-sm text-charcoal dark:text-gray-light">👍 {formatNum(song.likes)}</span>
-                )}
-                {song.duration > 0 && (
-                  <span className="text-sm text-charcoal dark:text-gray-light">⏱ {formatDur(song.duration)}</span>
-                )}
-                <span className="text-sm text-charcoal dark:text-gray-light">💬 Comments on YouTube</span>
+                {song.views > 0 && <span className="text-sm text-charcoal dark:text-gray-light">👁 {formatNum(song.views)} views</span>}
+                {song.likes > 0 && <span className="text-sm text-charcoal dark:text-gray-light">👍 {formatNum(song.likes)}</span>}
+                {song.duration > 0 && <span className="text-sm text-charcoal dark:text-gray-light">⏱ {formatDur(song.duration)}</span>}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex flex-wrap gap-2 mb-4">
                 <button onClick={() => handleShare('whatsapp')} className="rounded-full bg-[#25D366] px-4 py-2 text-sm font-medium text-white hover:opacity-80">📱 WhatsApp</button>
                 <button onClick={() => handleShare('twitter')} className="rounded-full bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-80">𝕏 Share</button>
                 <button onClick={() => handleShare('facebook')} className="rounded-full bg-[#1877F2] px-4 py-2 text-sm font-medium text-white hover:opacity-80">📘 Share</button>
-                <button onClick={handleCopyLink} className="rounded-full border border-gray-light px-4 py-2 text-sm font-medium text-charcoal dark:text-white hover:bg-gray-light dark:hover:bg-navy">
-                  {copied ? '✅ Copied!' : '🔗 Copy Link'}
-                </button>
+                <button onClick={handleCopyLink} className="rounded-full border border-gray-light px-4 py-2 text-sm font-medium text-charcoal dark:text-white hover:bg-gray-light dark:hover:bg-navy">{copied ? '✅ Copied!' : '🔗 Copy Link'}</button>
               </div>
 
-              {/* Download Buttons */}
               <div className="flex flex-wrap gap-2 mb-4">
-                <a
-                  href={`https://mediavault-website-api.onrender.com/api/download/audio/${id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors"
-                >
-                  🎵 Download MP3
-                </a>
-                <a
-                  href="https://apkpure.com/mediavault"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors"
-                >
-                  📥 Download Video (via APK)
-                </a>
+                <button onClick={handleDownload} disabled={downloading} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors disabled:opacity-50">
+                  {downloading ? '⏳ Loading...' : '🎵 Download MP3'}
+                </button>
+                <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">📥 Download Video (via APK)</a>
               </div>
 
-              {/* Description */}
               {song.description && (
                 <div className="card-base p-4 mb-4">
-                  <div className={`text-sm text-charcoal dark:text-gray-light whitespace-pre-wrap ${!showDesc && 'line-clamp-3'}`}>
-                    {song.description}
-                  </div>
+                  <div className={`text-sm text-charcoal dark:text-gray-light whitespace-pre-wrap ${!showDesc && 'line-clamp-3'}`}>{song.description}</div>
                   {song.description.length > 150 && (
-                    <button onClick={() => setShowDesc(!showDesc)} className="text-sm text-teal mt-1 hover:underline">
-                      {showDesc ? 'Show less' : 'Show more'}
-                    </button>
+                    <button onClick={() => setShowDesc(!showDesc)} className="text-sm text-teal mt-1 hover:underline">{showDesc ? 'Show less' : 'Show more'}</button>
                   )}
                 </div>
               )}
 
-              {/* Comments Link */}
-              <a
-                href={`https://youtube.com/watch?v=${id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-teal hover:underline"
-              >
-                💬 View comments on YouTube →
-              </a>
+              <a href={`https://youtube.com/watch?v=${id}`} target="_blank" rel="noopener noreferrer" className="text-sm text-teal hover:underline">💬 View comments on YouTube →</a>
             </div>
           </div>
 
-          {/* Right: Related Videos */}
           <div className="lg:w-[35%] lg:max-h-screen lg:overflow-y-auto border-t lg:border-t-0 lg:border-l border-gray-light dark:border-navy-light">
             <div className="p-4">
               <h2 className="text-lg font-bold text-navy dark:text-white mb-4">Related Videos</h2>
