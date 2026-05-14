@@ -34,8 +34,6 @@ async def search_music(query: str, platform: str = "youtube", limit: int = 25):
     
     methods = [
         ("API", search_via_api),
-        ("Invidious", search_via_invidious),
-        ("RSS", search_via_rss),
         ("yt-dlp", search_via_ytdlp),
     ]
     
