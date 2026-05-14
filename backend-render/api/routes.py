@@ -1,10 +1,5 @@
 from fastapi import APIRouter, Query
-from services.extractor import (
-    search_music,
-    get_trending,
-    get_channel_details,
-    get_video_details,
-)
+from services.extractor import search_music, get_trending, get_channel_details
 
 router = APIRouter()
 
@@ -18,86 +13,92 @@ async def search(q: str = Query(...), platform: str = Query("youtube"), limit: i
 
 @router.get("/search/next")
 async def search_next(q: str = Query(...), page_token: str = Query(...), limit: int = Query(25)):
-    import os, httpx
-    YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng")
-    YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
-    url = f"{YOUTUBE_API_BASE}/search"
-    params = {"part": "snippet", "q": q, "type": "video", "maxResults": min(limit, 50), "pageToken": page_token, "key": YOUTUBE_API_KEY}
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url, params=params, timeout=15)
-        data = resp.json()
-    videos = []
-    for item in data.get("items", []):
-        vid = item.get("id", {}).get("videoId", "")
-        snippet = item.get("snippet", {})
-        videos.append({"id": vid, "title": snippet.get("title", ""), "artist": snippet.get("channelTitle", ""), "channelId": snippet.get("channelId", ""), "thumbnail": snippet.get("thumbnails", {}).get("medium", {}).get("url", "")})
-    return {"success": True, "data": {"videos": videos, "nextPageToken": data.get("nextPageToken", "")}}
+    # yt-dlp doesn't support pagination well, just search again
+    try:
+        results = await search_music(q, limit=limit)
+        return {"success": True, "data": results}
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": {"videos": []}}
 
 @router.get("/song/{video_id}")
 async def song_detail(video_id: str):
-    import os, httpx, re
-    YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng")
-    YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
-    url = f"{YOUTUBE_API_BASE}/videos"
-    params = {"part": "snippet,contentDetails,statistics", "id": video_id, "key": YOUTUBE_API_KEY}
-    snippet = {}
-    video_data = {}
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url, params=params, timeout=15)
-        data = resp.json()
-        if data.get("items"):
-            item = data["items"][0]
-            s = item["snippet"]
-            snippet = {"title": s.get("title", ""), "artist": s.get("channelTitle", ""), "channelId": s.get("channelId", ""), "description": s.get("description", ""), "thumbnail": s.get("thumbnails", {}).get("high", {}).get("url", ""), "publishedAt": s.get("publishedAt", "")}
-            content = item.get("contentDetails", {})
-            stats = item.get("statistics", {})
-            video_data = {"duration": parse_duration_local(content.get("duration", "")), "views": int(stats.get("viewCount", 0)) if stats.get("viewCount") else 0, "likes": int(stats.get("likeCount", 0)) if stats.get("likeCount") else 0}
-    channel_id = snippet.get("channelId", "")
-    channel_data = {}
-    if channel_id:
-        channels = await get_channel_details([channel_id])
-        channel_data = channels.get(channel_id, {})
-    related = []
-    artist = snippet.get("artist", "")
-    if artist:
-        try:
-            search_url = f"{YOUTUBE_API_BASE}/search"
-            sp = {"part": "snippet", "q": f"{artist} songs", "type": "video", "maxResults": 20, "key": YOUTUBE_API_KEY}
-            async with httpx.AsyncClient() as client:
-                sr = await client.get(search_url, params=sp, timeout=15)
-                sd = sr.json()
-                for item in sd.get("items", []):
-                    vid = item.get("id", {}).get("videoId", "")
-                    if vid != video_id:
-                        snip = item.get("snippet", {})
-                        related.append({"id": vid, "title": snip.get("title", ""), "artist": snip.get("channelTitle", ""), "channelId": snip.get("channelId", ""), "thumbnail": snip.get("thumbnails", {}).get("medium", {}).get("url", "")})
-        except: pass
-    return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
-
-def parse_duration_local(d: str) -> int:
-    import re
-    m = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', d)
-    if not m: return 0
-    return int(m.group(1) or 0)*3600 + int(m.group(2) or 0)*60 + int(m.group(3) or 0)
+    import httpx, re
+    from services.extractor import get_video_details, parse_duration
+    
+    try:
+        # Get video info via yt-dlp
+        import yt_dlp
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        ydl_opts = {'quiet': True, 'no_warnings': True, 'skip_download': True}
+        
+        def get_info():
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                return ydl.extract_info(url, download=False)
+        
+        import asyncio
+        loop = asyncio.get_event_loop()
+        info = await loop.run_in_executor(None, get_info)
+        
+        snippet = {
+            "title": info.get("title", ""),
+            "artist": info.get("uploader", "") or info.get("channel", ""),
+            "channelId": info.get("channel_id", ""),
+            "description": info.get("description", "") or "",
+            "thumbnail": info.get("thumbnail", "") or f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
+            "publishedAt": info.get("upload_date", ""),
+        }
+        video_data = {
+            "duration": info.get("duration", 0) or 0,
+            "views": info.get("view_count", 0) or 0,
+            "likes": info.get("like_count", 0) or 0,
+        }
+        
+        # Channel info
+        channel_id = snippet.get("channelId", "")
+        channel_data = {}
+        if channel_id:
+            channels = await get_channel_details([channel_id])
+            channel_data = channels.get(channel_id, {})
+        
+        # Related videos via artist search
+        related = []
+        artist = snippet.get("artist", "")
+        if artist:
+            try:
+                related_results = await search_music(f"{artist} songs", limit=16)
+                for v in related_results.get("videos", []):
+                    if v.get("id") != video_id:
+                        related.append({
+                            "id": v.get("id", ""),
+                            "title": v.get("title", ""),
+                            "artist": v.get("artist", ""),
+                            "thumbnail": v.get("thumbnail", ""),
+                        })
+            except:
+                pass
+        
+        return {"success": True, "data": {
+            "id": video_id,
+            **snippet,
+            **video_data,
+            "channel": channel_data,
+            "related": related[:16],
+        }}
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": None}
 
 @router.get("/channels/trending")
 async def trending_channels():
-    import os, httpx
-    YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng")
-    YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
-    channel_ids = set()
-    async with httpx.AsyncClient() as client:
-        for query in ["trending music 2026", "top hits"]:
-            url = f"{YOUTUBE_API_BASE}/search"
-            params = {"part": "snippet", "q": query, "type": "video", "maxResults": 20, "key": YOUTUBE_API_KEY}
-            resp = await client.get(url, params=params, timeout=15)
-            data = resp.json()
-            for item in data.get("items", []):
-                cid = item.get("snippet", {}).get("channelId", "")
-                if cid: channel_ids.add(cid)
-    channels_map = await get_channel_details(list(channel_ids)[:20])
-    channels = sorted(channels_map.values(), key=lambda c: c.get("subscriberCount", 0), reverse=True)[:8]
-    return {"success": True, "data": channels}
+    try:
+        results = await search_music("trending music 2026", limit=30)
+        channel_ids = list(set(v.get("channelId", "") for v in results.get("videos", []) if v.get("channelId")))
+        if channel_ids:
+            channels = await get_channel_details(channel_ids[:20])
+            channel_list = sorted(channels.values(), key=lambda c: c.get("subscriberCount", 0), reverse=True)[:8]
+            return {"success": True, "data": channel_list}
+        return {"success": True, "data": []}
+    except:
+        return {"success": True, "data": []}
 
 @router.get("/trending")
 async def trending(region: str = Query("UG")):
@@ -109,29 +110,28 @@ async def trending(region: str = Query("UG")):
 
 @router.get("/suggest")
 async def suggest(q: str = Query(...)):
-    import httpx, json, re
+    import json as j, re
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(f"https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q={q}", timeout=10)
             text = resp.text
             match = re.search(r'\["([^"]+)",(\[.*?\]),', text)
             if match:
-                suggestions = json.loads(match.group(2))
+                suggestions = j.loads(match.group(2))
                 return {"success": True, "data": suggestions}
     except: pass
     return {"success": True, "data": []}
 
 @router.get("/download/audio/{video_id}")
 async def download_audio(video_id: str):
-    """Generate MP3 download via y2mate-style redirect"""
     return {
         "success": True,
         "redirectUrl": f"https://www.y2mate.com/youtube/{video_id}",
-        "message": "You'll be redirected to download the audio",
     }
 
 @router.get("/health")
-async def health(): return {"status": "healthy"}
+async def health():
+    return {"status": "healthy"}
 
 @router.get("/latest-version")
 async def latest_version():
