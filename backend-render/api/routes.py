@@ -155,19 +155,64 @@ def parse_duration_local(d: str) -> int:
     return int(m.group(1) or 0)*3600 + int(m.group(2) or 0)*60 + int(m.group(3) or 0)
 
 @router.get("/channels/trending")
+@router.get("/channels/trending")
 async def trending_channels():
+    """Try API first, then yt-dlp fallback for channels"""
+    import random
+    
+    # ── METHOD 1: YouTube API ──
+    api_keys = [
+        "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng",
+        "AIzaSyAX5f9v2uYNL5jDVOlxhVp4IuK_cy68e2I",
+        "AIzaSyAjtwWKRi6-FZ20jruoQWx4LuC6gZiuqLk",
+        "AIzaSyBhJjuscU8TP72FQUt7qcj3hfNKuZ-nlnE",
+        "AIzaSyBbHs7soVbyWqCvafvZaMjcNhs36NMF_Oc",
+        "AIzaSyBu3YhONuYaSf3iYFDftLlNAurwDqnTjdc",
+        "AIzaSyDvUcaijDrsGDLX6iU7J45xlhQHiPZgnaU",
+        "AIzaSyClsLzCXlNhTzzEernLvbCF5M3TH1kzlQA",
+        "AIzaSyDt8znupiOA5iWHocls-5wny-R9G_ql5zQ",
+        "AIzaSyCI_KHaET_L5TvcKELVhQxT7QN6TTnz0PU",
+    ]
+    
     try:
-        results, _ = await search_music("trending music 2026", limit=30)
+        import httpx
+        key = random.choice(api_keys)
+        YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
+        
+        # Get trending music videos
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{YOUTUBE_API_BASE}/videos",
+                params={"part": "snippet", "chart": "mostPopular", "regionCode": "UG", "videoCategoryId": "10", "maxResults": 30, "key": key},
+                timeout=10
+            )
+            data = resp.json()
+        
+        if "error" not in data:
+            channel_ids = list(set(item.get("snippet", {}).get("channelId", "") for item in data.get("items", [])))
+            if channel_ids:
+                channels = await get_channel_details(channel_ids[:20])
+                channel_list = sorted(channels.values(), key=lambda c: c.get("subscriberCount", 0), reverse=True)[:8]
+                if channel_list:
+                    print(f"✅ Channels via API: {len(channel_list)} found")
+                    return {"success": True, "data": channel_list}
+    except:
+        pass
+    
+    # ── METHOD 2: yt-dlp search + extract channels ──
+    try:
+        results, method = await search_music("trending music 2026", limit=30)
         channel_ids = list(set(v.get("channelId", "") for v in results.get("videos", []) if v.get("channelId")))
         if channel_ids:
             channels = await get_channel_details(channel_ids[:20])
             channel_list = sorted(channels.values(), key=lambda c: c.get("subscriberCount", 0), reverse=True)[:8]
-            return {"success": True, "data": channel_list}
-        return {"success": True, "data": []}
+            if channel_list:
+                print(f"✅ Channels via yt-dlp: {len(channel_list)} found")
+                return {"success": True, "data": channel_list}
     except:
-        return {"success": True, "data": []}
-
-@router.get("/trending")
+        pass
+    
+    return {"success": True, "data": []}
 async def trending(region: str = Query("UG")):
     try:
         results, _ = await get_trending(region)
@@ -176,20 +221,37 @@ async def trending(region: str = Query("UG")):
         return {"success": False, "error": str(e)}
 
 @router.get("/suggest")
+@router.get("/suggest")
 async def suggest(q: str = Query(...)):
+    """Try Google Suggest API first, then yt-dlp suggestions fallback"""
     import json as j, re
+    
+    # ── METHOD 1: Google Suggest API ──
     try:
         import httpx as hx
         async with hx.AsyncClient() as client:
             resp = await client.get(f"https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q={q}", timeout=10)
             text = resp.text
-            match = re.search(r'\["([^"]+)",(\[.*?\]),', text)
+            match = re.search(r'["([^"]+)",([.*?]),', text)
             if match:
                 suggestions = j.loads(match.group(2))
-                return {"success": True, "data": suggestions}
-    except: pass
+                if suggestions:
+                    print(f"✅ Suggestions via Google: {len(suggestions)} found")
+                    return {"success": True, "data": suggestions}
+    except:
+        pass
+    
+    # ── METHOD 2: yt-dlp search suggestions ──
+    try:
+        results, _ = await search_music(q, limit=10)
+        titles = [v.get("title", "")[:80] for v in results.get("videos", [])[:8]]
+        if titles:
+            print(f"✅ Suggestions via yt-dlp: {len(titles)} found")
+            return {"success": True, "data": titles}
+    except:
+        pass
+    
     return {"success": True, "data": []}
-
 @router.get("/download/audio/{video_id}")
 async def download_audio(video_id: str):
     return {"success": True, "redirectUrl": f"https://www.y2mate.com/youtube/{video_id}"}
