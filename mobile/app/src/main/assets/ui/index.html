@@ -25,9 +25,14 @@
 <body>
   <div id="app">
     <div class="offline-banner" id="offline-banner">⚠ No internet connection</div>
-    <header id="app-header"><div class="header-left"><button class="icon-button hamburger-btn" id="btn-hamburger">☰</button><span class="app-logo">MediaVault</span></div><div class="header-right"><button class="icon-button" id="btn-search-icon">🔍</button><button class="icon-button download-icon" id="btn-download-icon">⬇<span class="icon-badge"></span></button></div></header>
+    <header id="app-header"><div class="header-left"><button class="icon-button hamburger-btn" id="btn-hamburger">☰</button><span class="app-logo">MediaVault</span></div><div class="header-right"><button class="icon-button" id="btn-search-icon" onclick="var q=document.getElementById("search-input").value.trim();if(q)DownloadPage.search(q);">🔍</button><button class="icon-button download-icon" id="btn-download-icon">⬇<span class="icon-badge"></span></button></div></header>
     <div class="platform-tabs"><button class="tab-chip active">All</button><button class="tab-chip">YouTube</button><button class="tab-chip">Music</button><button class="tab-chip">More</button><button class="tab-chip">Sub</button></div>
-    <div class="search-bar"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="Search or paste URL..." autocomplete="off"><button class="voice-search-btn" id="btn-voice">🎤</button></div>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Search or paste URL..." autocomplete="off">
+      <button class="voice-search-btn" id="btn-voice">🎤</button>
+      <button id="btn-search-submit" onclick="var q=document.getElementById("search-input").value.trim();if(q)DownloadPage.search(q);" style="background:#e53935;color:#fff;border:none;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;margin-left:8px;">Search</button>
+    </div>
     <main id="main-content"><div id="page-container">
       <section id="page-download" class="page active"><div id="download-content"></div></section>
       <section id="page-play" class="page"><div id="play-content"></div></section>

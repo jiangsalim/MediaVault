@@ -31,3 +31,4 @@ const CONFIG = {
   MAX_RETRY_ATTEMPTS: 3,
 };
 Object.freeze(CONFIG);
+CONFIG.USE_MOCK_DATA = true;

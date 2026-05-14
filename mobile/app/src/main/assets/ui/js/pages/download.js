@@ -368,6 +368,7 @@ const DownloadPage = (function () {
   function formatDuration(seconds) { const mins = Math.floor(seconds / 60); const secs = seconds % 60; return mins + ':' + String(secs).padStart(2, '0'); }
   function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
+  window.DownloadPage = { init, search };
   return { init, search };
 })();
 document.addEventListener('DOMContentLoaded', function () { DownloadPage.init(); });
