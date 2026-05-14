@@ -7,6 +7,9 @@ const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-sans"
 export const metadata: Metadata = {
   title: "MediaVault — Free Music Downloads | Uganda",
   description: "Download videos and music from YouTube, Spotify, TikTok, and more. Free, fast, and reliable.",
+  verification: {
+    google: "googlea89e39fb82cbfeee.html",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -14,6 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={spaceGrotesk.variable} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');})();` }} />
+        {/* Google Analytics */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-71ERVJD31P" />
+        <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-71ERVJD31P');` }} />
       </head>
       <body className="flex min-h-screen flex-col bg-white text-charcoal dark:bg-navy-dark dark:text-gray-light transition-colors">
         {children}
