@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query
-from services.extractor import search_music, get_trending, get_channel_details
+from services.extractor import search_music, get_trending, get_channel_details, get_video_details
 
 router = APIRouter()
 
@@ -13,7 +13,6 @@ async def search(q: str = Query(...), platform: str = Query("youtube"), limit: i
 
 @router.get("/search/next")
 async def search_next(q: str = Query(...), page_token: str = Query(...), limit: int = Query(25)):
-    # yt-dlp doesn't support pagination well, just search again
     try:
         results = await search_music(q, limit=limit)
         return {"success": True, "data": results}
@@ -22,70 +21,164 @@ async def search_next(q: str = Query(...), page_token: str = Query(...), limit: 
 
 @router.get("/song/{video_id}")
 async def song_detail(video_id: str):
-    import httpx, re
-    from services.extractor import get_video_details, parse_duration
+    """Try API first, then Invidious, then search fallback"""
+    import httpx, random, os, re
     
+    YOUTUBE_API_KEY = None
+    # Get a random API key
+    api_keys = [
+        "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng",
+        "AIzaSyAX5f9v2uYNL5jDVOlxhVp4IuK_cy68e2I",
+        "AIzaSyAjtwWKRi6-FZ20jruoQWx4LuC6gZiuqLk",
+        "AIzaSyBhJjuscU8TP72FQUt7qcj3hfNKuZ-nlnE",
+        "AIzaSyBbHs7soVbyWqCvafvZaMjcNhs36NMF_Oc",
+        "AIzaSyBu3YhONuYaSf3iYFDftLlNAurwDqnTjdc",
+        "AIzaSyDvUcaijDrsGDLX6iU7J45xlhQHiPZgnaU",
+        "AIzaSyClsLzCXlNhTzzEernLvbCF5M3TH1kzlQA",
+        "AIzaSyDt8znupiOA5iWHocls-5wny-R9G_ql5zQ",
+        "AIzaSyCI_KHaET_L5TvcKELVhQxT7QN6TTnz0PU",
+    ]
+    
+    INVIDIOUS_INSTANCES = [
+        "https://invidious.snopyta.org",
+        "https://yewtu.be",
+        "https://vid.puffyan.us",
+        "https://invidious.flokinet.to",
+    ]
+    
+    # ── METHOD 1: YouTube API ──
+    for _ in range(3):  # Try up to 3 different keys
+        try:
+            key = random.choice(api_keys)
+            YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
+            
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"{YOUTUBE_API_BASE}/videos",
+                    params={"part": "snippet,contentDetails,statistics", "id": video_id, "key": key},
+                    timeout=10
+                )
+                data = resp.json()
+            
+            if "error" in data:
+                continue  # Try next key
+            
+            if data.get("items"):
+                item = data["items"][0]
+                s = item["snippet"]
+                c = item.get("contentDetails", {})
+                st = item.get("statistics", {})
+                
+                snippet = {
+                    "title": s.get("title", ""),
+                    "artist": s.get("channelTitle", ""),
+                    "channelId": s.get("channelId", ""),
+                    "description": s.get("description", ""),
+                    "thumbnail": s.get("thumbnails", {}).get("high", {}).get("url", ""),
+                    "publishedAt": s.get("publishedAt", ""),
+                }
+                video_data = {
+                    "duration": parse_duration_local(c.get("duration", "")),
+                    "views": int(st.get("viewCount", 0)) if st.get("viewCount") else 0,
+                    "likes": int(st.get("likeCount", 0)) if st.get("likeCount") else 0,
+                }
+                
+                # Channel
+                channel_id = s.get("channelId", "")
+                channel_data = {}
+                if channel_id:
+                    channels = await get_channel_details([channel_id])
+                    channel_data = channels.get(channel_id, {})
+                
+                # Related via artist search
+                artist = s.get("channelTitle", "")
+                related = []
+                if artist:
+                    related_results = await search_music(f"{artist} songs", limit=16)
+                    for v in related_results.get("videos", []):
+                        if v.get("id") != video_id:
+                            related.append({
+                                "id": v.get("id", ""), "title": v.get("title", ""),
+                                "artist": v.get("artist", ""), "thumbnail": v.get("thumbnail", ""),
+                            })
+                
+                print(f"✅ Song detail via API: {snippet['title'][:50]}")
+                return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
+        except:
+            continue
+    
+    # ── METHOD 2: Invidious ──
+    for _ in range(3):
+        try:
+            instance = random.choice(INVIDIOUS_INSTANCES)
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(f"{instance}/api/v1/videos/{video_id}", timeout=10)
+                data = resp.json()
+            
+            snippet = {
+                "title": data.get("title", ""),
+                "artist": data.get("author", ""),
+                "channelId": data.get("authorId", ""),
+                "description": data.get("description", "") or "",
+                "thumbnail": (data.get("videoThumbnails", [{}])[-1].get("url", "") if data.get("videoThumbnails") else f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"),
+                "publishedAt": data.get("publishedText", ""),
+            }
+            video_data = {
+                "duration": data.get("lengthSeconds", 0) or 0,
+                "views": data.get("viewCount", 0) or 0,
+                "likes": data.get("likeCount", 0) or 0,
+            }
+            
+            channel_id = snippet.get("channelId", "")
+            channel_data = {}
+            if channel_id:
+                try:
+                    ch_resp = await client.get(f"{instance}/api/v1/channels/{channel_id}", timeout=10)
+                    ch_data = ch_resp.json()
+                    channel_data = {
+                        "id": channel_id, "title": ch_data.get("author", ""),
+                        "thumbnail": ch_data.get("authorThumbnails", [{}])[-1].get("url", "") if ch_data.get("authorThumbnails") else "",
+                        "subscriberCount": ch_data.get("subCount", 0) or 0,
+                        "videoCount": ch_data.get("totalViews", 0) or 0,
+                        "customUrl": ch_data.get("authorUrl", ""),
+                    }
+                except: pass
+            
+            related = []
+            for r in data.get("recommendedVideos", [])[:16]:
+                related.append({
+                    "id": r.get("videoId", ""), "title": r.get("title", ""),
+                    "artist": r.get("author", ""),
+                    "thumbnail": r.get("videoThumbnails", [{}])[-1].get("url", "") if r.get("videoThumbnails") else f"https://i.ytimg.com/vi/{r.get('videoId','')}/mqdefault.jpg",
+                })
+            
+            print(f"✅ Song detail via Invidious: {snippet['title'][:50]}")
+            return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
+        except:
+            continue
+    
+    # ── METHOD 3: Search Fallback ──
     try:
-        # Get video info via yt-dlp
-        import yt_dlp
-        url = f"https://www.youtube.com/watch?v={video_id}"
-        ydl_opts = {'quiet': True, 'no_warnings': True, 'skip_download': True}
-        
-        def get_info():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                return ydl.extract_info(url, download=False)
-        
-        import asyncio
-        loop = asyncio.get_event_loop()
-        info = await loop.run_in_executor(None, get_info)
-        
-        snippet = {
-            "title": info.get("title", ""),
-            "artist": info.get("uploader", "") or info.get("channel", ""),
-            "channelId": info.get("channel_id", ""),
-            "description": info.get("description", "") or "",
-            "thumbnail": info.get("thumbnail", "") or f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
-            "publishedAt": info.get("upload_date", ""),
-        }
-        video_data = {
-            "duration": info.get("duration", 0) or 0,
-            "views": info.get("view_count", 0) or 0,
-            "likes": info.get("like_count", 0) or 0,
-        }
-        
-        # Channel info
-        channel_id = snippet.get("channelId", "")
-        channel_data = {}
-        if channel_id:
-            channels = await get_channel_details([channel_id])
-            channel_data = channels.get(channel_id, {})
-        
-        # Related videos via artist search
-        related = []
-        artist = snippet.get("artist", "")
-        if artist:
-            try:
-                related_results = await search_music(f"{artist} songs", limit=16)
-                for v in related_results.get("videos", []):
-                    if v.get("id") != video_id:
-                        related.append({
-                            "id": v.get("id", ""),
-                            "title": v.get("title", ""),
-                            "artist": v.get("artist", ""),
-                            "thumbnail": v.get("thumbnail", ""),
-                        })
-            except:
-                pass
-        
-        return {"success": True, "data": {
-            "id": video_id,
-            **snippet,
-            **video_data,
-            "channel": channel_data,
-            "related": related[:16],
-        }}
-    except Exception as e:
-        return {"success": False, "error": str(e), "data": None}
+        results = await search_music(video_id, limit=1)
+        if results.get("videos"):
+            v = results["videos"][0]
+            print(f"✅ Song detail via search fallback: {v.get('title','')[:50]}")
+            return {"success": True, "data": {
+                "id": video_id, "title": v.get("title", ""), "artist": v.get("artist", ""),
+                "channelId": v.get("channelId", ""), "description": v.get("description", ""),
+                "thumbnail": v.get("thumbnail", ""), "publishedAt": v.get("publishedAt", ""),
+                "duration": v.get("duration", 0), "views": v.get("views", 0), "likes": v.get("likes", 0),
+                "channel": {}, "related": [],
+            }}
+    except: pass
+    
+    return {"success": False, "error": "All methods failed", "data": None}
+
+def parse_duration_local(d: str) -> int:
+    import re
+    m = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', d)
+    if not m: return 0
+    return int(m.group(1) or 0)*3600 + int(m.group(2) or 0)*60 + int(m.group(3) or 0)
 
 @router.get("/channels/trending")
 async def trending_channels():
@@ -112,7 +205,8 @@ async def trending(region: str = Query("UG")):
 async def suggest(q: str = Query(...)):
     import json as j, re
     try:
-        async with httpx.AsyncClient() as client:
+        import httpx as hx
+        async with hx.AsyncClient() as client:
             resp = await client.get(f"https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q={q}", timeout=10)
             text = resp.text
             match = re.search(r'\["([^"]+)",(\[.*?\]),', text)
@@ -124,10 +218,7 @@ async def suggest(q: str = Query(...)):
 
 @router.get("/download/audio/{video_id}")
 async def download_audio(video_id: str):
-    return {
-        "success": True,
-        "redirectUrl": f"https://www.y2mate.com/youtube/{video_id}",
-    }
+    return {"success": True, "redirectUrl": f"https://www.y2mate.com/youtube/{video_id}"}
 
 @router.get("/health")
 async def health():
