@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/shared/Button";
 import { searchMusic, getTrendingChannels } from "@/lib/api";
@@ -17,35 +17,42 @@ export default function Home() {
   const [newReleases, setNewReleases] = useState<any[]>([]);
   const [artists, setArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedSong, setSelectedSong] = useState<any>(null);
-  const fetched = useRef(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (fetched.current) return;
-    fetched.current = true;
-
     const shuffled = [...trendingSearches].sort(() => Math.random() - 0.5);
+    setLoading(true);
+    setError("");
+
     Promise.all([
       searchMusic(shuffled[0]),
       searchMusic(shuffled[1]),
       getTrendingChannels(),
-    ]).then(([r1, r2, channelsRes]) => {
-      const allSongs: any[] = [];
-      const ids = new Set<string>();
-      (r1.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); } });
-      const secondBatch: any[] = [];
-      (r2.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); secondBatch.push(s); } });
+    ])
+      .then(([r1, r2, channelsRes]) => {
+        console.log("API Response:", { r1: r1.data?.videos?.length, r2: r2.data?.videos?.length, channels: channelsRes.data?.length });
+        
+        const allSongs: any[] = [];
+        const ids = new Set<string>();
+        (r1.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); } });
+        const secondBatch: any[] = [];
+        (r2.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); secondBatch.push(s); } });
 
-      setTrending(allSongs.slice(0, 8));
-      setNewReleases(secondBatch.length >= 8 ? secondBatch.slice(0, 8) : [...secondBatch, ...allSongs.filter(s => !secondBatch.find(n => n.id === s.id))].slice(0, 8));
-      
-      const realChannels = (channelsRes.data || []).map((c: any) => ({
-        name: c.title, videoCount: c.videoCount, subscribers: c.subscriberCount,
-        image: c.thumbnail, id: c.id, customUrl: c.customUrl,
-      }));
-      setArtists(realChannels.length > 0 ? realChannels.slice(0, 6) : []);
-      setLoading(false);
-    }).catch(() => setLoading(false));
+        setTrending(allSongs.slice(0, 8));
+        setNewReleases(secondBatch.length >= 8 ? secondBatch.slice(0, 8) : [...secondBatch, ...allSongs.filter(s => !secondBatch.find(n => n.id === s.id))].slice(0, 8));
+
+        const realChannels = (channelsRes.data || []).map((c: any) => ({
+          name: c.title, videoCount: c.videoCount, subscribers: c.subscriberCount,
+          image: c.thumbnail, id: c.id, customUrl: c.customUrl,
+        }));
+        setArtists(realChannels.length > 0 ? realChannels.slice(0, 6) : []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Homepage fetch error:", err);
+        setError("Failed to load music. Please refresh.");
+        setLoading(false);
+      });
   }, []);
 
   const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
@@ -75,20 +82,22 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Genre Pills */}
       <div className="py-6">
         <div className="container-site">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex gap-2 overflow-x-auto pb-2">
             {genreList.map(g => (
-              <a key={g} href={`/search?q=${g.toLowerCase()}`} className="rounded-full bg-gray-light dark:bg-navy px-4 py-1.5 text-xs font-medium text-charcoal dark:text-gray-light whitespace-nowrap hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">
-                {g}
-              </a>
+              <a key={g} href={`/search?q=${g.toLowerCase()}`} className="rounded-full bg-gray-light dark:bg-navy px-4 py-1.5 text-xs font-medium text-charcoal dark:text-gray-light whitespace-nowrap hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">{g}</a>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Trending + New Releases */}
+      {error && (
+        <div className="container-site pb-4">
+          <div className="card-base p-4 text-center text-error text-sm">{error}</div>
+        </div>
+      )}
+
       <div className="pb-8">
         <div className="container-site">
           <div className="grid gap-8 lg:grid-cols-2">
@@ -96,6 +105,7 @@ export default function Home() {
               <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🔥 Trending Now</h2>
               <div className="divide-y divide-gray-light dark:divide-navy-light">
                 {loading ? Array.from({length:8}).map((_,i) => <Skeleton key={i} />) :
+                  trending.length === 0 ? <p className="py-4 text-sm text-gray-medium">No trending songs found.</p> :
                   trending.map((s,i) => (
                     <a key={s.id} href={`/song/${s.id}`} className="flex gap-3 py-3 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
                       <span className="w-5 text-center text-sm font-bold text-teal flex-shrink-0 pt-1">{i+1}</span>
@@ -117,6 +127,7 @@ export default function Home() {
               <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🆕 New Releases</h2>
               <div className="divide-y divide-gray-light dark:divide-navy-light">
                 {loading ? Array.from({length:8}).map((_,i) => <Skeleton key={i} />) :
+                  newReleases.length === 0 ? <p className="py-4 text-sm text-gray-medium">No new releases found.</p> :
                   newReleases.map(s => (
                     <a key={s.id} href={`/song/${s.id}`} className="flex gap-3 py-3 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
                       <div className="relative flex-shrink-0 w-36 aspect-video rounded-lg overflow-hidden bg-navy">
@@ -136,7 +147,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Trending Channels */}
       <div className="py-10 bg-gray-light dark:bg-navy">
         <div className="container-site">
           <h2 className="mb-6 text-xl font-bold text-navy dark:text-white">🎤 Trending Channels</h2>
@@ -147,20 +157,21 @@ export default function Home() {
                 <div className="h-3 w-2/3 rounded bg-gray-light mx-auto mb-1" />
                 <div className="h-2 w-1/2 rounded bg-gray-light mx-auto" />
               </div>
-            )) : artists.map(a => (
-              <a key={a.id} href={`https://youtube.com/${a.customUrl || 'channel/'+a.id}`} target="_blank" rel="noopener noreferrer" className="card-base p-4 text-center transition-all hover:shadow-cardHover hover:-translate-y-1">
-                <div className="h-16 w-16 rounded-full overflow-hidden mx-auto mb-2 bg-gray-light">
-                  <img src={a.image} alt={a.name} className="h-full w-full object-cover" />
-                </div>
-                <div className="text-sm font-semibold text-navy dark:text-white truncate">{a.name}</div>
-                <div className="text-xs text-gray-medium">{formatSubs(a.subscribers)}</div>
-              </a>
-            ))}
+            )) : artists.length === 0 ? <p className="col-span-full text-center text-sm text-gray-medium">No channels found.</p> :
+              artists.map(a => (
+                <a key={a.id} href={`https://youtube.com/${a.customUrl || 'channel/'+a.id}`} target="_blank" rel="noopener noreferrer" className="card-base p-4 text-center transition-all hover:shadow-cardHover hover:-translate-y-1">
+                  <div className="h-16 w-16 rounded-full overflow-hidden mx-auto mb-2 bg-gray-light">
+                    <img src={a.image} alt={a.name} className="h-full w-full object-cover" />
+                  </div>
+                  <div className="text-sm font-semibold text-navy dark:text-white truncate">{a.name}</div>
+                  <div className="text-xs text-gray-medium">{formatSubs(a.subscribers)}</div>
+                </a>
+              ))
+            }
           </div>
         </div>
       </div>
 
-      {/* App Banner */}
       <div className="py-12 bg-navy text-white">
         <div className="container-site">
           <div className="flex flex-col md:flex-row items-center gap-6">
@@ -173,24 +184,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {selectedSong && <SongModal song={selectedSong} onClose={() => setSelectedSong(null)} />}
     </Layout>
-  );
-}
-
-function SongModal({ song, onClose }: { song: any; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="card-base max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
-        <div className="flex items-start justify-between mb-4">
-          <h3 className="text-lg font-semibold text-navy dark:text-white pr-4 line-clamp-2">{song.title}</h3>
-          <button onClick={onClose} className="p-1 text-gray-medium hover:text-charcoal flex-shrink-0">✕</button>
-        </div>
-        <img src={`https://i.ytimg.com/vi/${song.id}/hqdefault.jpg`} alt="" className="w-full rounded-md mb-4" />
-        <p className="text-sm text-charcoal dark:text-gray-light mb-2"><strong>Artist:</strong> {song.artist}</p>
-        <Button href={`/song/${song.id}`} variant="primary" className="w-full">View Details</Button>
-      </div>
-    </div>
   );
 }
