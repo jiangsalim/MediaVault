@@ -1,11 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/shared/Button";
 import { searchMusic } from "@/lib/api";
 
 const genreList = ['Gospel','Dancehall','Afrobeat','Hip Hop','Reggae','Bongo Flava','Zouk','R&B','Amapiano','Singeli'];
+
+// Generic popular music searches — YouTube returns trending based on region
+const trendingSearches = [
+  'trending music', 'top hits', 'popular songs', 'best music',
+  'viral songs', 'chart hits', 'most played', 'new hits',
+];
 
 export default function Home() {
   const [trending, setTrending] = useState<any[]>([]);
@@ -13,30 +19,67 @@ export default function Home() {
   const [artists, setArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSong, setSelectedSong] = useState<any>(null);
+  const fetched = useRef(false);
 
   useEffect(() => {
-    const trendingArtists = ['Eddy Kenzo','Sheebah','John Blaq','Vinka','Spice Diana'];
-    const newQ = ['latest ugandan music 2026','new uganda songs this week','ugandan hits today'];
+    if (fetched.current) return;
+    fetched.current = true;
 
-    Promise.all([...trendingArtists.map(q => searchMusic(q)), searchMusic(newQ[Math.floor(Math.random()*newQ.length)])])
+    // Shuffle and pick random queries each load
+    const shuffled = [...trendingSearches].sort(() => Math.random() - 0.5);
+    const q1 = shuffled[0];
+    const q2 = shuffled[1];
+
+    Promise.all([searchMusic(q1), searchMusic(q2)])
       .then(results => {
-        const tResults = results.slice(0,5), nResult = results[5];
-        const allTrending: any[] = [], ids = new Set<string>();
-        tResults.forEach(r => (r.data?.videos || []).slice(0,3).forEach((s: any) => {
-          if(!ids.has(s.id)){ ids.add(s.id); allTrending.push(s); }
-        }));
-        const newSongs = (nResult.data?.videos || []).filter((s: any) => !ids.has(s.id)).slice(0,8);
-        setTrending(allTrending.slice(0,8));
-        setNewReleases(newSongs.length>=8 ? newSongs.slice(0,8) : [...newSongs, ...allTrending.filter((s: any) => !ids.has(s.id) && !newSongs.find((n: any) => n.id===s.id))].slice(0,8));
-        const map: any = {};
-        allTrending.forEach((s: any) => { if(s.artist && !map[s.artist]) map[s.artist] = { name:s.artist, songs:Math.floor(Math.random()*25)+5, image:`https://i.ytimg.com/vi/${s.id}/mqdefault.jpg`, id:s.id }; });
-        setArtists(Object.values(map).slice(0,6));
+        const allSongs: any[] = [];
+        const ids = new Set<string>();
+
+        // Collect from first query
+        (results[0].data?.videos || []).forEach((s: any) => {
+          if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); }
+        });
+
+        // Collect from second query, skip duplicates
+        const secondBatch: any[] = [];
+        (results[1].data?.videos || []).forEach((s: any) => {
+          if (!ids.has(s.id)) { ids.add(s.id); secondBatch.push(s); }
+        });
+
+        // Trending = first 8 from first query
+        const balancedTrending = allSongs.slice(0, 8);
+        // New Releases = from second query, fill to 8 with unique songs from first
+        const balancedNew = secondBatch.length >= 8
+          ? secondBatch.slice(0, 8)
+          : [...secondBatch, ...allSongs.filter(s => !secondBatch.find(n => n.id === s.id))].slice(0, 8);
+
+        setTrending(balancedTrending);
+        setNewReleases(balancedNew);
+
+        // Build artists from all songs
+        const artistMap: any = {};
+        [...balancedTrending, ...balancedNew].forEach((s: any) => {
+          if (s.artist && !artistMap[s.artist]) {
+            artistMap[s.artist] = {
+              name: s.artist,
+              songs: Math.floor(Math.random() * 25) + 5,
+              image: `https://i.ytimg.com/vi/${s.id}/mqdefault.jpg`,
+              id: s.id,
+            };
+          }
+        });
+        setArtists(Object.values(artistMap).slice(0, 6));
         setLoading(false);
-      }).catch(() => setLoading(false));
+      })
+      .catch(() => setLoading(false));
   }, []);
 
   const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
-  const dur = (s: number) => { if(!s) return ''; const m=Math.floor(s/60), sec=Math.floor(s%60); return m+':'+String(sec).padStart(2,'0'); };
+  const dur = (s: number) => {
+    if (!s) return '';
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+  };
 
   const Skeleton = () => (
     <div className="flex gap-3 p-3 animate-pulse">
@@ -77,7 +120,7 @@ export default function Home() {
                       <span className="w-5 text-center text-sm font-bold text-teal flex-shrink-0">{i+1}</span>
                       <img src={thumb(s.id)} alt="" className="h-10 w-10 rounded object-cover flex-shrink-0" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="truncate text-sm font-medium text-navy dark:text-white max-w-full">{s.title}</div>
+                        <div className="truncate text-sm font-medium text-navy dark:text-white">{s.title}</div>
                         <div className="truncate text-xs text-gray-medium">{s.artist}</div>
                       </div>
                       <span className="text-xs text-gray-medium flex-shrink-0">{dur(s.duration)}</span>
@@ -96,7 +139,7 @@ export default function Home() {
                     <div key={s.id} onClick={() => setSelectedSong(s)} className="flex cursor-pointer items-center gap-3 p-3 transition-colors hover:bg-gray-light dark:hover:bg-navy-light overflow-hidden">
                       <img src={thumb(s.id)} alt="" className="h-10 w-10 rounded object-cover flex-shrink-0" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
                       <div className="flex-1 min-w-0 overflow-hidden">
-                        <div className="truncate text-sm font-medium text-navy dark:text-white max-w-full">{s.title}</div>
+                        <div className="truncate text-sm font-medium text-navy dark:text-white">{s.title}</div>
                         <div className="truncate text-xs text-gray-medium">{s.artist}</div>
                       </div>
                       <span className="text-xs text-gray-medium flex-shrink-0">{dur(s.duration)}</span>
