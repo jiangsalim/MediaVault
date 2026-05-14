@@ -69,22 +69,15 @@ async def song_detail(video_id: str):
     """Get full song details + related videos"""
     import os
     import httpx
-    from services.extractor import parse_duration
     
     YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
     YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
     
-    # Get video details
     details = await get_video_details([video_id])
     video_data = details.get(video_id, {})
     
-    # Get snippet
     url = f"{YOUTUBE_API_BASE}/videos"
-    params = {
-        "part": "snippet",
-        "id": video_id,
-        "key": YOUTUBE_API_KEY,
-    }
+    params = {"part": "snippet", "id": video_id, "key": YOUTUBE_API_KEY}
     
     snippet = {}
     async with httpx.AsyncClient() as client:
@@ -101,10 +94,8 @@ async def song_detail(video_id: str):
                 "publishedAt": s.get("publishedAt", ""),
             }
     
-    # Get related videos
     related = await get_related_videos(video_id)
     
-    # Get channel info
     channel_id = snippet.get("channelId", "")
     channel_data = {}
     if channel_id:
@@ -126,38 +117,38 @@ async def song_detail(video_id: str):
 
 @router.get("/channels/trending")
 async def trending_channels():
-    """Get trending music channels with real subscriber counts"""
+    """Get trending music channels using popular music searches"""
     import os
     import httpx
     
     YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
     YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
     
-    # Get trending music videos first
-    url = f"{YOUTUBE_API_BASE}/videos"
-    params = {
-        "part": "snippet",
-        "chart": "mostPopular",
-        "regionCode": "UG",
-        "videoCategoryId": "10",
-        "maxResults": 30,
-        "key": YOUTUBE_API_KEY,
-    }
+    # Search for popular music to find trending channels
+    search_queries = ["trending music 2026", "top hits", "popular songs", "new music"]
+    channel_ids = set()
     
     async with httpx.AsyncClient() as client:
-        resp = await client.get(url, params=params, timeout=15)
-        data = resp.json()
-    
-    # Collect unique channel IDs
-    channel_ids = list(set(
-        item.get("snippet", {}).get("channelId", "")
-        for item in data.get("items", [])
-    ))
+        for query in search_queries[:2]:  # Use 2 queries to save quota
+            url = f"{YOUTUBE_API_BASE}/search"
+            params = {
+                "part": "snippet",
+                "q": query,
+                "type": "video",
+                "maxResults": 20,
+                "key": YOUTUBE_API_KEY,
+            }
+            resp = await client.get(url, params=params, timeout=15)
+            data = resp.json()
+            for item in data.get("items", []):
+                cid = item.get("snippet", {}).get("channelId", "")
+                if cid:
+                    channel_ids.add(cid)
     
     # Get full channel details
-    channels_map = await get_channel_details(channel_ids[:20])
+    channels_map = await get_channel_details(list(channel_ids)[:20])
     
-    # Convert to list and sort by subscribers
+    # Sort by subscribers
     channels = sorted(
         channels_map.values(),
         key=lambda c: c.get("subscriberCount", 0),
