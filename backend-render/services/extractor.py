@@ -1,19 +1,15 @@
 import os
+import re
 import httpx
 from typing import Optional
 
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng")
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 
 async def search_music(query: str, platform: str = "youtube", limit: int = 25):
-    """Basic search using yt-dlp or fallback to YouTube API"""
-    if YOUTUBE_API_KEY:
-        return await search_youtube_api(query, limit)
-    # Fallback: use existing yt-dlp based search
-    return {"videos": []}
+    return await search_youtube_api(query, limit)
 
 async def search_youtube_api(query: str, limit: int = 25):
-    """Search YouTube using Data API v3"""
     url = f"{YOUTUBE_API_BASE}/search"
     params = {
         "part": "snippet",
@@ -21,7 +17,7 @@ async def search_youtube_api(query: str, limit: int = 25):
         "type": "video",
         "maxResults": min(limit, 50),
         "key": YOUTUBE_API_KEY,
-        "videoCategoryId": "10",  # Music category
+        "videoCategoryId": "10",
     }
     
     async with httpx.AsyncClient() as client:
@@ -29,9 +25,11 @@ async def search_youtube_api(query: str, limit: int = 25):
         data = resp.json()
     
     videos = []
+    video_ids = []
     for item in data.get("items", []):
         vid = item.get("id", {}).get("videoId", "")
         snippet = item.get("snippet", {})
+        video_ids.append(vid)
         videos.append({
             "id": vid,
             "title": snippet.get("title", ""),
@@ -40,22 +38,23 @@ async def search_youtube_api(query: str, limit: int = 25):
             "description": snippet.get("description", "")[:200],
             "thumbnail": snippet.get("thumbnails", {}).get("medium", {}).get("url", ""),
             "publishedAt": snippet.get("publishedAt", ""),
+            "duration": 0,
+            "views": 0,
+            "likes": 0,
         })
     
-    # Get video details (duration, views) for these IDs
-    if videos:
-        video_ids = [v["id"] for v in videos]
+    # Get video details
+    if video_ids:
         details = await get_video_details(video_ids)
         for v in videos:
             d = details.get(v["id"], {})
-            v["duration"] = parse_duration(d.get("duration", ""))
-            v["views"] = int(d.get("viewCount", 0)) if d.get("viewCount") else 0
-            v["likes"] = int(d.get("likeCount", 0)) if d.get("likeCount") else 0
+            v["duration"] = d.get("duration", 0)
+            v["views"] = d.get("views", 0)
+            v["likes"] = d.get("likes", 0)
     
-    return {"videos": videos}
+    return {"videos": videos, "nextPageToken": data.get("nextPageToken", "")}
 
-async def get_video_details(video_ids: list[str]) -> dict:
-    """Get video statistics"""
+async def get_video_details(video_ids: list) -> dict:
     url = f"{YOUTUBE_API_BASE}/videos"
     params = {
         "part": "contentDetails,statistics",
@@ -69,15 +68,16 @@ async def get_video_details(video_ids: list[str]) -> dict:
     
     result = {}
     for item in data.get("items", []):
+        content = item.get("contentDetails", {})
+        stats = item.get("statistics", {})
         result[item["id"]] = {
-            "duration": item.get("contentDetails", {}).get("duration", ""),
-            "viewCount": item.get("statistics", {}).get("viewCount", "0"),
-            "likeCount": item.get("statistics", {}).get("likeCount", "0"),
+            "duration": parse_duration(content.get("duration", "")),
+            "views": int(stats.get("viewCount", 0)) if stats.get("viewCount") else 0,
+            "likes": int(stats.get("likeCount", 0)) if stats.get("likeCount") else 0,
         }
     return result
 
-async def get_channel_details(channel_ids: list[str]) -> dict:
-    """Get channel statistics and branding"""
+async def get_channel_details(channel_ids: list) -> dict:
     url = f"{YOUTUBE_API_BASE}/channels"
     params = {
         "part": "snippet,statistics,brandingSettings",
@@ -112,7 +112,6 @@ async def get_channel_details(channel_ids: list[str]) -> dict:
     return result
 
 async def get_related_videos(video_id: str, max_results: int = 20) -> list:
-    """Get related videos for a given video"""
     url = f"{YOUTUBE_API_BASE}/search"
     params = {
         "part": "snippet",
@@ -140,10 +139,6 @@ async def get_related_videos(video_id: str, max_results: int = 20) -> list:
     return videos
 
 async def get_trending(region: str = "UG"):
-    """Get trending music videos"""
-    if not YOUTUBE_API_KEY:
-        return {"videos": []}
-    
     url = f"{YOUTUBE_API_BASE}/videos"
     params = {
         "part": "snippet,contentDetails,statistics",
@@ -180,7 +175,6 @@ async def get_trending(region: str = "UG"):
 
 def parse_duration(duration_str: str) -> int:
     """Convert ISO 8601 duration to seconds"""
-    import re
     match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration_str)
     if not match:
         return 0
