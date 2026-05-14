@@ -19,11 +19,12 @@ def get_api_key():
 
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 INVIDIOUS_INSTANCES = [
-    "https://yewtu.be",
-    "https://vid.puffyan.us",
-    "https://invidious.flokinet.to",
+    "https://inv.nadeko.net",
+    "https://invidious.privacyredirect.com",
+    "https://invidious.nerdvpn.de",
+    "https://iv.ggtyler.dev",
+    "https://invidious.drgns.space",
 ]
-
 _cache = {}
 
 async def search_music(query: str, platform: str = "youtube", limit: int = 25):
