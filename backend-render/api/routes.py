@@ -203,3 +203,28 @@ async def download_audio(video_id: str):
             return {"success": False, "error": "Could not extract audio"}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+@router.get("/download/audio/{video_id}")
+async def download_audio(video_id: str):
+    """Generate audio download link using yt-dlp"""
+    import subprocess
+    import tempfile
+    import os
+    
+    try:
+        # Get video info first
+        url = f"https://www.youtube.com/watch?v={video_id}"
+        
+        # Use yt-dlp to get the direct audio URL
+        result = subprocess.run(
+            ["yt-dlp", "-f", "bestaudio", "--get-url", url],
+            capture_output=True, text=True, timeout=30
+        )
+        
+        if result.returncode == 0:
+            download_url = result.stdout.strip()
+            return {"success": True, "downloadUrl": download_url, "format": "audio"}
+        else:
+            return {"success": False, "error": "Could not extract audio"}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
