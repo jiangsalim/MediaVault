@@ -222,11 +222,12 @@ async def trending(region: str = Query("UG")):
 
 @router.get("/suggest")
 @router.get("/suggest")
+@router.get("/suggest")
 async def suggest(q: str = Query(...)):
-    """Try Google Suggest API first, then yt-dlp suggestions fallback"""
+    """Get clean search suggestions — Google API first, then clean yt-dlp suggestions"""
     import json as j, re
     
-    # ── METHOD 1: Google Suggest API ──
+    # ── METHOD 1: Google Suggest API (clean autocomplete phrases) ──
     try:
         import httpx as hx
         async with hx.AsyncClient() as client:
@@ -236,24 +237,33 @@ async def suggest(q: str = Query(...)):
             if match:
                 suggestions = j.loads(match.group(2))
                 if suggestions:
-                    print(f"✅ Suggestions via Google: {len(suggestions)} found")
-                    return {"success": True, "data": suggestions}
+                    return {"success": True, "data": suggestions[:8]}
     except:
         pass
     
-    # ── METHOD 2: yt-dlp search suggestions ──
+    # ── METHOD 2: Clean yt-dlp suggestions (artists/songs matching query) ──
     try:
-        results, _ = await search_music(q, limit=10)
-        titles = [v.get("title", "")[:80] for v in results.get("videos", [])[:8]]
-        if titles:
-            print(f"✅ Suggestions via yt-dlp: {len(titles)} found")
-            return {"success": True, "data": titles}
+        results, _ = await search_music(q, limit=8)
+        suggestions = []
+        seen = set()
+        for v in results.get("videos", []):
+            artist = v.get("artist", "")
+            title = v.get("title", "")
+            # Use artist names and short phrases as suggestions
+            if artist and artist.lower() not in seen:
+                seen.add(artist.lower())
+                suggestions.append(artist)
+            elif title and len(title) < 60 and title.lower() not in seen:
+                seen.add(title.lower())
+                suggestions.append(title[:60])
+            if len(suggestions) >= 8:
+                break
+        if suggestions:
+            return {"success": True, "data": suggestions}
     except:
         pass
     
     return {"success": True, "data": []}
-@router.get("/download/audio/{video_id}")
-async def download_audio(video_id: str):
     return {"success": True, "redirectUrl": f"https://www.y2mate.com/youtube/{video_id}"}
 
 @router.get("/health")
