@@ -1,13 +1,45 @@
 import os
 import re
 import httpx
-from typing import Optional
+import random
 
-YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng")
+# Multiple YouTube API keys for quota rotation
+YOUTUBE_API_KEYS = [
+    "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng",
+    "AIzaSyAX5f9v2uYNL5jDVOlxhVp4IuK_cy68e2I",
+    "AIzaSyAjtwWKRi6-FZ20jruoQWx4LuC6gZiuqLk",
+    "AIzaSyBhJjuscU8TP72FQUt7qcj3hfNKuZ-nlnE",
+    "AIzaSyBbHs7soVbyWqCvafvZaMjcNhs36NMF_Oc",
+    "AIzaSyBu3YhONuYaSf3iYFDftLlNAurwDqnTjdc",
+    "AIzaSyDvUcaijDrsGDLX6iU7J45xlhQHiPZgnaU",
+    "AIzaSyClsLzCXlNhTzzEernLvbCF5M3TH1kzlQA",
+    "AIzaSyDt8znupiOA5iWHocls-5wny-R9G_ql5zQ",
+    "AIzaSyCI_KHaET_L5TvcKELVhQxT7QN6TTnz0PU",
+]
+
+def get_key():
+    """Return a random API key"""
+    return random.choice(YOUTUBE_API_KEYS)
+
 YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3"
 
+# Simple in-memory cache
+_cache = {}
+
 async def search_music(query: str, platform: str = "youtube", limit: int = 25):
-    return await search_youtube_api(query, limit)
+    cache_key = f"search_{query}_{limit}"
+    if cache_key in _cache:
+        return _cache[cache_key]
+    
+    result = await search_youtube_api(query, limit)
+    _cache[cache_key] = result
+    
+    # Limit cache size
+    if len(_cache) > 100:
+        oldest = next(iter(_cache))
+        del _cache[oldest]
+    
+    return result
 
 async def search_youtube_api(query: str, limit: int = 25):
     url = f"{YOUTUBE_API_BASE}/search"
@@ -16,13 +48,21 @@ async def search_youtube_api(query: str, limit: int = 25):
         "q": query,
         "type": "video",
         "maxResults": min(limit, 50),
-        "key": YOUTUBE_API_KEY,
+        "key": get_key(),
         "videoCategoryId": "10",
     }
     
     async with httpx.AsyncClient() as client:
         resp = await client.get(url, params=params, timeout=15)
         data = resp.json()
+    
+    if "error" in data:
+        # If quota exceeded on this key, try another
+        if "quota" in str(data.get("error", {}).get("message", "")).lower():
+            params["key"] = get_key()
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(url, params=params, timeout=15)
+                data = resp.json()
     
     videos = []
     video_ids = []
@@ -43,7 +83,6 @@ async def search_youtube_api(query: str, limit: int = 25):
             "likes": 0,
         })
     
-    # Get video details
     if video_ids:
         details = await get_video_details(video_ids)
         for v in videos:
@@ -59,7 +98,7 @@ async def get_video_details(video_ids: list) -> dict:
     params = {
         "part": "contentDetails,statistics",
         "id": ",".join(video_ids),
-        "key": YOUTUBE_API_KEY,
+        "key": get_key(),
     }
     
     async with httpx.AsyncClient() as client:
@@ -82,7 +121,7 @@ async def get_channel_details(channel_ids: list) -> dict:
     params = {
         "part": "snippet,statistics,brandingSettings",
         "id": ",".join(channel_ids),
-        "key": YOUTUBE_API_KEY,
+        "key": get_key(),
     }
     
     async with httpx.AsyncClient() as client:
@@ -118,7 +157,7 @@ async def get_related_videos(video_id: str, max_results: int = 20) -> list:
         "relatedToVideoId": video_id,
         "type": "video",
         "maxResults": min(max_results, 50),
-        "key": YOUTUBE_API_KEY,
+        "key": get_key(),
     }
     
     async with httpx.AsyncClient() as client:
@@ -146,7 +185,7 @@ async def get_trending(region: str = "UG"):
         "regionCode": region,
         "videoCategoryId": "10",
         "maxResults": 25,
-        "key": YOUTUBE_API_KEY,
+        "key": get_key(),
     }
     
     async with httpx.AsyncClient() as client:
@@ -174,7 +213,6 @@ async def get_trending(region: str = "UG"):
     return {"videos": videos}
 
 def parse_duration(duration_str: str) -> int:
-    """Convert ISO 8601 duration to seconds"""
     match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration_str)
     if not match:
         return 0
