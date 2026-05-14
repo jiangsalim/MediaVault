@@ -34,11 +34,10 @@ INVIDIOUS_INSTANCES = [
     "https://invidious.flokinet.to",
 ]
 
-# Cache
 _cache = {}
 
 # ═══════════════════════════════════════════
-# MAIN SEARCH — TRIES ALL 4 METHODS
+# MAIN SEARCH — 4 METHODS, FASTEST FIRST
 # ═══════════════════════════════════════════
 
 async def search_music(query: str, platform: str = "youtube", limit: int = 25):
@@ -46,11 +45,12 @@ async def search_music(query: str, platform: str = "youtube", limit: int = 25):
     if cache_key in _cache:
         return _cache[cache_key]
     
+    # Fastest first, slowest last
     methods = [
         ("API", search_via_api),
         ("Invidious", search_via_invidious),
-        ("yt-dlp", search_via_ytdlp),
         ("RSS", search_via_rss),
+        ("yt-dlp", search_via_ytdlp),  # Slowest — absolute last resort
     ]
     
     for name, method in methods:
@@ -84,7 +84,6 @@ async def search_via_api(query: str, limit: int = 25):
         data = resp.json()
     
     if "error" in data:
-        # Try one more key
         params["key"] = get_api_key()
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params, timeout=10)
@@ -140,7 +139,39 @@ async def search_via_invidious(query: str, limit: int = 25):
     return {"videos": videos, "nextPageToken": ""}
 
 # ═══════════════════════════════════════════
-# METHOD 3: yt-dlp (Direct Extraction)
+# METHOD 3: YouTube RSS/XML Feeds
+# ═══════════════════════════════════════════
+
+async def search_via_rss(query: str, limit: int = 25):
+    import xml.etree.ElementTree as ET
+    encoded = query.replace(" ", "+")
+    url = f"https://www.youtube.com/feeds/videos.xml?q={encoded}"
+    
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, timeout=10, follow_redirects=True)
+        text = resp.text
+    
+    root = ET.fromstring(text)
+    ns = {"atom": "http://www.w3.org/2005/Atom"}
+    
+    videos = []
+    for entry in root.findall("atom:entry", ns)[:limit]:
+        vid = entry.find("atom:id", ns).text.split(":")[-1] if entry.find("atom:id", ns) is not None else ""
+        title = entry.find("atom:title", ns).text if entry.find("atom:title", ns) is not None else ""
+        author = entry.find("atom:author/atom:name", ns)
+        author_name = author.text if author is not None else ""
+        
+        videos.append({
+            "id": vid, "title": title, "artist": author_name,
+            "channelId": "", "description": "",
+            "thumbnail": f"https://i.ytimg.com/vi/{vid}/mqdefault.jpg",
+            "publishedAt": "", "duration": 0, "views": 0, "likes": 0,
+        })
+    
+    return {"videos": videos, "nextPageToken": ""}
+
+# ═══════════════════════════════════════════
+# METHOD 4: yt-dlp (SLOWEST — LAST RESORT)
 # ═══════════════════════════════════════════
 
 async def search_via_ytdlp(query: str, limit: int = 25):
@@ -175,50 +206,10 @@ async def search_via_ytdlp(query: str, limit: int = 25):
     return {"videos": videos, "nextPageToken": ""}
 
 # ═══════════════════════════════════════════
-# METHOD 4: YouTube RSS/XML Feeds
-# ═══════════════════════════════════════════
-
-async def search_via_rss(query: str, limit: int = 25):
-    encoded = httpx.URL(query).encoded_path if hasattr(httpx.URL, 'encoded_path') else query.replace(" ", "+")
-    url = f"https://www.youtube.com/feeds/videos.xml?q={encoded}"
-    
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url, timeout=10, follow_redirects=True)
-        text = resp.text
-    
-    # Parse RSS XML
-    import xml.etree.ElementTree as ET
-    root = ET.fromstring(text)
-    ns = {"atom": "http://www.w3.org/2005/Atom", "media": "http://search.yahoo.com/mrss/"}
-    
-    videos = []
-    for entry in root.findall("atom:entry", ns)[:limit]:
-        vid = entry.find("atom:id", ns).text.split(":")[-1] if entry.find("atom:id", ns) is not None else ""
-        title = entry.find("atom:title", ns).text if entry.find("atom:title", ns) is not None else ""
-        author = entry.find("atom:author/atom:name", ns)
-        author_name = author.text if author is not None else ""
-        
-        videos.append({
-            "id": vid,
-            "title": title,
-            "artist": author_name,
-            "channelId": "",
-            "description": "",
-            "thumbnail": f"https://i.ytimg.com/vi/{vid}/mqdefault.jpg",
-            "publishedAt": "",
-            "duration": 0,
-            "views": 0,
-            "likes": 0,
-        })
-    
-    return {"videos": videos, "nextPageToken": ""}
-
-# ═══════════════════════════════════════════
-# CHANNEL DETAILS (API Fallback)
+# CHANNEL DETAILS
 # ═══════════════════════════════════════════
 
 async def get_channel_details(channel_ids: list) -> dict:
-    # Try API first
     try:
         url = f"{YOUTUBE_API_BASE}/channels"
         params = {
@@ -247,12 +238,7 @@ async def get_channel_details(channel_ids: list) -> dict:
     except:
         pass
     
-    # Fallback: basic info
     return {cid: {"id": cid, "title": cid, "subscriberCount": 0, "thumbnail": ""} for cid in channel_ids}
-
-# ═══════════════════════════════════════════
-# HELPERS
-# ═══════════════════════════════════════════
 
 async def get_video_details(video_ids: list) -> dict:
     try:
