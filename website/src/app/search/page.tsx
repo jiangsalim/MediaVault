@@ -167,3 +167,4 @@ export default function SearchPage() {
   return <Layout><section className="py-6"><div className="container-site max-w-4xl mx-auto"><Suspense fallback={<div className="space-y-4">{Array.from({length:5}).map((_,i)=><div key={i} className="flex gap-4 animate-pulse"><div className="h-36 w-64 rounded-xl bg-gray-light" /><div className="flex-1 space-y-2"><div className="h-5 w-3/4 rounded bg-gray-light" /></div></div>)}</div>}><SearchContent /></Suspense></div></section></Layout>;
 }
 
+
