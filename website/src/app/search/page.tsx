@@ -41,7 +41,7 @@ function SearchContent() {
         const res = await fetch(`${API_BASE}/suggest?q=${encodeURIComponent(searchInput)}`);
         const data = await res.json();
         setSuggestions(data.data || []);
-        if (!query) setShowSuggestions(true);
+        setShowSuggestions(true);
       } catch {}
     }, 300);
     return () => clearTimeout(timer);
@@ -74,15 +74,22 @@ function SearchContent() {
     if (loadingMore) return;
     setLoadingMore(true);
     try {
+      const existingIds = new Set(results.map((r: any) => r.id));
+      let moreVideos: any[] = [];
       if (nextPageToken) {
         const res = await searchNextPage(query, nextPageToken);
-        setResults(prev => [...prev, ...(res.data?.videos || [])]);
+        moreVideos = res.data?.videos || [];
         setNextPageToken(res.data?.nextPageToken || "");
       } else {
-        // No pagination token — search with a related query
         const variations = [`${query} songs`, `${query} music`, `${query} hits`, `${query} trending`];
         const vq = variations[Math.floor(Math.random() * variations.length)];
         const res = await searchMusic(vq);
+        moreVideos = (res.data?.videos || []).filter((v: any) => !existingIds.has(v.id));
+      }
+      setResults(prev => [...prev, ...moreVideos]);
+    } catch {}
+    setLoadingMore(false);
+  };
         const existingIds = new Set(results.map((r: any) => r.id));
         const newVideos = (res.data?.videos || []).filter((v: any) => !existingIds.has(v.id));
         setResults(prev => [...prev, ...newVideos]);
