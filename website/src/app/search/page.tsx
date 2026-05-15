@@ -55,6 +55,8 @@ function SearchContent() {
 
   useEffect(() => {
     if (query && !initialLoadDone.current) {
+      setShowSuggestions(false);
+      setSuggestions([]);
       initialLoadDone.current = true;
       setLoading(true);
       saveToHistory(query);
