@@ -18,6 +18,7 @@ const System = {
         this.currentPlatform = chip.dataset.platform;
         if (typeof HomePage !== 'undefined') HomePage.filterByPlatform(this.currentPlatform);
       });
+        if (this.currentPlatform === "music" && typeof MusicPage !== "undefined") { MusicPage.init(); return; }
     });
   },
 
