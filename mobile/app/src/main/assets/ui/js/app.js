@@ -24,3 +24,14 @@
     init();
   }
 })();
+
+// Hamburger toggle
+document.addEventListener('DOMContentLoaded', function() {
+  var btn = document.getElementById('btn-hamburger');
+  var drawer = document.getElementById('hamburger-drawer');
+  if (btn && drawer) {
+    btn.addEventListener('click', function() {
+      drawer.classList.toggle('open');
+    });
+  }
+});
