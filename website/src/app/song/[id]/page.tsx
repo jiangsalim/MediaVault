@@ -170,8 +170,6 @@ export default function SongPage() {
           </div>
         </div>
       </div>
-
-              {/* YouTube IFrame API for autoplay */}
               <script src="https://www.youtube.com/iframe_api"></script>
               <script dangerouslySetInnerHTML={{ __html: `
                 var player;
