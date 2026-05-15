@@ -77,3 +77,37 @@ var Helpers = {
     return d.innerHTML;
   },
 };
+
+// ── Snackbar ──
+var Snackbar = {
+  show: function(msg, action, callback) {
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;bottom:80px;left:16px;right:16px;background:var(--accent);color:var(--accent-text);padding:14px 16px;border-radius:8px;display:flex;align-items:center;justify-content:space-between;z-index:9999;box-shadow:var(--shadow-md);animation:slideUp 300ms ease;';
+    el.innerHTML = '<span style="font-size:14px;">' + msg + '</span>';
+    if (action) {
+      el.innerHTML += '<button style="background:none;border:none;color:var(--accent-text);font-weight:600;cursor:pointer;font-size:14px;">' + action + '</button>';
+      el.querySelector('button').addEventListener('click', function() { el.remove(); if (callback) callback(); });
+    }
+    document.body.appendChild(el);
+    setTimeout(function() { if (el.parentNode) el.remove(); }, 4000);
+  },
+};
+
+// ── Dialog ──
+var Dialog = {
+  confirm: function(title, message, onConfirm) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:24px;';
+    overlay.innerHTML = '<div style="background:var(--bg);border-radius:12px;padding:24px;max-width:320px;width:100%;text-align:center;">'
+      + '<h3 style="font-size:18px;font-weight:700;margin-bottom:8px;">' + title + '</h3>'
+      + '<p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">' + message + '</p>'
+      + '<div style="display:flex;gap:12px;">'
+      + '<button id="dialog-cancel" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer;">Cancel</button>'
+      + '<button id="dialog-confirm" style="flex:1;padding:12px;border:none;border-radius:8px;background:var(--accent);color:var(--accent-text);cursor:pointer;">Confirm</button>'
+      + '</div></div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('#dialog-cancel').addEventListener('click', function() { overlay.remove(); });
+    overlay.querySelector('#dialog-confirm').addEventListener('click', function() { overlay.remove(); if (onConfirm) onConfirm(); });
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+  },
+};

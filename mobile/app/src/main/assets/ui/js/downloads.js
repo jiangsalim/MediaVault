@@ -74,6 +74,13 @@ var Downloads = {
         dl.progress = 100;
         clearInterval(self._intervals[dl.id]);
         Toast.show('Download complete!');
+    var streak = parseInt(localStorage.getItem("mv_streak") || "0");
+    var today = new Date().toDateString();
+    var last = localStorage.getItem("mv_streak_day");
+    if (last !== today) {
+      localStorage.setItem("mv_streak_day", today);
+      localStorage.setItem("mv_streak", streak + 1);
+    }
       }
       self.save();
       self.render();

@@ -90,6 +90,31 @@ var Profile = {
     html += self._themeRow(self._icons.moon, 'Dark', 'dark', theme);
     html += '</div>';
 
+    // Notification Settings
+    html += '<div class="settings-section">';
+    html += '<div class="settings-label">Notifications</div>';
+    html += self._toggle(self._icons.bell, 'Download Progress', true, 'notifProgress');
+    html += self._toggle(self._icons.bell, 'Download Complete', true, 'notifComplete');
+    html += self._toggle(self._icons.bell, 'Recommended Content', false, 'notifRecommend');
+    html += '</div>';
+
+    // Region & Language
+    html += '<div class="settings-section">';
+    html += '<div class="settings-label">Region & Language</div>';
+    html += self._row(self._icons.globe, 'Region', 'Uganda');
+    html += self._row(self._icons.globe, 'Language', 'English');
+    html += '</div>';
+
+    // Download Streak
+    var streak = parseInt(localStorage.getItem('mv_streak') || '0');
+    html += '<div class="settings-section">';
+    html += '<div class="settings-label">Download Streak</div>';
+    html += '<div style="padding:16px;text-align:center;">';
+    html += '<div style="font-size:40px;margin-bottom:8px;">' + (streak > 0 ? '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' : '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>') + '</div>';
+    html += '<div style="font-size:28px;font-weight:700;">' + streak + ' days</div>';
+    html += '<div style="font-size:12px;color:var(--text-tertiary);">Keep downloading daily!</div>';
+    html += '</div></div>';
+
     // Tools
     html += '<div class="settings-section">';
     html += '<div class="settings-label">Tools</div>';

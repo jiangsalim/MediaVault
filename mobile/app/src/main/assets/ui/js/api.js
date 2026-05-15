@@ -15,7 +15,7 @@ var API = {
     try {
       var res = await fetch(instance + '/api/v1/search?q=' + encodeURIComponent(query) + '&type=video&page=1');
       var data = await res.json();
-      return (data || []).slice(0, limit).map(this._format);
+      var videos = (data || []).slice(0, limit).map(this._format); return { videos: videos, nextPage: "" };
     } catch(e) {
       return [];
     }

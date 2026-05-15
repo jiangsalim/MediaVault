@@ -25,6 +25,10 @@ var Tools = {
     if (id === 'statusSaver') this._statusSaver();
     else if (id === 'vault') this._vault();
     else if (id === 'cleaner') this._cleaner();
+    else if (id === 'whatsappClean') this._whatsappClean();
+    else if (id === 'photosClean') this._photosClean();
+    else if (id === 'appUninstaller') this._appUninstaller();
+    else if (id === 'storageManager') this._storageManager();
     else if (id === 'files') { if (typeof Router !== 'undefined') Router.go('downloads'); }
   },
 
@@ -72,3 +76,50 @@ var Tools = {
       + '</button>';
   },
 };
+
+  // Additional phone tools
+  _whatsappClean: function() {
+    var html = '<h3 style="font-size:16px;margin-bottom:12px;">WhatsApp Clean</h3>'
+      + '<p style="font-size:13px;color:var(--text-tertiary);margin-bottom:12px;">Total scanned: 2.4 GB</p>'
+      + '<div style="display:grid;gap:8px;margin-bottom:12px;">'
+      + ['Images (1.2 GB)', 'Videos (800 MB)', 'Documents (250 MB)', 'Stickers (100 MB)', 'Voice Notes (50 MB)'].map(function(item) {
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--surface);border-radius:8px;"><span style="font-size:13px;">' + item + '</span><button onclick="Sheet.hide();Toast.show(\'Cleaned ' + item + '\')" style="background:var(--accent);color:var(--accent-text);border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;">Clean</button></div>';
+        }).join('')
+      + '</div><button onclick="Sheet.hide()" style="width:100%;padding:10px;border:none;background:var(--surface);border-radius:8px;cursor:pointer;">Cancel</button>';
+    Sheet.show(html);
+  },
+
+  _photosClean: function() {
+    var html = '<h3 style="font-size:16px;margin-bottom:12px;">Photos Clean</h3>'
+      + '<p style="font-size:13px;color:var(--text-tertiary);margin-bottom:12px;">Found 156 similar/blurry photos (340 MB)</p>'
+      + '<button onclick="Sheet.hide();Toast.show(\'Cleaned 340 MB\')" style="width:100%;padding:12px;background:var(--accent);color:var(--accent-text);border:none;border-radius:8px;cursor:pointer;font-weight:600;margin-bottom:8px;">Clean All</button>'
+      + '<button onclick="Sheet.hide()" style="width:100%;padding:10px;border:none;background:var(--surface);border-radius:8px;cursor:pointer;">Cancel</button>';
+    Sheet.show(html);
+  },
+
+  _appUninstaller: function() {
+    var apps = ['Old Games (450 MB)', 'Unused Editor (180 MB)', 'Trial App (95 MB)'];
+    var html = '<h3 style="font-size:16px;margin-bottom:12px;">App Uninstaller</h3>'
+      + '<div style="display:grid;gap:8px;margin-bottom:12px;">'
+      + apps.map(function(a) {
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--surface);border-radius:8px;"><span style="font-size:13px;">' + a + '</span><button onclick="Sheet.hide();Toast.show(\'Uninstalled\')" style="color:var(--error);background:none;border:none;cursor:pointer;font-size:12px;">Uninstall</button></div>';
+        }).join('')
+      + '</div><button onclick="Sheet.hide()" style="width:100%;padding:10px;border:none;background:var(--surface);border-radius:8px;cursor:pointer;">Cancel</button>';
+    Sheet.show(html);
+  },
+
+  _storageManager: function() {
+    var html = '<h3 style="font-size:16px;margin-bottom:12px;">Storage Manager</h3>'
+      + '<div style="background:var(--surface);border-radius:8px;padding:16px;margin-bottom:12px;">'
+      + '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Total</span><span>64 GB</span></div>'
+      + '<div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>Used</span><span>48 GB (75%)</span></div>'
+      + '<div style="display:flex;justify-content:space-between;"><span>Free</span><span>16 GB (25%)</span></div>'
+      + '<div class="dl-progress" style="margin-top:12px;"><div class="dl-progress-fill" style="width:75%;"></div></div>'
+      + '</div>'
+      + '<div style="display:grid;gap:6px;margin-bottom:12px;">'
+      + [{ label: 'Apps', size: '22 GB', color: '#4A90D9' }, { label: 'Media', size: '14 GB', color: '#E67E22' }, { label: 'Downloads', size: '8 GB', color: '#2D8A4E' }, { label: 'Other', size: '4 GB', color: '#999' }].map(function(item) {
+          return '<div style="display:flex;align-items:center;gap:8px;"><div style="width:12px;height:12px;border-radius:3px;background:' + item.color + ';"></div><span style="flex:1;font-size:13px;">' + item.label + '</span><span style="font-size:13px;">' + item.size + '</span></div>';
+        }).join('')
+      + '</div><button onclick="Sheet.hide()" style="width:100%;padding:10px;border:none;background:var(--surface);border-radius:8px;cursor:pointer;">Close</button>';
+    Sheet.show(html);
+  },
