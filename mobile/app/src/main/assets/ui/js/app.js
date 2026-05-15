@@ -12,6 +12,7 @@
     if (typeof System !== 'undefined') System.init();
     if (typeof BadgeSystem !== "undefined") BadgeSystem.init();
     if (typeof Router !== 'undefined') Router.init();
+    HomePage.checkClipboard();
     if (typeof HamburgerMenu !== 'undefined') HamburgerMenu.init();
 
     console.log('[MediaVault] Ready');

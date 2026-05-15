@@ -5,9 +5,6 @@ const System = {
     this.monitorNetwork();
     this.updateDownloadBadge();
     this.initPlatformTabs();
-    this.initPasteButton();
-    this.initVoiceSearch();
-  },
 
   // Platform tabs
   initPlatformTabs() {
@@ -24,26 +21,6 @@ const System = {
   },
 
   // Paste URL button
-  initPasteButton() {
-    document.getElementById('btn-paste-url')?.addEventListener('click', async () => {
-      try {
-        const text = await navigator.clipboard.readText();
-        if (text) {
-          const input = document.getElementById('search-input-main');
-          if (input) { input.value = text; input.focus(); }
-          this.toast('URL pasted from clipboard');
-          // Auto-detect platform from URL
-          if (text.includes('youtube.com') || text.includes('youtu.be')) this.selectPlatform('youtube');
-          else if (text.includes('spotify.com')) this.selectPlatform('spotify');
-          else if (text.includes('tiktok.com')) this.selectPlatform('tiktok');
-          else if (text.includes('instagram.com')) this.selectPlatform('instagram');
-          else if (text.includes('facebook.com')) this.selectPlatform('facebook');
-        }
-      } catch {
-        this.toast('Clipboard access denied');
-      }
-    });
-  },
 
   // Voice search
   initVoiceSearch() {

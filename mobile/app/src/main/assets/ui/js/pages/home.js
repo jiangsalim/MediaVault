@@ -9,6 +9,16 @@ const HomePage = {
   async load() {
     this.history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.SEARCH_HISTORY) || '[]');
     this.bindSearchEvents();
+  checkClipboard() {
+    setTimeout(async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && (text.includes("youtube.com") || text.includes("youtu.be") || text.includes("spotify.com") || text.includes("tiktok.com") || text.includes("instagram.com"))) {
+          System.toast("📋 URL detected in clipboard");
+        }
+      } catch {}
+    }, 1000);
+  },
     
     // Load trending content
     const homeContainer = document.getElementById('home-content');
@@ -20,6 +30,16 @@ const HomePage = {
   },
 
   bindSearchEvents() {
+  checkClipboard() {
+    setTimeout(async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text && (text.includes("youtube.com") || text.includes("youtu.be") || text.includes("spotify.com") || text.includes("tiktok.com") || text.includes("instagram.com"))) {
+          System.toast("📋 URL detected in clipboard");
+        }
+      } catch {}
+    }, 1000);
+  },
     const input = document.getElementById('search-input-main');
     const submitBtn = document.getElementById('btn-search-submit');
     const voiceBtn = document.getElementById('btn-voice-search');
@@ -38,7 +58,6 @@ const HomePage = {
     });
 
     voiceBtn?.addEventListener('click', () => this.voiceSearch());
-    pasteBtn?.addEventListener('click', () => this.pasteURL());
 
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.search-bar-main') && !e.target.closest('#suggestions-container')) {
@@ -143,7 +162,6 @@ const HomePage = {
     rec.onerror = () => System.toast('Voice failed');
   },
 
-  async pasteURL() {
     try {
       const text = await navigator.clipboard.readText();
       if (text) {
