@@ -30,7 +30,7 @@ function SearchContent() {
         const res = await fetch(`${API_BASE}/suggest?q=${encodeURIComponent(searchInput)}`);
         const data = await res.json();
         setSuggestions(data.data || []);
-        if (!query) setShowSuggestions(true);
+        setShowSuggestions(true);
       } catch {}
     }, 300);
     return () => clearTimeout(timer);
