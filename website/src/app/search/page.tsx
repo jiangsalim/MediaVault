@@ -35,11 +35,7 @@ function SearchContent() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
-
-  useEffect(() => {
-    const handleClick = (e: MouseEvent) => { if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowSuggestions(false); };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+  // Suggestions close when user taps a suggestion or presses Enter
   }, []);
 
   useEffect(() => {
