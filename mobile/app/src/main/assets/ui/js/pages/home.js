@@ -15,9 +15,9 @@ const HomePage = {
     try {
       const shuffled = [...this.trendingQueries].sort(() => Math.random() - 0.5);
       const [res1, res2, channelsRes] = await Promise.all([
-        System.apiGet('/search', { q: shuffled[0], limit: 25 }),
-        System.apiGet('/search', { q: shuffled[1], limit: 25 }),
-        System.apiGet('/channels/trending'),
+        YouTubeAPI.search', { q: shuffled[0], limit: 25 }),
+        YouTubeAPI.search', { q: shuffled[1], limit: 25 }),
+        YouTubeAPI.getTrendingChannels()'),
       ]);
       const allSongs = []; const ids = new Set();
       (res1.data?.videos || []).forEach(s => { if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); } });

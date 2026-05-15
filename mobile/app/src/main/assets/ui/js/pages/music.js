@@ -15,8 +15,8 @@ const MusicPage = {
   async fetchData() {
     try {
       const [trendingRes, channelsRes] = await Promise.all([
-        System.apiGet('/search', { q: 'trending music', limit: 30 }),
-        System.apiGet('/channels/trending'),
+        YouTubeAPI.search', { q: 'trending music', limit: 30 }),
+        YouTubeAPI.getTrendingChannels()'),
       ]);
       const videos = trendingRes.data?.videos || [];
       this.data = {

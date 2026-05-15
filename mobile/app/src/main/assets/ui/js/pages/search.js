@@ -81,7 +81,7 @@ const SearchPage = {
   async onInput(value) {
     if (value.length < 2) { this.hideSuggestions(); return; }
     try {
-      const res = await System.apiGet('/suggest', { q: value });
+      const res = await YouTubeAPI.getSuggestions', { q: value });
       this.suggestions = res.data || [];
       this.showSuggestions();
     } catch {}
@@ -117,7 +117,7 @@ const SearchPage = {
     container.innerHTML = this.renderLoading();
 
     try {
-      const res = await System.apiGet("/search", { q: query, platform: System.currentPlatform }, limit: 25 });
+      const res = await YouTubeAPI.search", { q: query, platform: System.currentPlatform }, limit: 25 });
       this.results = res.data?.videos || [];
       this.nextPageToken = res.data?.nextPageToken || '';
       container.innerHTML = this.renderResults();
@@ -133,7 +133,7 @@ const SearchPage = {
     if (trigger) trigger.innerHTML = '<div style="text-align:center;padding:var(--space-md);"><span class="skeleton" style="display:inline-block;width:120px;height:20px;"></span></div>';
 
     try {
-      const res = await System.apiGet('/search/next', { q: this.query, page_token: this.nextPageToken, limit: 25 });
+      const res = await YouTubeAPI.search/next', { q: this.query, page_token: this.nextPageToken, limit: 25 });
       const newVideos = res.data?.videos || [];
       this.results = [...this.results, ...newVideos];
       this.nextPageToken = res.data?.nextPageToken || '';
