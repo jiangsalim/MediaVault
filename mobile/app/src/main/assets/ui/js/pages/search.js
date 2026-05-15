@@ -13,9 +13,11 @@ const SearchPage = {
   render() {
     const container = document.getElementById('search-content');
     container.innerHTML = `
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Search songs, artists..." autocomplete="off">
-        <button class="search-submit" id="search-submit-btn">🔍</button>
+      <div class="search-bar search-bar-full">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="search-input-full" placeholder="Search songs, artists..." autocomplete="off">
+        <button class="voice-btn" id="btn-voice-search-full" title="Voice Search">🎤</button>
+        <button class="search-submit" id="search-submit-full">Search</button>
       </div>
       <div id="suggestions-container"></div>
       <div id="results-container">
@@ -23,28 +25,48 @@ const SearchPage = {
       </div>
     `;
     if (this.query) {
-      document.getElementById('search-input').value = this.query;
-      this.search(this.query);
+      const input = document.getElementById('search-input-full');
+      if (input) { input.value = this.query; this.search(this.query); }
     }
   },
 
   bindEvents() {
-    const input = document.getElementById('search-input');
-    const submitBtn = document.getElementById('search-submit-btn');
+    const input = document.getElementById('search-input-full');
+    const submitBtn = document.getElementById('search-submit-full');
+    const voiceBtn = document.getElementById('btn-voice-search-full');
 
     input?.addEventListener('input', () => this.onInput(input.value));
     input?.addEventListener('focus', () => this.showSuggestions());
-    submitBtn?.addEventListener('click', () => {
-      const q = input.value.trim();
-      if (q) this.search(q);
-    });
-    input?.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { const q = input.value.trim(); if (q) this.search(q); }
-    });
+    submitBtn?.addEventListener('click', () => { const q = input.value.trim(); if (q) this.search(q); });
+    input?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const q = input.value.trim(); if (q) this.search(q); } });
 
+    // Voice search for the full search page
+    voiceBtn?.addEventListener('click', () => this.voiceSearch());
+
+    // Hide suggestions on outside click
     document.addEventListener('click', (e) => {
       if (!e.target.closest('#search-content')) this.hideSuggestions();
     });
+  },
+
+  voiceSearch() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      System.toast('Voice search not supported');
+      return;
+    }
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    System.toast('🎤 Listening...');
+    recognition.start();
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      const input = document.getElementById('search-input-full');
+      if (input) { input.value = transcript; }
+      this.search(transcript);
+    };
+    recognition.onerror = () => System.toast('Voice recognition failed');
   },
 
   async onInput(value) {
@@ -59,7 +81,6 @@ const SearchPage = {
   showSuggestions() {
     const container = document.getElementById('suggestions-container');
     if (!container) return;
-
     let html = '';
     if (this.suggestions.length > 0) {
       html += this.suggestions.map(s => `<button class="suggestion-item" onclick="SearchPage.search('${this.escapeAttr(s)}')"><span class="suggestion-icon">🔍</span>${this.escapeHtml(s)}</button>`).join('');
@@ -80,8 +101,6 @@ const SearchPage = {
   async search(query) {
     this.query = query;
     this.hideSuggestions();
-
-    // Save to history
     this.history = [query, ...this.history.filter(h => h !== query)].slice(0, CONFIG.MAX_SEARCH_HISTORY);
     localStorage.setItem(CONFIG.STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify(this.history));
 
@@ -106,13 +125,21 @@ const SearchPage = {
   resultCard(song) {
     const thumb = `https://i.ytimg.com/vi/${song.id}/hqdefault.jpg`;
     return `
-      <div class="video-card" onclick="window.open('https://youtube.com/watch?v=${song.id}','_blank')">
+      <div class="video-card" onclick="SearchPage.showQualitySheet('${song.id}')">
         <div class="card-thumb"><img src="${thumb}" alt="" onerror="this.style.display='none'"><span class="duration-badge">${System.formatDuration(song.duration || 0)}</span></div>
         <div class="card-body">
           <div class="card-title">${this.escapeHtml(song.title || '')}</div>
           <div class="card-meta"><span>${this.escapeHtml(song.artist || '')}</span><span>${System.formatNumber(song.views || 0)} views</span></div>
         </div>
       </div>`;
+  },
+
+  showQualitySheet(id) {
+    // Find song data
+    const song = this.results.find(s => s.id === id);
+    if (song && typeof HomePage !== 'undefined') {
+      HomePage.showQualitySheet(song);
+    }
   },
 
   renderEmptyState() {
@@ -129,13 +156,6 @@ const SearchPage = {
     this.showSuggestions();
   },
 
-  escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  },
-
-  escapeAttr(text) {
-    return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-  },
+  escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; },
+  escapeAttr(text) { return text.replace(/'/g, "\\'").replace(/"/g, '&quot;'); },
 };
