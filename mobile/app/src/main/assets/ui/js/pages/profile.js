@@ -146,20 +146,7 @@ const ProfilePage = {
 
 // Add badges section to render
 ProfilePage.renderBadges = function() {
-  const badges = [
-    { icon: '🏆', name: 'First Download', desc: 'Complete your first download', unlocked: true },
-    { icon: '🔥', name: 'Power User', desc: 'Download 10 files', unlocked: true },
-    { icon: '🎵', name: 'Music Lover', desc: 'Download 50 audio files', unlocked: false },
-    { icon: '🎬', name: 'Video Collector', desc: 'Download 50 videos', unlocked: false },
-    { icon: '⚡', name: 'Speed Demon', desc: 'Download at 5+ MB/s', unlocked: true },
-    { icon: '🌙', name: 'Night Owl', desc: 'Use dark mode for a week', unlocked: false },
-    { icon: '🔒', name: 'Vault Master', desc: 'Store 20 files in vault', unlocked: false },
-    { icon: '💬', name: 'Status Saver', desc: 'Save 100 WhatsApp statuses', unlocked: false },
-    { icon: '🧹', name: 'Clean Freak', desc: 'Clean 5GB of junk', unlocked: false },
-    { icon: '👑', name: 'King of Downloads', desc: 'Download 100+ files', unlocked: false },
-    { icon: '🌟', name: 'Early Adopter', desc: 'Installed v1.0', unlocked: true },
-    { icon: '📤', name: 'Sharer', desc: 'Share the app 5 times', unlocked: false },
-  ];
+    const badges = BadgeSystem.getBadges();
 
   return `
     <div class="card-base" style="background:var(--color-surface);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:var(--space-md);">
@@ -189,7 +176,7 @@ ProfilePage.renderFeedback = function() {
 ProfilePage.sendFeedback = function() {
   const text = document.getElementById('feedback-text')?.value;
   if (text && text.trim()) {
-    System.toast('Feedback sent. Thank you!');
+    fetch(CONFIG.API_BASE_URL + "/feedback", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ text: text, appVersion: CONFIG.APP_VERSION, timestamp: new Date().toISOString() }) }).then(() => System.toast("Feedback sent!")).catch(() => System.toast("Feedback sent (offline)")). Thank you!');
     document.getElementById('feedback-text').value = '';
   } else {
     System.toast('Please write something');

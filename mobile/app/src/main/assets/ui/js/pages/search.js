@@ -111,12 +111,13 @@ const SearchPage = {
     this.hideSuggestions();
     this.history = [query, ...this.history.filter(h => h !== query)].slice(0, CONFIG.MAX_SEARCH_HISTORY);
     localStorage.setItem(CONFIG.STORAGE_KEYS.SEARCH_HISTORY, JSON.stringify(this.history));
+    BadgeSystem.track("search");
 
     const container = document.getElementById('results-container');
     container.innerHTML = this.renderLoading();
 
     try {
-      const res = await System.apiGet('/search', { q: query, limit: 25 });
+      const res = await System.apiGet("/search", { q: query, platform: System.currentPlatform }, limit: 25 });
       this.results = res.data?.videos || [];
       this.nextPageToken = res.data?.nextPageToken || '';
       container.innerHTML = this.renderResults();

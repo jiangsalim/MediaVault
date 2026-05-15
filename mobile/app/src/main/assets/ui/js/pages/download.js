@@ -108,6 +108,9 @@ const DownloadPage = {
     this.selected.clear();
     this.selectMode = false;
     System.saveDownloadQueue(this.queue);
+    BadgeSystem.track("download");
+    if (quality?.includes("mp3")) BadgeSystem.track("audioDownload");
+    else BadgeSystem.track("videoDownload");
     this.render();
     System.toast(`Deleted ${this.selected.size} items`);
   },
@@ -128,6 +131,9 @@ const DownloadPage = {
     };
     this.queue.unshift(dl);
     System.saveDownloadQueue(this.queue);
+    BadgeSystem.track("download");
+    if (quality?.includes("mp3")) BadgeSystem.track("audioDownload");
+    else BadgeSystem.track("videoDownload");
     this.render();
     System.toast('Added to downloads');
   },
@@ -137,6 +143,9 @@ const DownloadPage = {
     if (!dl) return;
     dl.status = 'downloading';
     System.saveDownloadQueue(this.queue);
+    BadgeSystem.track("download");
+    if (quality?.includes("mp3")) BadgeSystem.track("audioDownload");
+    else BadgeSystem.track("videoDownload");
     this.render();
     this.simulateDownload(dl);
   },
@@ -153,6 +162,9 @@ const DownloadPage = {
         System.toast('Download complete!');
       }
       System.saveDownloadQueue(this.queue);
+    BadgeSystem.track("download");
+    if (quality?.includes("mp3")) BadgeSystem.track("audioDownload");
+    else BadgeSystem.track("videoDownload");
       this.render();
     }, 500);
   },
@@ -160,17 +172,26 @@ const DownloadPage = {
   pauseDownload(id) {
     const dl = this.queue.find(d => d.id === id);
     if (dl) { dl.status = 'pending'; System.saveDownloadQueue(this.queue); this.render(); }
+    BadgeSystem.track("download");
+    if (quality?.includes("mp3")) BadgeSystem.track("audioDownload");
+    else BadgeSystem.track("videoDownload");
   },
 
   removeDownload(id) {
     this.queue = this.queue.filter(d => d.id !== id);
     System.saveDownloadQueue(this.queue);
+    BadgeSystem.track("download");
+    if (quality?.includes("mp3")) BadgeSystem.track("audioDownload");
+    else BadgeSystem.track("videoDownload");
     this.render();
   },
 
   clearCompleted() {
     this.queue = this.queue.filter(d => d.status !== 'completed');
     System.saveDownloadQueue(this.queue);
+    BadgeSystem.track("download");
+    if (quality?.includes("mp3")) BadgeSystem.track("audioDownload");
+    else BadgeSystem.track("videoDownload");
     this.render();
     System.toast('Cleared completed');
   },
