@@ -123,10 +123,10 @@ export default function Home() {
         <div className="container-site">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="flex-1 text-center md:text-left">
-              <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:12px;">
-                <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:8px;background:#00C2BA;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download APK — Free</a>
-                <div style="background:#fff;padding:8px;border-radius:8px;display:inline-block;"><canvas id="qr-code" width="100" height="100"></canvas></div>
-                <p style="font-size:12px;color:#8B9DB5;">Scan to download v3.0.0</p>
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,marginBottom:12}}>
+                <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"#00C2BA",color:"#fff",padding:"12px 24px",borderRadius:8,textDecoration:"none",fontWeight:600,fontSize:15}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download APK — Free</a>
+                <div style={{background:"#fff",padding:8,borderRadius:8,display:"inline-block"}}><canvas id="qr-code" width="100" height="100"></canvas></div>
+                <p style={{fontSize:12,color:"#8B9DB5"}}>Scan to download v3.0.0</p>
               </div>
               <h2 className="text-white text-2xl font-bold mb-3">Get the Full Experience</h2>
               <p className="text-gray-medium mb-4 text-sm">Video downloads in HD, WhatsApp Status Saver, Private Vault, phone cleaner, and offline access.</p>
