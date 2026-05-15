@@ -135,3 +135,14 @@ export async function getTrendingChannels() {
   });
   return { success: true, data: Object.values(channelMap).slice(0, 8) };
 }
+
+// ── Suggestions (Google Suggest — direct from browser) ──
+export async function getSuggestions(query: string): Promise<string[]> {
+  try {
+    const res = await fetch(`https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}`);
+    const text = await res.text();
+    const match = text.match(/\["([^"]+)",(\[.*?\])/);
+    if (match) return JSON.parse(match[2]).slice(0, 8);
+  } catch {}
+  return [];
+}
