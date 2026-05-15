@@ -112,7 +112,6 @@ export default function SongPage() {
                 className="w-full h-full"
                 allowFullScreen
                 allow="autoplay; encrypted-media"
-                onError={(e) => { e.currentTarget.src = `https://www.youtube.com/embed/${id}?autoplay=1`; }}
               />
               </div>
             </div>
