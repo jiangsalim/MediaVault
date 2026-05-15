@@ -20,7 +20,7 @@ export default function Home() {
   useEffect(() => {
     const shuffled = [...trendingSearches].sort(() => Math.random() - 0.5);
     setLoading(true);
-    Promise.all([searchMusic(shuffled[0]), searchMusic(shuffled[1]), searchMusic(shuffled[Math.floor(Math.random()*shuffled.length)]), getTrendingChannels()])
+    Promise.all([searchMusic(shuffled[0]), searchMusic(shuffled[1]), getTrendingChannels()])
       .then(([r1, r2, channelsRes]) => {
         const allSongs: any[] = []; const ids = new Set<string>();
         (r1.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); } });
