@@ -10,13 +10,8 @@ var Downloads = {
   selected: {},
   _intervals: {},
 
-  // ── Load ──
   load: function() {
-    try {
-      this.queue = JSON.parse(localStorage.getItem(CONFIG.STORAGE.QUEUE) || '[]');
-    } catch(e) {
-      this.queue = [];
-    }
+    try { this.queue = JSON.parse(localStorage.getItem(CONFIG.STORAGE.QUEUE) || '[]'); } catch(e) { this.queue = []; }
     this.render();
   },
 
@@ -25,7 +20,6 @@ var Downloads = {
     if (typeof updateBadge !== 'undefined') updateBadge();
   },
 
-  // ── Add Download ──
   add: function(video, quality, format) {
     var dl = {
       id: Date.now().toString(),
@@ -40,19 +34,16 @@ var Downloads = {
       status: 'pending',
       addedAt: new Date().toISOString(),
     };
-
     this.queue.unshift(dl);
     this.save();
     this.render();
     this.start(dl.id);
     if (typeof Badges !== 'undefined') {
       Badges.track('downloads');
-      if (format === 'mp3') Badges.track('audio');
-      else Badges.track('video');
+      if (format === 'mp3') Badges.track('audio'); else Badges.track('video');
     }
   },
 
-  // ── Start Download ──
   start: function(id) {
     var dl = this.queue.find(function(d) { return d.id === id; });
     if (!dl) return;
@@ -74,13 +65,10 @@ var Downloads = {
         dl.progress = 100;
         clearInterval(self._intervals[dl.id]);
         Toast.show('Download complete!');
-    var streak = parseInt(localStorage.getItem("mv_streak") || "0");
-    var today = new Date().toDateString();
-    var last = localStorage.getItem("mv_streak_day");
-    if (last !== today) {
-      localStorage.setItem("mv_streak_day", today);
-      localStorage.setItem("mv_streak", streak + 1);
-    }
+        var streak = parseInt(localStorage.getItem("mv_streak") || "0");
+        var today = new Date().toDateString();
+        var last = localStorage.getItem("mv_streak_day");
+        if (last !== today) { localStorage.setItem("mv_streak_day", today); localStorage.setItem("mv_streak", streak + 1); }
       }
       self.save();
       self.render();
@@ -89,12 +77,7 @@ var Downloads = {
 
   pause: function(id) {
     var dl = this.queue.find(function(d) { return d.id === id; });
-    if (dl) {
-      dl.status = 'pending';
-      clearInterval(this._intervals[id]);
-      this.save();
-      this.render();
-    }
+    if (dl) { dl.status = 'pending'; clearInterval(this._intervals[id]); this.save(); this.render(); }
   },
 
   remove: function(id) {
@@ -111,22 +94,12 @@ var Downloads = {
     Toast.show('Cleared completed');
   },
 
-  // ── Filter ──
-  setFilter: function(f) {
-    this.filter = f;
-    this.render();
-  },
+  setFilter: function(f) { this.filter = f; this.render(); },
 
-  // ── Multi-Select ──
-  toggleSelectMode: function() {
-    this.selectMode = !this.selectMode;
-    this.selected = {};
-    this.render();
-  },
+  toggleSelectMode: function() { this.selectMode = !this.selectMode; this.selected = {}; this.render(); },
 
   toggleSelect: function(id) {
-    if (this.selected[id]) delete this.selected[id];
-    else this.selected[id] = true;
+    if (this.selected[id]) delete this.selected[id]; else this.selected[id] = true;
     this.render();
   },
 
@@ -135,18 +108,43 @@ var Downloads = {
     var ids = Object.keys(this.selected);
     if (ids.length === 0) { Toast.show('No items selected'); return; }
     this.queue = this.queue.filter(function(d) { return !self.selected[d.id]; });
-    this.selected = {};
-    this.selectMode = false;
-    this.save();
-    this.render();
+    this.selected = {}; this.selectMode = false;
+    this.save(); this.render();
     Toast.show('Deleted ' + ids.length + ' items');
   },
 
-  // ── Render ──
+  startAllPending: function() {
+    var self = this;
+    var pending = this.queue.filter(function(d) { return d.status === 'pending'; });
+    var active = this.queue.filter(function(d) { return d.status === 'downloading'; }).length;
+    var max = CONFIG.DEFAULTS.MAX_CONCURRENT;
+    var slots = max - active;
+    pending.slice(0, slots).forEach(function(d) { self.start(d.id); });
+    Toast.show('Started ' + Math.min(slots, pending.length) + ' downloads');
+  },
+
+  moveToTop: function(id) {
+    var idx = this.queue.findIndex(function(d) { return d.id === id; });
+    if (idx <= 0) return;
+    var item = this.queue.splice(idx, 1)[0];
+    this.queue.unshift(item);
+    this.save(); this.render();
+    Toast.show('Moved to top');
+  },
+
+  convertToAudio: function(id) {
+    var dl = this.queue.find(function(d) { return d.id === id; });
+    if (!dl) return;
+    if (dl.format === 'mp3') { Toast.show('Already audio format'); return; }
+    dl.format = 'mp3'; dl.quality = '128kbps'; dl.status = 'pending'; dl.progress = 0;
+    this.save(); this.render();
+    Toast.show('Converting to MP3...');
+    this.start(id);
+  },
+
   render: function() {
     var page = document.getElementById('page-downloads');
     var self = this;
-
     var active = this.queue.filter(function(d) { return d.status === 'downloading' || d.status === 'pending'; });
     var completed = this.queue.filter(function(d) { return d.status === 'completed'; });
 
@@ -158,39 +156,17 @@ var Downloads = {
       completed = completed.filter(function(d) { return d.format !== 'mp3'; });
     }
 
-    var html = '';
-
-    // Filter chips
-    html += '<div class="filter-row">';
+    var html = '<div class="filter-row">';
     ['all', 'audio', 'video'].forEach(function(f) {
-      html += '<button class="filter-chip' + (self.filter === f ? ' active' : '') + '" onclick="Downloads.setFilter(\'' + f + '\')">' + (f === 'all' ? 'All' : f === 'audio' ? '🎵 Audio' : '🎬 Video') + '</button>';
+      html += '<button class="filter-chip' + (self.filter === f ? ' active' : '') + '" onclick="Downloads.setFilter(\'' + f + '\')">' + (f === 'all' ? 'All' : f === 'audio' ? 'Audio' : 'Video') + '</button>';
     });
-    if (completed.length > 0) {
-      html += '<button class="filter-chip' + (this.selectMode ? ' active' : '') + '" onclick="Downloads.toggleSelectMode()">' + (this.selectMode ? '✅ Done' : '☐ Select') + '</button>';
-    }
-    if (this.selectMode) {
-      html += '<button class="filter-chip" onclick="Downloads.deleteSelected()">🗑 Delete</button>';
-    }
+    if (completed.length > 0) html += '<button class="filter-chip' + (this.selectMode ? ' active' : '') + '" onclick="Downloads.toggleSelectMode()">' + (this.selectMode ? 'Done' : 'Select') + '</button>';
+    if (this.selectMode) html += '<button class="filter-chip" onclick="Downloads.deleteSelected()">Delete</button>';
     html += '</div>';
 
-    // Active downloads
-    if (active.length > 0) {
-      html += '<div class="section-head"><h2>Active (' + active.length + ')</h2></div>';
-      html += active.map(function(d) { return self._card(d); }).join('');
-    }
-
-    // Completed
-    if (completed.length > 0) {
-      html += '<div class="section-head"><h2>Completed (' + completed.length + ')</h2>';
-      if (!this.selectMode) html += '<button onclick="Downloads.clearCompleted()">Clear</button>';
-      html += '</div>';
-      html += completed.map(function(d) { return self._card(d); }).join('');
-    }
-
-    // Empty
-    if (active.length === 0 && completed.length === 0) {
-      html += '<div class="empty"><div class="empty-icon">⬇</div><div class="empty-title">No Downloads</div><div class="empty-text">Search for music and videos to download</div></div>';
-    }
+    if (active.length > 0) { html += '<div class="section-head"><h2>Active (' + active.length + ')</h2></div>'; html += active.map(function(d) { return self._card(d); }).join(''); }
+    if (completed.length > 0) { html += '<div class="section-head"><h2>Completed (' + completed.length + ')</h2>'; if (!this.selectMode) html += '<button onclick="Downloads.clearCompleted()">Clear</button>'; html += '</div>'; html += completed.map(function(d) { return self._card(d); }).join(''); }
+    if (active.length === 0 && completed.length === 0) html += '<div class="empty"><div class="empty-icon">⬇</div><div class="empty-title">No Downloads</div><div class="empty-text">Search for music and videos to download</div></div>';
 
     page.innerHTML = html;
   },
@@ -199,8 +175,18 @@ var Downloads = {
     var progress = dl.progress || 0;
     var isActive = dl.status === 'downloading';
     var checked = this.selected[dl.id];
+    var html = '<div class="dl-card" data-id="' + dl.id + '"';
 
-    var html = '<div class="dl-card" onclick="' + (this.selectMode ? 'Downloads.toggleSelect(\'' + dl.id + '\')' : '') + '">';
+    if (this.selectMode) {
+      html += ' onclick="Downloads.toggleSelect(\'' + dl.id + '\')"';
+    } else if (isActive) {
+      html += ' onclick="Downloads.pause(\'' + dl.id + '\')"';
+    } else if (dl.status === 'pending') {
+      html += ' onclick="Downloads.start(\'' + dl.id + '\')"';
+    } else {
+      html += ' onclick="if(typeof Player!==\'undefined\')Player.play(\'' + dl.id + '\')"';
+    }
+    html += '>';
 
     if (this.selectMode) {
       html += '<div style="width:22px;height:22px;border:2px solid ' + (checked ? 'var(--accent)' : 'var(--border)') + ';border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:' + (checked ? 'var(--accent)' : 'transparent') + ';color:var(--accent-text);font-size:12px;">' + (checked ? '✓' : '') + '</div>';
@@ -210,18 +196,17 @@ var Downloads = {
     html += '<div class="dl-info">';
     html += '<div class="dl-title">' + Helpers.escape(dl.title) + '</div>';
     html += '<div class="dl-meta">' + dl.quality + ' · ' + Helpers.formatSize(dl.size) + '</div>';
-
     if (isActive) {
       html += '<div class="dl-progress"><div class="dl-progress-fill" style="width:' + progress + '%"></div></div>';
       html += '<div class="dl-meta">' + Helpers.formatSize(dl.downloaded) + ' · ' + (dl.speed || '') + '</div>';
     }
-
     html += '</div>';
 
     if (!this.selectMode) {
       html += '<div class="dl-actions">';
       if (isActive) html += '<button onclick="event.stopPropagation();Downloads.pause(\'' + dl.id + '\')">⏸</button>';
       if (dl.status === 'pending') html += '<button onclick="event.stopPropagation();Downloads.start(\'' + dl.id + '\')">▶</button>';
+      if (dl.status === 'completed') html += '<button onclick="event.stopPropagation();if(typeof Player!==\'undefined\')Player.play(\'' + dl.id + '\')">▶</button>';
       html += '<button onclick="event.stopPropagation();Downloads.remove(\'' + dl.id + '\')">🗑</button>';
       html += '</div>';
     }
@@ -229,43 +214,4 @@ var Downloads = {
     html += '</div>';
     return html;
   },
-};
-
-// ── File Converter ──
-Downloads.convertToAudio = function(id) {
-  var dl = this.queue.find(function(d) { return d.id === id; });
-  if (!dl) return;
-  if (dl.format === 'mp3') { Toast.show('Already audio format'); return; }
-  dl.format = 'mp3';
-  dl.quality = '128kbps';
-  dl.status = 'pending';
-  dl.progress = 0;
-  this.save();
-  this.render();
-  Toast.show('Converting to MP3...');
-  this.start(id);
-};
-
-// ── Parallel Downloads ──
-Downloads.startAllPending = function() {
-  var self = this;
-  var pending = this.queue.filter(function(d) { return d.status === 'pending'; });
-  var active = this.queue.filter(function(d) { return d.status === 'downloading'; }).length;
-  var max = CONFIG.DEFAULTS.MAX_CONCURRENT;
-  var slots = max - active;
-  pending.slice(0, slots).forEach(function(d) {
-    self.start(d.id);
-  });
-  Toast.show('Started ' + Math.min(slots, pending.length) + ' downloads');
-};
-
-// ── Reorder Queue (Move to Top) ──
-Downloads.moveToTop = function(id) {
-  var idx = this.queue.findIndex(function(d) { return d.id === id; });
-  if (idx <= 0) return;
-  var item = this.queue.splice(idx, 1)[0];
-  this.queue.unshift(item);
-  this.save();
-  this.render();
-  Toast.show('Moved to top');
 };
