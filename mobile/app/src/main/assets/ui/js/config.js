@@ -1,34 +1,30 @@
-/**
- * MediaVault — Global Configuration
- */
 const CONFIG = {
   APP_NAME: 'MediaVault',
-  APP_VERSION: '1.0.0',
+  APP_VERSION: '2.0.0',
   BUILD_NUMBER: 1,
-  API_BASE_URL: 'https://mediavault.vercel.app/api',
+
+  // Live Render API
+  API_BASE_URL: 'https://mediavault-website-api.onrender.com/api',
+
   STORAGE_KEYS: {
     SETTINGS: 'mv_settings',
     DOWNLOAD_QUEUE: 'mv_download_queue',
-    LIBRARY: 'mv_library',
     SEARCH_HISTORY: 'mv_search_history',
     THEME: 'mv_theme',
+    HOME_CACHE: 'mv_home_cache',
   },
+
   DOWNLOAD_DEFAULTS: {
     WIFI_QUALITY: '720p',
     MOBILE_QUALITY: '480p',
     AUDIO_QUALITY: '128kbps',
     MAX_CONCURRENT: 2,
   },
-  THEMES: {
-    LIGHT: 'light',
-    DARK: 'dark',
-  },
-  TOAST: {
-    SHORT: 2000,
-    LONG: 4000,
-  },
+
+  THEMES: { LIGHT: 'light', DARK: 'dark' },
+  TOAST: { SHORT: 2000, LONG: 4000 },
   MAX_SEARCH_HISTORY: 20,
-  MAX_RETRY_ATTEMPTS: 3,
+  HOME_REFRESH_INTERVAL: 300000, // 5 minutes
 };
+
 Object.freeze(CONFIG);
-CONFIG.USE_MOCK_DATA = true;

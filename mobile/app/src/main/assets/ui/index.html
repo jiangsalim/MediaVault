@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <meta name="theme-color" content="#1A1A1A">
-  <title>MediaVault</title>
+  <meta name="theme-color" content="#0A1F3F">
+  <title>MediaVault — Free Downloads</title>
   <link rel="stylesheet" href="css/base/reset.css">
   <link rel="stylesheet" href="css/base/variables.css">
   <link rel="stylesheet" href="css/layout/app-shell.css">
@@ -15,45 +15,89 @@
   <link rel="stylesheet" href="css/components/cards.css">
   <link rel="stylesheet" href="css/components/hamburger.css">
   <link rel="stylesheet" href="css/components/system.css">
+  <link rel="stylesheet" href="css/pages/home.css">
+  <link rel="stylesheet" href="css/pages/search.css">
   <link rel="stylesheet" href="css/pages/download.css">
-  <link rel="stylesheet" href="css/pages/music.css">
-  <link rel="stylesheet" href="css/pages/play.css">
   <link rel="stylesheet" href="css/pages/player.css">
-  <link rel="stylesheet" href="css/pages/settings.css">
-  <link rel="stylesheet" href="css/pages/tools.css">
+  <link rel="stylesheet" href="css/pages/profile.css">
 </head>
 <body>
   <div id="app">
-    <div class="offline-banner" id="offline-banner">⚠ No internet connection</div>
-    <header id="app-header"><div class="header-left"><button class="icon-button hamburger-btn" id="btn-hamburger">☰</button><span class="app-logo">MediaVault</span></div><div class="header-right"><button class="icon-button" id="btn-search-icon" onclick="var q=document.getElementById("search-input").value.trim();if(q)DownloadPage.search(q);">🔍</button><button class="icon-button download-icon" id="btn-download-icon">⬇<span class="icon-badge"></span></button></div></header>
-    <div class="platform-tabs"><button class="tab-chip active">All</button><button class="tab-chip">YouTube</button><button class="tab-chip">Music</button><button class="tab-chip">More</button><button class="tab-chip">Sub</button></div>
-    <div class="search-bar">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="search-input" placeholder="Search or paste URL..." autocomplete="off">
-      <button class="voice-search-btn" id="btn-voice">🎤</button>
-      <button id="btn-search-submit" onclick="var q=document.getElementById("search-input").value.trim();if(q)DownloadPage.search(q);" style="background:#e53935;color:#fff;border:none;padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;margin-left:8px;">Search</button>
-    </div>
-    <main id="main-content"><div id="page-container">
-      <section id="page-download" class="page active"><div id="download-content"></div></section>
-      <section id="page-play" class="page"><div id="play-content"></div></section>
-      <section id="page-settings" class="page"><div id="settings-content"></div></section>
-    </div></main>
+    <!-- Header -->
+    <header id="app-header">
+      <div class="header-left">
+        <button class="icon-button" id="btn-hamburger" aria-label="Menu">☰</button>
+        <span class="app-logo">
+          <svg width="28" height="28" viewBox="0 0 40 40" fill="none"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" stroke="#00C2BA" stroke-width="2.5" fill="none"/><polyline points="12,18 20,26 28,18" stroke="#00C2BA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+          <span>MediaVault</span>
+        </span>
+      </div>
+      <div class="header-right">
+        <button class="icon-button" id="btn-search-icon" aria-label="Search">🔍</button>
+        <button class="icon-button download-icon" id="btn-download-icon" aria-label="Downloads">⬇<span class="icon-badge" id="download-badge"></span></button>
+      </div>
+    </header>
+
+    <!-- Pages -->
+    <main id="main-content">
+      <!-- Home Page -->
+      <section id="page-home" class="page active">
+        <div id="home-content"></div>
+      </section>
+      <!-- Search Page -->
+      <section id="page-search" class="page">
+        <div id="search-content"></div>
+      </section>
+      <!-- Downloads Page -->
+      <section id="page-downloads" class="page">
+        <div id="downloads-content"></div>
+      </section>
+      <!-- Profile Page -->
+      <section id="page-profile" class="page">
+        <div id="profile-content"></div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
     <nav id="bottom-nav">
-      <button class="nav-item active" data-page="download"><span class="nav-icon">⬇</span><span class="nav-label">Download</span></button>
-      <button class="nav-item" data-page="play"><span class="nav-icon">▶</span><span class="nav-label">Play</span></button>
-      <button class="nav-item" data-page="settings"><span class="nav-icon">⚙</span><span class="nav-label">Settings</span></button>
+      <button class="nav-item active" data-page="home">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item" data-page="search">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">Search</span>
+      </button>
+      <button class="nav-item" data-page="downloads">
+        <span class="nav-icon">⬇</span>
+        <span class="nav-label">Downloads</span>
+        <span class="nav-badge" id="bottom-download-badge"></span>
+      </button>
+      <button class="nav-item" data-page="profile">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+      </button>
     </nav>
   </div>
-  <div class="bottom-sheet-overlay" id="download-sheet-overlay"></div>
-  <div class="bottom-sheet" id="download-sheet"><div class="sheet-handle"></div><div class="sheet-body" id="download-sheet-body"></div></div>
+
+  <!-- Bottom Sheet -->
+  <div class="bottom-sheet-overlay" id="sheet-overlay"></div>
+  <div class="bottom-sheet" id="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
   <script src="js/config.js"></script>
   <script src="js/core/router.js"></script>
   <script src="js/ui/hamburger.js"></script>
   <script src="js/ui/system.js"></script>
+  <script src="js/pages/home.js"></script>
+  <script src="js/pages/search.js"></script>
   <script src="js/pages/download.js"></script>
-  <script src="js/pages/play.js"></script>
-  <script src="js/pages/settings.js"></script>
-  <script src="js/pages/tools.js"></script>
+  <script src="js/pages/profile.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

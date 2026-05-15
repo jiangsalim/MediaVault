@@ -1,32 +1,50 @@
-const Router = (function () {
-  'use strict';
-  const pages = ['download', 'play', 'settings'];
-  let currentPage = 'download';
+const Router = {
+  currentPage: 'home',
+  pages: {},
 
-  function navigate(pageName) {
-    if (!pages.includes(pageName)) return;
-    currentPage = pageName;
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    const active = document.getElementById('page-' + pageName);
-    if (active) active.classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(n => {
-      n.classList.remove('active');
-      if (n.getAttribute('data-page') === pageName) n.classList.add('active');
+  init() {
+    // Cache all page elements
+    document.querySelectorAll('.page').forEach(page => {
+      this.pages[page.id.replace('page-', '')] = page;
     });
-    document.getElementById('main-content').scrollTop = 0;
-    if (pageName === 'play' && typeof PlayPage !== 'undefined') PlayPage.render();
-  }
 
-  function getCurrentPage() { return currentPage; }
-
-  function init() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', function () {
-        navigate(this.getAttribute('data-page'));
+    // Bottom nav clicks
+    document.querySelectorAll('#bottom-nav .nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const page = btn.dataset.page;
+        this.navigate(page);
       });
     });
-    navigate('download');
-  }
 
-  return { init, navigate, getCurrentPage };
-})();
+    // Header search icon → go to search
+    document.getElementById('btn-search-icon')?.addEventListener('click', () => {
+      this.navigate('search');
+      setTimeout(() => document.getElementById('search-input')?.focus(), 300);
+    });
+
+    // Load home by default
+    this.navigate('home');
+  },
+
+  navigate(page) {
+    if (this.currentPage === page) return;
+
+    // Update active states
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('#bottom-nav .nav-item').forEach(b => b.classList.remove('active'));
+
+    const targetPage = this.pages[page];
+    const targetNav = document.querySelector(`#bottom-nav .nav-item[data-page="${page}"]`);
+
+    if (targetPage) targetPage.classList.add('active');
+    if (targetNav) targetNav.classList.add('active');
+
+    this.currentPage = page;
+
+    // Trigger page-specific init
+    if (page === 'home' && typeof HomePage !== 'undefined') HomePage.load();
+    if (page === 'search' && typeof SearchPage !== 'undefined') SearchPage.init();
+    if (page === 'downloads' && typeof DownloadPage !== 'undefined') DownloadPage.load();
+    if (page === 'profile' && typeof ProfilePage !== 'undefined') ProfilePage.load();
+  },
+};

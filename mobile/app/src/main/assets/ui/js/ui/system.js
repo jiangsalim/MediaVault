@@ -1,114 +1,137 @@
-const SystemUI = (function () {
-  'use strict';
+const System = {
+  init() {
+    this.monitorNetwork();
+    this.updateDownloadBadge();
+  },
 
-  function showToast(message, type, duration) {
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification' + (type ? ' ' + type : '');
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    setTimeout(function () { toast.remove(); }, (duration || 2500));
-  }
+  // Network monitoring
+  monitorNetwork() {
+    const banner = document.getElementById('offline-banner') || this.createOfflineBanner();
+    const update = () => {
+      if (navigator.onLine) {
+        banner.classList.remove('visible');
+      } else {
+        banner.classList.add('visible');
+      }
+    };
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    update();
+  },
 
-  function showSnackbar(message, actionText, actionCallback) {
-    const existing = document.querySelector('.snackbar');
-    if (existing) existing.remove();
-    const snackbar = document.createElement('div');
-    snackbar.className = 'snackbar';
-    snackbar.innerHTML = '<span class="snackbar-text">' + message + '</span>';
-    if (actionText) {
-      const action = document.createElement('span');
-      action.className = 'snackbar-action';
-      action.textContent = actionText;
-      action.addEventListener('click', function () {
-        if (actionCallback) actionCallback();
-        snackbar.remove();
-      });
-      snackbar.appendChild(action);
-    }
-    document.body.appendChild(snackbar);
-    if (!actionText) { setTimeout(function () { snackbar.remove(); }, 4000); }
-  }
-
-  function showConfirm(title, message, confirmText, cancelText, onConfirm) {
-    const overlay = document.createElement('div');
-    overlay.className = 'confirm-overlay';
-    overlay.innerHTML = '<div class="confirm-dialog"><div class="confirm-icon">⚠️</div><div class="confirm-title">' + title + '</div><div class="confirm-message">' + message + '</div><div class="confirm-actions"><button class="btn btn-ghost btn-sm" id="confirm-cancel">' + (cancelText || 'Cancel') + '</button><button class="btn btn-danger btn-sm" id="confirm-ok">' + (confirmText || 'Delete') + '</button></div></div>';
-    document.body.appendChild(overlay);
-    document.getElementById('confirm-cancel').addEventListener('click', function () { overlay.remove(); });
-    document.getElementById('confirm-ok').addEventListener('click', function () { overlay.remove(); if (onConfirm) onConfirm(); });
-    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
-  }
-
-  function showUpdateBanner(version, onUpdate) {
-    const existing = document.querySelector('.update-banner');
-    if (existing) existing.remove();
+  createOfflineBanner() {
     const banner = document.createElement('div');
-    banner.className = 'update-banner';
-    banner.innerHTML = '<span class="update-text">New version ' + version + ' available</span><span class="update-btn">Update</span>';
-    document.body.appendChild(banner);
-    banner.querySelector('.update-btn').addEventListener('click', function () {
-      banner.remove();
-      showToast('Downloading update...', 'success', 2000);
-      if (onUpdate) onUpdate();
-    });
-    setTimeout(function () { banner.remove(); }, 10000);
-  }
+    banner.id = 'offline-banner';
+    banner.className = 'offline-banner';
+    banner.textContent = '⚠ No internet connection';
+    document.getElementById('app')?.prepend(banner);
+    return banner;
+  },
 
-  function showOfflineBanner() {
-    const banner = document.getElementById('offline-banner');
-    if (banner) banner.classList.add('show');
-  }
-
-  function hideOfflineBanner() {
-    const banner = document.getElementById('offline-banner');
-    if (banner) banner.classList.remove('show');
-  }
-
-  function checkClipboard() {
-    setTimeout(function () {
-      try {
-        navigator.clipboard.readText().then(function (text) {
-          if (text && (text.includes('youtube.com') || text.includes('youtu.be') || text.includes('spotify.com'))) {
-            showShareIntentToast(text);
-          }
-        }).catch(function () {});
-      } catch (e) {}
-    }, 2000);
-  }
-
-  function showShareIntentToast(url) {
+  // Toast notifications
+  toast(message, duration = CONFIG.TOAST.SHORT) {
+    const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    toast.className = 'share-intent-toast';
-    const isSpotify = url.includes('spotify.com');
-    toast.textContent = (isSpotify ? '🟢 Spotify' : '▶ YouTube') + ' link detected — tap to download';
-    toast.addEventListener('click', function () {
-      toast.remove();
-      Router.navigate('download');
-      setTimeout(function () {
-        const searchInput = document.getElementById('search-input');
-        if (searchInput) { searchInput.value = url; searchInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); }
-      }, 300);
+    toast.className = 'toast';
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('toast-out');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  },
+
+  // Download badge
+  updateDownloadBadge() {
+    const queue = this.getDownloadQueue();
+    const active = queue.filter(d => d.status === 'downloading').length;
+    const completed = queue.filter(d => d.status === 'completed').length;
+    const total = active + completed;
+
+    ['download-badge', 'bottom-download-badge'].forEach(id => {
+      const badge = document.getElementById(id);
+      if (badge) {
+        if (total > 0) {
+          badge.textContent = total > 99 ? '99+' : total;
+          badge.classList.add('visible');
+        } else {
+          badge.classList.remove('visible');
+        }
+      }
     });
-    document.body.appendChild(toast);
-    setTimeout(function () { toast.remove(); }, 5000);
-  }
+  },
 
-  function checkForUpdate() {
-    setTimeout(function () {
-      showUpdateBanner('1.0.1', function () { showToast('Update downloaded! Install now', 'success', 3000); });
-    }, 10000);
-  }
+  getDownloadQueue() {
+    try { return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.DOWNLOAD_QUEUE) || '[]'); }
+    catch { return []; }
+  },
 
-  function init() {
-    window.addEventListener('online', function () { hideOfflineBanner(); showToast('Back online', 'success', 2000); });
-    window.addEventListener('offline', function () { showOfflineBanner(); showToast('No internet connection', 'warning', 3000); });
-    if (!navigator.onLine) showOfflineBanner();
-    checkClipboard();
-    checkForUpdate();
-    console.log('[SystemUI] Initialized');
-  }
+  saveDownloadQueue(queue) {
+    localStorage.setItem(CONFIG.STORAGE_KEYS.DOWNLOAD_QUEUE, JSON.stringify(queue));
+    this.updateDownloadBadge();
+  },
 
-  return { init, showToast, showSnackbar, showConfirm, showUpdateBanner };
-})();
+  // Format helpers
+  formatDuration(seconds) {
+    if (!seconds) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return m + ':' + String(s).padStart(2, '0');
+  },
 
-document.addEventListener('DOMContentLoaded', function () { SystemUI.init(); });
+  formatNumber(n) {
+    if (!n) return '0';
+    if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
+    return n.toString();
+  },
+
+  formatFileSize(bytes) {
+    if (!bytes) return '0 B';
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let i = 0;
+    while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
+    return bytes.toFixed(1) + ' ' + units[i];
+  },
+
+  timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    const h = Math.floor(diff / 3600000);
+    const d = Math.floor(diff / 86400000);
+    if (m < 1) return 'Just now';
+    if (m < 60) return m + 'm ago';
+    if (h < 24) return h + 'h ago';
+    if (d < 30) return d + 'd ago';
+    return Math.floor(d / 30) + 'mo ago';
+  },
+
+  // API helper
+  async apiGet(endpoint, params = {}) {
+    const query = new URLSearchParams(params).toString();
+    const url = `${CONFIG.API_BASE_URL}${endpoint}${query ? '?' + query : ''}`;
+    try {
+      const res = await fetch(url);
+      return await res.json();
+    } catch (e) {
+      console.error(`API Error: ${endpoint}`, e);
+      return { success: false, data: { videos: [] } };
+    }
+  },
+
+  // Bottom sheet
+  showSheet(html) {
+    document.getElementById('sheet-body').innerHTML = html;
+    document.getElementById('sheet-overlay').classList.add('visible');
+    document.getElementById('bottom-sheet').classList.add('visible');
+  },
+
+  hideSheet() {
+    document.getElementById('sheet-overlay').classList.remove('visible');
+    document.getElementById('bottom-sheet').classList.remove('visible');
+  },
+};
+
+document.getElementById('sheet-overlay')?.addEventListener('click', () => System.hideSheet());
