@@ -36,7 +36,6 @@ function SearchContent() {
     return () => clearTimeout(timer);
   }, [searchInput]);
   // Suggestions close when user taps a suggestion or presses Enter
-  }, []);
 
   useEffect(() => {
     if (query && !initialLoadDone.current) {
