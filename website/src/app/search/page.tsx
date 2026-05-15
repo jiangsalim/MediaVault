@@ -38,11 +38,12 @@ function SearchContent() {
     if (searchInput.trim().length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
     const timer = setTimeout(async () => {
       try {
-        const res = await getSuggestions(searchInput).then(data => { setSuggestions(data); if (!query) setShowSuggestions(true); })
-        const data = await res.json();
-        setSuggestions(data.data || []);
+        const data = await getSuggestions(searchInput);
+        setSuggestions(data);
         if (!query) setShowSuggestions(true);
       } catch {}
+    }, 300);
+    return () => clearTimeout(timer);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
