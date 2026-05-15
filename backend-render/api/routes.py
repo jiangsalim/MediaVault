@@ -110,7 +110,7 @@ async def song_detail(video_id: str):
                 "artist": data.get("author", ""),
                 "channelId": data.get("authorId", ""),
                 "description": data.get("description", "") or "",
-                "thumbnail": (data.get("videoThumbnails", [{}])[-1].get("url", "") if data.get("videoThumbnails") else f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"),
+                "thumbnail": (data.get("videoThumbnails", [{}])[-1].get("url", "") if data.get("videoThumbnails") else "https://i.ytimg.com/vi/" + video_id + "/hqdefault.jpg"),
                 "publishedAt": data.get("publishedText", ""),
             }
             video_data = {"duration": data.get("lengthSeconds", 0) or 0, "views": data.get("viewCount", 0) or 0, "likes": data.get("likeCount", 0) or 0}
@@ -121,7 +121,7 @@ async def song_detail(video_id: str):
                 channel_data = channels.get(channel_id, {})
             related = []
             for r in data.get("recommendedVideos", [])[:16]:
-                related.append({"id": r.get("videoId", ""), "title": r.get("title", ""), "artist": r.get("author", ""), "thumbnail": (r.get("videoThumbnails", [{}])[-1].get("url", "") if r.get("videoThumbnails") else f"https://i.ytimg.com/vi/{r.get("videoId","")}/mqdefault.jpg")})
+                related.append({"id": r.get("videoId", ""), "title": r.get("title", ""), "artist": r.get("author", ""), "thumbnail": (r.get("videoThumbnails", [{}])[-1].get("url", "") if r.get("videoThumbnails") else "https://i.ytimg.com/vi/" + r.get("videoId","") + "/mqdefault.jpg")})
             print(f"✅ Song via Invidious: {snippet["title"][:50]}")
             return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
         except:
