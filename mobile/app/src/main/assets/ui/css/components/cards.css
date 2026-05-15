@@ -168,3 +168,20 @@
 @media (min-width: 480px) {
   .video-grid { grid-template-columns: repeat(3, 1fr); }
 }
+
+.download-card-btn {
+  width: 100%;
+  padding: 8px;
+  border: none;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.download-card-btn:active { background: var(--color-primary-hover); }
+
+.quality-chip:active { background: var(--color-primary-surface); border-color: var(--color-primary); }
