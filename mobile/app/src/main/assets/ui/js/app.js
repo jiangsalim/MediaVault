@@ -34,7 +34,7 @@
     initBottomNav();
     if (typeof Router !== 'undefined') Router.init();
     if (typeof Badges !== 'undefined') Badges.init();
-    updateBadge();
+    if (document.getElementById("dl-badge")) updateBadge();
     console.log('[MediaVault] v' + CONFIG.APP_VERSION + ' ready');
   }
 
@@ -130,15 +130,17 @@
 
   window.updateBadge = function() {
     var q = [];
-    try { q = JSON.parse(localStorage.getItem(CONFIG.STORAGE.QUEUE) || '[]'); } catch(e) {}
-    var active = q.filter(function(d) { return d.status === 'downloading' || d.status === 'pending'; }).length;
-    var badge = document.getElementById('dl-badge');
+    try { q = JSON.parse(localStorage.getItem(CONFIG.STORAGE.QUEUE) || "[]"); } catch(e) {}
+    var active = q.filter(function(d) { return d.status === "downloading" || d.status === "pending"; }).length;
+    var badge = document.getElementById("dl-badge");
+    if (!badge) return;
     if (active > 0) {
-      badge.textContent = active > 99 ? '99+' : active;
-      badge.classList.add('show');
+      badge.textContent = active > 99 ? "99+" : active;
+      badge.classList.add("show");
     } else {
-      badge.classList.remove('show');
+      badge.classList.remove("show");
     }
+  };
   };
 
   if (document.readyState === 'loading') {
