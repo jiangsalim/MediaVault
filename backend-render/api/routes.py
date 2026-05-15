@@ -119,21 +119,20 @@ async def trending(region: str = Query("UG")):
         return {"success": False, "error": str(e)}
 
 @router.get("/suggest")
+@router.get("/suggest")
 async def suggest(q: str = Query(...)):
-    import json, re
+    import json
     try:
         import httpx as hx
         async with hx.AsyncClient() as client:
             resp = await client.get("https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=" + q, timeout=10)
             text = resp.text
-            match = re.search(r'\["([^"]+)",(\[.*?\])', text)
-            if match:
-                return {"success": True, "data": json.loads(match.group(2))}
+            text = text.replace("window.google.ac.h(", "").rstrip(")")
+            data = json.loads(text)
+            suggestions = [s[0] for s in data[1]]
+            return {"success": True, "data": suggestions[:8]}
     except: pass
     return {"success": True, "data": []}
-
-@router.get("/download/audio/{video_id}")
-async def download_audio(video_id: str):
     return {"success": True, "redirectUrl": "https://www.y2mate.com/youtube/" + video_id}
 
 @router.get("/health")
