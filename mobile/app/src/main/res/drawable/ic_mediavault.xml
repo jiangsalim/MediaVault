@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shield Outline -->
+    <path
+        android:fillColor="#0A0A0A"
+        android:pathData="M54,10 L92,22 L92,54 C92,80 72,94 54,98 C36,94 16,80 16,54 L16,22 Z" />
+
+    <!-- Inner Shield -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.08"
+        android:pathData="M54,15 L87,26 L87,54 C87,77 69,90 54,94 C39,90 21,77 21,54 L21,26 Z" />
+
+    <!-- Download Arrow Body -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:fillColor="@null"
+        android:pathData="M54,38 L54,62" />
+
+    <!-- Download Arrow Head -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="@null"
+        android:pathData="M44,54 L54,64 L64,54" />
+
+    <!-- Bottom Bar -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,72 L68,72 L68,76 L40,76 Z" />
+</vector>
