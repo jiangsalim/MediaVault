@@ -13,7 +13,7 @@ export default function GenrePage() {
 
   useEffect(() => {
     if (genre) {
-      searchMusic(genre, "youtube", 30).then(res => {
+      searchMusic(genre, "youtube").then(res => {
         setSongs(res.data?.videos || []);
         setLoading(false);
       }).catch(() => setLoading(false));
