@@ -93,3 +93,15 @@ function HamburgerMenu_toggleTheme() {
   localStorage.setItem('mv_theme', n);
   if (typeof System !== 'undefined') System.toast('Theme: ' + (n === 'dark' ? 'Dark' : 'Light'));
 }
+
+function HamburgerMenu_go(page) {
+  var d = document.getElementById('hamburger-drawer');
+  if (d) d.classList.remove('open');
+  if (typeof Router !== 'undefined') Router.navigate(page);
+}
+
+function HamburgerMenu_toast(msg) {
+  var d = document.getElementById('hamburger-drawer');
+  if (d) d.classList.remove('open');
+  if (typeof System !== 'undefined') System.toast(msg);
+}
