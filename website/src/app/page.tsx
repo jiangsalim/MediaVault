@@ -1,4 +1,5 @@
 "use client";
+import { HeroSearch } from "@/components/home/HeroSearch";
 
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
@@ -47,22 +48,7 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* Google-Style Search Bar */}
-      <div className="py-8">
-        <div className="container-site">
-          <h1 className="text-2xl md:text-3xl font-bold text-center text-navy dark:text-white mb-6">
-            What do you want to download?
-          </h1>
-          <form onSubmit={(e) => { e.preventDefault(); const q = (document.getElementById("home-search") as HTMLInputElement)?.value; if (q?.trim()) window.location.href = `/search?q=${encodeURIComponent(q.trim())}`; }} className="max-w-xl mx-auto">
-            <div className="flex gap-3">
-              <input id="home-search" type="text" placeholder="Search or paste URL..." className="flex-1 rounded-full border border-gray-light bg-white px-5 py-3 text-sm text-charcoal placeholder:text-gray-medium focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal dark:bg-navy dark:text-white dark:border-navy-light" />
-              <button type="submit" className="rounded-full bg-teal px-6 py-3 text-sm font-semibold text-white hover:bg-teal-dark transition-colors">Search</button>
-            </div>
-          </form>
-        </div>
-      </div>
-      <div className="py-6">
-        <div className="container-site">
+      <HeroSearch />
           <div className="flex gap-2 overflow-x-auto pb-2">
             {genreList.map(g => (
               <a key={g} href={`/search?q=${g.toLowerCase()}`} className="rounded-full bg-gray-light dark:bg-navy px-4 py-1.5 text-xs font-medium text-charcoal dark:text-gray-light whitespace-nowrap hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">{g}</a>
