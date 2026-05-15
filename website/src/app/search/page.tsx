@@ -70,7 +70,7 @@ function SearchContent() {
 
   const loadMore = async () => { if (!nextPageToken) return; setLoadingMore(true); try { const res = await searchNextPage(query, nextPageToken); setResults(prev => [...prev, ...(res.data?.videos || [])]); setNextPageToken(res.data?.nextPageToken || ""); } catch {} setLoadingMore(false); };
 
-  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setShowSuggestions(false); if (searchInput.trim()) { initialLoadDone.current = false; window.location.href = `/search?q=${encodeURIComponent(searchInput.trim())}`; } };
+  const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setShowSuggestions(false); setSuggestions([]); if (searchInput.trim()) { initialLoadDone.current = false; window.location.href = `/search?q=${encodeURIComponent(searchInput.trim())}`; } };
   const selectSuggestion = (s: string) => { setSearchInput(s); setShowSuggestions(false); initialLoadDone.current = false; window.location.href = `/search?q=${encodeURIComponent(s)}`; };
   const clearHistory = () => { setSearchHistory([]); localStorage.removeItem('mv_search_history'); };
 
