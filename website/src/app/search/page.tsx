@@ -81,19 +81,12 @@ function SearchContent() {
         moreVideos = res.data?.videos || [];
         setNextPageToken(res.data?.nextPageToken || "");
       } else {
-        const variations = [`${query} songs`, `${query} music`, `${query} hits`, `${query} trending`];
+        const variations = [`${query} songs`, `${query} music`, `${query} hits`];
         const vq = variations[Math.floor(Math.random() * variations.length)];
         const res = await searchMusic(vq);
         moreVideos = (res.data?.videos || []).filter((v: any) => !existingIds.has(v.id));
       }
       setResults(prev => [...prev, ...moreVideos]);
-    } catch {}
-    setLoadingMore(false);
-  };
-        const existingIds = new Set(results.map((r: any) => r.id));
-        const newVideos = (res.data?.videos || []).filter((v: any) => !existingIds.has(v.id));
-        setResults(prev => [...prev, ...newVideos]);
-      }
     } catch {}
     setLoadingMore(false);
   };
