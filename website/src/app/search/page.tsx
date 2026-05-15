@@ -1,4 +1,5 @@
 "use client";
+import { VideoCard } from "@/components/shared/VideoCard";
 
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
@@ -100,8 +101,8 @@ function SearchContent() {
   };
 
   const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-  const fmt = (n: number) => { if (!n) return ""; if (n>=1e9) return (n/1e9).toFixed(1)+"B"; if (n>=1e6) return (n/1e6).toFixed(1)+"M"; if (n>=1e3) return (n/1e3).toFixed(0)+"K"; return n.toString(); };
-  const dur = (s: number) => { const m = Math.floor(s/60), sec = Math.floor(s%60); return m+":"+String(sec).padStart(2,"0"); };
+  
+  
 
   return (
     <>
