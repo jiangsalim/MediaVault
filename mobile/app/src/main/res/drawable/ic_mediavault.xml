@@ -1,15 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="512dp"
-    android:height="512dp"
-    android:viewportWidth="100"
-    android:viewportHeight="100">
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Shield Background -->
     <path
-        android:fillColor="#1A1A1A"
-        android:pathData="M0,0h100v100H0z"/>
+        android:fillColor="#0A1F3F"
+        android:pathData="M54,12 L90,24 L90,54 C90,78 72,92 54,96 C36,92 18,78 18,54 L18,24 Z" />
+
+    <!-- Shield Inner Highlight -->
     <path
-        android:fillColor="#E53935"
-        android:pathData="M50,10 L15,25 L15,50 C15,75 50,90 50,90 C50,90 85,75 85,50 L85,25 Z"/>
+        android:fillColor="#00C2BA"
+        android:fillAlpha="0.15"
+        android:pathData="M54,16 L86,27 L86,54 C86,76 70,88 54,92 C38,88 22,76 22,54 L22,27 Z" />
+
+    <!-- Downward Arrow -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M45,35 L45,60 L38,60 L38,65 L62,65 L62,60 L55,60 L55,35 Z"/>
+        android:pathData="M54,42 L54,62 M44,54 L54,64 L64,54"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Arrow Head Bottom Line -->
+    <path
+        android:fillColor="#00C2BA"
+        android:pathData="M40,70 L54,84 L68,70"
+        android:strokeColor="#00C2BA"
+        android:strokeWidth="4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
 </vector>
