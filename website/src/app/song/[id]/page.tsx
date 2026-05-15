@@ -9,27 +9,16 @@ import { getSongDetails } from "@/lib/api";
 export default function SongPage() {
   const { id } = useParams<{ id: string }>();
   const [song, setSong] = useState<any>(null);
-  const [streamUrl, setStreamUrl] = useState("");
-  const [useFallback, setUseFallback] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
-    // Try direct stream first
-    fetch(`https://mediavault-website-api.onrender.com/api/stream/${id}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.streamUrl) {
-          setStreamUrl(data.streamUrl);
-        } else {
-          setUseFallback(true);
-        }
-      })
-      .catch(() => setUseFallback(true));
+  const [streamUrl, setStreamUrl] = useState("");
 
   useEffect(() => {
     if (id) {
       getSongDetails(id).then(res => {
+    fetch(`https://mediavault-website-api.onrender.com/api/stream/${id}`).then(r => r.json()).then(d => { if (d.success) setStreamUrl(d.streamUrl); }).catch(() => {});
         setSong(res.data);
         setLoading(false);
       }).catch(() => setLoading(false));
@@ -106,13 +95,11 @@ export default function SongPage() {
           <div className="lg:w-[65%] lg:max-h-screen lg:overflow-y-auto">
             <div className="lg:sticky lg:top-16 z-30 bg-black">
               <div className="aspect-video">
-                <iframe src={`https://www.youtube.com/embed/${id}?autoplay=1`} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
-                id="yt-player"
-                src={`https://inv.nadeko.net/embed/${id}`}
-                className="w-full h-full"
-                allowFullScreen
-                allow="autoplay; encrypted-media"
-              />
+                {streamUrl ? (
+                  <video src={streamUrl} className="w-full h-full" controls autoPlay playsInline />
+                ) : (
+                  <iframe src={`https://www.youtube.com/embed/${id}?autoplay=1`} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
+                )}
               </div>
             </div>
 
