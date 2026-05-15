@@ -1,5 +1,4 @@
 alert("JS running");
-alert("JS running");
 const CONFIG = {
   APP_NAME: 'MediaVault',
   APP_VERSION: '3.0.0',

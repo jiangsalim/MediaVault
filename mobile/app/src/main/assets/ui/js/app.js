@@ -94,7 +94,15 @@
   };
 
   function init() {
+    console.log("INIT START");
+    try {
+      if (typeof Router !== "undefined") { console.log("Router defined"); Router.init(); }
+      else console.log("Router MISSING");
+      if (typeof Badges !== "undefined") { console.log("Badges defined"); Badges.init(); }
+      else console.log("Badges MISSING");
+    } catch(e) { console.log("INIT ERROR: " + e.message); }
     loadTheme();
+    document.getElementById("page-home").innerHTML = "<div style=padding:20px;text-align:center;margin-top:60px;><h2>Loading...</h2></div>";
     monitorNetwork();
     initDrawer();
     initBottomNav();
