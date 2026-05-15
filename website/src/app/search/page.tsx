@@ -94,7 +94,19 @@ function SearchContent() {
           <input type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)} onFocus={() => {}} placeholder="Search songs, artists..." className="flex-1 rounded-full border border-gray-light bg-white px-5 py-3 text-sm text-charcoal placeholder:text-gray-medium focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal dark:bg-navy dark:text-white dark:border-navy-light" />
           <button type="submit" className="rounded-full bg-gray-light dark:bg-navy px-6 py-3 text-sm font-medium text-charcoal dark:text-white hover:bg-gray-medium/20 transition-colors">🔍</button>
         </div>
-      </form>
+      </form></div>
+
+        {/* Suggestions Dropdown */}
+        {showSuggestions && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-navy-dark rounded-xl border border-gray-light dark:border-navy-light shadow-2xl z-50 overflow-hidden">
+            {suggestions.length > 0 && suggestions.map((s, i) => (
+              <button key={i} onClick={() => selectSuggestion(s)} className="flex items-center gap-3 w-full px-5 py-3 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gray-medium flex-shrink-0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
 
       {query && (
         <>
