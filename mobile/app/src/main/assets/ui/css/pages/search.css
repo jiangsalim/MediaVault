@@ -1,8 +1,0 @@
-#suggestions-container {
-  display: none;
-  margin: 0 var(--space-md);
-  background: var(--color-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-}
