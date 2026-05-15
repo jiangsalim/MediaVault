@@ -11,11 +11,8 @@ const trendingSearches = ['trending music', 'top hits', 'popular songs', 'best m
 
 export default function Home() {
   const [trending, setTrending] = useState<any[]>([]);
-  });
   const [newReleases, setNewReleases] = useState<any[]>([]);
-  });
   const [artists, setArtists] = useState<any[]>([]);
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
