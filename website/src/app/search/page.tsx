@@ -41,7 +41,7 @@ function SearchContent() {
         const res = await fetch(`${API_BASE}/suggest?q=${encodeURIComponent(searchInput)}`);
         const data = await res.json();
         setSuggestions(data.data || []);
-        setShowSuggestions(true);
+        if (!query) setShowSuggestions(true);
       } catch {}
     }, 300);
     return () => clearTimeout(timer);
@@ -59,6 +59,8 @@ function SearchContent() {
       setSuggestions([]);
       initialLoadDone.current = true;
       setLoading(true);
+      setShowSuggestions(false);
+      setSuggestions([]);
       saveToHistory(query);
       searchMusic(query).then(res => { setResults(res.data?.videos || []); setNextPageToken(res.data?.nextPageToken || ""); setLoading(false); }).catch(() => setLoading(false));
     }
