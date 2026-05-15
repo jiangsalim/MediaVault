@@ -1,10 +1,10 @@
 "use client";
-import { HeroSearch } from "@/components/home/HeroSearch";
 
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/shared/Button";
 import { searchMusic, getTrendingChannels } from "@/lib/api";
+import { HeroSearch } from "@/components/home/HeroSearch";
 
 const genreList = ['Gospel','Dancehall','Afrobeat','Hip Hop','Reggae','Bongo Flava','Zouk','R&B','Amapiano','Singeli'];
 
@@ -49,6 +49,8 @@ export default function Home() {
   return (
     <Layout>
       <HeroSearch />
+      <div className="py-6">
+        <div className="container-site">
           <div className="flex gap-2 overflow-x-auto pb-2">
             {genreList.map(g => (
               <a key={g} href={`/search?q=${g.toLowerCase()}`} className="rounded-full bg-gray-light dark:bg-navy px-4 py-1.5 text-xs font-medium text-charcoal dark:text-gray-light whitespace-nowrap hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">{g}</a>
