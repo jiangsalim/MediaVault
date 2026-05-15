@@ -85,10 +85,6 @@
 </body>
 </html>
 <script>
-window.onerror = function(msg, url, line) {
   var el = document.createElement('div');
-  el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#D32F2F;color:#fff;padding:8px;font-size:11px;z-index:9999;';
-  el.textContent = 'Error: ' + msg + ' (line ' + line + ')';
-  document.body.appendChild(el);
 };
 </script>
