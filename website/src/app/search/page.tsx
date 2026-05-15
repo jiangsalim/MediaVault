@@ -41,7 +41,7 @@ function SearchContent() {
         const res = await fetch(`${API_BASE}/suggest?q=${encodeURIComponent(searchInput)}`);
         const data = await res.json();
         setSuggestions(data.data || []);
-        setShowSuggestions(true);
+        if (!query) setShowSuggestions(true);
       } catch {}
     }, 300);
     return () => clearTimeout(timer);
@@ -55,6 +55,8 @@ function SearchContent() {
 
   useEffect(() => {
     if (query && !initialLoadDone.current) {
+      setShowSuggestions(false);
+      setSuggestions([]);
       setShowSuggestions(false);
       setSuggestions([]);
       initialLoadDone.current = true;
