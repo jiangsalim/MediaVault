@@ -6,7 +6,6 @@ import { Layout } from "@/components/layout/Layout";
 import { searchMusic, searchNextPage, getSuggestions } from "@/lib/api";
 
 const FILTERS = ["All", "Songs", "Videos", "Artists"];
-const API_BASE = 'https://mediavault-website-api.onrender.com/api';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -38,12 +37,8 @@ function SearchContent() {
     if (searchInput.trim().length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
     const timer = setTimeout(async () => {
       try {
-        const data = await getSuggestions(searchInput);
-        setSuggestions(data);
-        if (!query) setShowSuggestions(true);
+        const data = await getSuggestions(searchInput); setSuggestions(data); if (!query) setShowSuggestions(true);
       } catch {}
-    }, 300);
-    return () => clearTimeout(timer);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
@@ -56,8 +51,6 @@ function SearchContent() {
 
   useEffect(() => {
     if (query && !initialLoadDone.current) {
-      setShowSuggestions(false);
-      setSuggestions([]);
       setShowSuggestions(false);
       setSuggestions([]);
       initialLoadDone.current = true;
