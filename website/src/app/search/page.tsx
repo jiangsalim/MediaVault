@@ -71,27 +71,27 @@ function SearchContent() {
   }, [nextPageToken, loadingMore]);
 
   const loadMore = async () => {
-      // If no results from variations, try scraping YouTube directly
-      if (newVideos.length === 0 && !nextPageToken) {
-        try {
-          const scraped = await scrapeYouTube(query);
-          const existingIds = new Set(results.map((r: any) => r.id));
-          const freshVideos = scraped.filter((v: any) => !existingIds.has(v.id));
-          setResults(prev => [...prev, ...freshVideos]);
-        } catch {}
-      }
     if (loadingMore) return;
     setLoadingMore(true);
     try {
       if (nextPageToken) {
         const res = await searchNextPage(query, nextPageToken);
-        setResults(prev => [...prev, ...(res.data?.videos || [])]);
+        const moreVideos = res.data?.videos || [];
+        setResults(prev => [...prev, ...moreVideos]);
         setNextPageToken(res.data?.nextPageToken || "");
       } else {
-        // No pagination token — search with a related query
-        const variations = [`${query} songs`, `${query} music`, `${query} hits`, `${query} trending`];
-        const vq = variations[Math.floor(Math.random() * variations.length)];
-        const res = await searchMusic(vq);
+        const existingIds = new Set(results.map((r: any) => r.id));
+        const res = await searchMusic(query + " songs");
+        let moreVideos = (res.data?.videos || []).filter((v: any) => !existingIds.has(v.id));
+        if (moreVideos.length === 0) {
+          const scraped = await scrapeYouTube(query);
+          moreVideos = scraped.filter((v: any) => !existingIds.has(v.id));
+        }
+        setResults(prev => [...prev, ...moreVideos]);
+      }
+    } catch {}
+    setLoadingMore(false);
+  };
         const existingIds = new Set(results.map((r: any) => r.id));
         const newVideos = (res.data?.videos || []).filter((v: any) => !existingIds.has(v.id));
         setResults(prev => [...prev, ...newVideos]);
