@@ -147,3 +147,81 @@
     init();
   }
 })();
+
+// ── Version Check ──
+(function() {
+  setTimeout(async function() {
+    try {
+      var res = await fetch('https://mediavault-website-api.onrender.com/api/latest-version');
+      var data = await res.json();
+      if (data.versionCode > CONFIG.BUILD_NUMBER) {
+        Snackbar.show('New version available!', 'Update', function() {
+          window.open(data.apkUrl || 'https://apkpure.com/mediavault', '_blank');
+        });
+      }
+    } catch(e) {}
+  }, 3000);
+})();
+
+// ── Keyboard Shortcut: Ctrl+F / Cmd+F = focus search ──
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    if (Router.current !== 'home') Router.go('home');
+    setTimeout(function() {
+      var input = document.getElementById('search-input');
+      if (input) input.focus();
+    }, 300);
+  }
+});
+
+// ── Long Press Delete on Download Cards ──
+var longPressTimer;
+document.addEventListener('touchstart', function(e) {
+  var card = e.target.closest('.dl-card');
+  if (!card) return;
+  longPressTimer = setTimeout(function() {
+    var id = card.getAttribute('data-id');
+    if (id && typeof Downloads !== 'undefined') {
+      Dialog.confirm('Delete Download', 'Remove this download?', function() {
+        Downloads.remove(id);
+        Toast.show('Deleted');
+      });
+    }
+  }, 800);
+}, {passive: true});
+
+document.addEventListener('touchend', function() { clearTimeout(longPressTimer); });
+document.addEventListener('touchmove', function() { clearTimeout(longPressTimer); });
+
+// ── Show Install Banner on Browser ──
+(function() {
+  var isAndroid = /android/i.test(navigator.userAgent);
+  var isWebView = /wv/i.test(navigator.userAgent) || window.MediaVaultNative;
+  if (isAndroid && !isWebView) {
+    var banner = document.getElementById('install-banner');
+    if (banner) banner.style.display = 'block';
+  }
+})();
+
+// ── Click Sound ──
+var Sound = {
+  _ctx: null,
+  play: function() {
+    try {
+      if (!this._ctx) this._ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = this._ctx.createOscillator();
+      var gain = this._ctx.createGain();
+      osc.connect(gain); gain.connect(this._ctx.destination);
+      osc.frequency.value = 800;
+      gain.gain.value = 0.05;
+      osc.start(); osc.stop(this._ctx.currentTime + 0.05);
+    } catch(e) {}
+  },
+};
+
+document.addEventListener('click', function(e) {
+  if (e.target.closest('button') || e.target.closest('.video-card') || e.target.closest('.dl-card')) {
+    Sound.play();
+  }
+});

@@ -111,6 +111,7 @@ var Home = {
     resultsArea.innerHTML = '<div class="video-grid">' + Array(6).fill('<div class="skeleton" style="aspect-ratio:16/9;"></div>').join('') + '</div>';
     var self = this;
     API.search(query, 25).then(function(res) {
+      localStorage.setItem("mv_last_results", JSON.stringify(res.videos || res));
       self.results = res.videos || res;
       self.nextPage = res.nextPage || '';
       resultsArea.innerHTML = self.renderResults(query);
