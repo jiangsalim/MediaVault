@@ -13,6 +13,12 @@ export default function SongPage() {
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [playlist, setPlaylist] = useState<any[]>([]);
+    // Build playlist: current song + related videos
+    if (song?.related?.length > 0) {
+      setPlaylist([{ id: id, title: song.title, artist: song.artist }, ...song.related]);
+    }
 
   useEffect(() => {
     if (id) {
@@ -164,6 +170,26 @@ export default function SongPage() {
           </div>
         </div>
       </div>
+
+              {/* YouTube IFrame API for autoplay */}
+              <script src="https://www.youtube.com/iframe_api"></script>
+              <script dangerouslySetInnerHTML={{ __html: `
+                var player;
+                var playlistData = ${JSON.stringify(playlist)};
+                var currentIdx = ${currentIndex};
+                function onYouTubeIframeAPIReady() {
+                  player = new YT.Player("yt-player", {
+                    events: { onStateChange: onPlayerStateChange }
+                  });
+                }
+                function onPlayerStateChange(event) {
+                  if (event.data === YT.PlayerState.ENDED && currentIdx < playlistData.length - 1) {
+                    currentIdx++;
+                    var next = playlistData[currentIdx];
+                    window.location.href = "/song/" + next.id;
+                  }
+                }
+              ` }} />
     </Layout>
   );
 }
