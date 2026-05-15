@@ -95,56 +95,37 @@ async def song_detail(video_id: str):
         except:
             continue
     
-    # ── METHOD 2: yt-dlp (same as search fallback, no API waste) ──
-    try:
-        import yt_dlp, asyncio
-        
-        ydl_opts = {'quiet': True, 'no_warnings': True, 'skip_download': True}
-        
-        def get_info():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                return ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
-        
-        loop = asyncio.get_event_loop()
-        info = await loop.run_in_executor(None, get_info)
-        
-        snippet = {
-            "title": info.get("title", ""),
-            "artist": info.get("uploader", "") or info.get("channel", ""),
-            "channelId": info.get("channel_id", ""),
-            "description": (info.get("description", "") or "")[:500],
-            "thumbnail": info.get("thumbnail", "") or f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg",
-            "publishedAt": str(info.get("upload_date", "")),
-        }
-        video_data = {
-            "duration": info.get("duration", 0) or 0,
-            "views": info.get("view_count", 0) or 0,
-            "likes": info.get("like_count", 0) or 0,
-        }
-        
-        # Channel
-        channel_id = snippet.get("channelId", "")
-        channel_data = {}
-        if channel_id:
-            channels = await get_channel_details([channel_id])
-            channel_data = channels.get(channel_id, {})
-        
-        # Related via search
-        artist = snippet.get("artist", "")
-        related = []
-        if artist:
-            related_results, _ = await search_music(f"{artist} songs", limit=16)
-            for v in related_results.get("videos", []):
-                if v.get("id") != video_id:
-                    related.append({
-                        "id": v.get("id", ""), "title": v.get("title", ""),
-                        "artist": v.get("artist", ""), "thumbnail": v.get("thumbnail", ""),
-                    })
-        
-        print(f"✅ Song via yt-dlp: {snippet['title'][:50]}")
-        return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
-    except Exception as e:
-        print(f"❌ yt-dlp song detail failed: {e}")
+    # ── METHOD 2: Invidious (no API key, no bot detection) ──
+    import random
+    INVIDIOUS = ["https://inv.nadeko.net", "https://yewtu.be", "https://iv.ggtyler.dev"]
+    for _ in range(3):
+        try:
+            instance = random.choice(INVIDIOUS)
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(f"{instance}/api/v1/videos/{video_id}", timeout=10)
+                data = resp.json()
+            
+            snippet = {
+                "title": data.get("title", ""),
+                "artist": data.get("author", ""),
+                "channelId": data.get("authorId", ""),
+                "description": data.get("description", "") or "",
+                "thumbnail": (data.get("videoThumbnails", [{}])[-1].get("url", "") if data.get("videoThumbnails") else f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"),
+                "publishedAt": data.get("publishedText", ""),
+            }
+            video_data = {"duration": data.get("lengthSeconds", 0) or 0, "views": data.get("viewCount", 0) or 0, "likes": data.get("likeCount", 0) or 0}
+            channel_id = snippet.get("channelId", "")
+            channel_data = {}
+            if channel_id:
+                channels = await get_channel_details([channel_id])
+                channel_data = channels.get(channel_id, {})
+            related = []
+            for r in data.get("recommendedVideos", [])[:16]:
+                related.append({"id": r.get("videoId", ""), "title": r.get("title", ""), "artist": r.get("author", ""), "thumbnail": (r.get("videoThumbnails", [{}])[-1].get("url", "") if r.get("videoThumbnails") else f"https://i.ytimg.com/vi/{r.get("videoId","")}/mqdefault.jpg")})
+            print(f"✅ Song via Invidious: {snippet["title"][:50]}")
+            return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
+        except:
+            continue
     
     return {"success": False, "error": "All methods failed", "data": None}
 
