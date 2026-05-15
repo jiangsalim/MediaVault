@@ -158,3 +158,22 @@ def parse_duration(d: str) -> int:
     m = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', d)
     if not m: return 0
     return int(m.group(1) or 0)*3600 + int(m.group(2) or 0)*60 + int(m.group(3) or 0)
+
+async def get_video_details(video_ids: list) -> dict:
+    """Get video statistics from YouTube API or return empty"""
+    import random
+    try:
+        key = random.choice(YOUTUBE_API_KEYS)
+        url = f"{YOUTUBE_API_BASE}/videos"
+        params = {"part": "contentDetails,statistics", "id": ",".join(video_ids), "key": key}
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, params=params, timeout=10)
+            data = resp.json()
+        result = {}
+        for item in data.get("items", []):
+            c = item.get("contentDetails", {})
+            s = item.get("statistics", {})
+            result[item["id"]] = {"duration": parse_duration(c.get("duration", "")), "views": int(s.get("viewCount", 0)) if s.get("viewCount") else 0, "likes": int(s.get("likeCount", 0)) if s.get("likeCount") else 0}
+        return result
+    except:
+        return {}
