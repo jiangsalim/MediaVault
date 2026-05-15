@@ -50,3 +50,4 @@ const CONFIG = {
 
   GENRES: ['Gospel', 'Dancehall', 'Afrobeat', 'Hip Hop', 'Reggae', 'Bongo Flava', 'Zouk', 'R&B', 'Amapiano', 'Singeli'],
 
+};
