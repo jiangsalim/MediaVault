@@ -111,3 +111,44 @@ const HomePage = {
       <div class="video-grid">${Array.from({length:4}).map(() => '<div class="skeleton" style="aspect-ratio:16/9;border-radius:12px;"></div>').join('')}</div>`;
   },
 };
+
+// Show quality selector bottom sheet
+HomePage.showQualitySheet = function(song) {
+  const qualities = [
+    { label: 'MP3 Audio', quality: '128kbps', size: '~3MB', format: 'mp3' },
+    { label: 'MP3 High Quality', quality: '320kbps', size: '~8MB', format: 'mp3' },
+    { label: '360p Video', quality: '360p', size: '~15MB', format: 'mp4' },
+    { label: '480p Video', quality: '480p', size: '~28MB', format: 'mp4' },
+    { label: '720p Video', quality: '720p', size: '~55MB', format: 'mp4' },
+    { label: '1080p Video', quality: '1080p', size: '~120MB', format: 'mp4' },
+  ];
+
+  const html = `
+    <h3 style="margin-bottom:var(--space-md);font-size:var(--font-size-base);">${song.title || 'Download'}</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:var(--space-sm);margin-bottom:var(--space-md);">
+      ${qualities.map(q => `
+        <button class="quality-chip" onclick="HomePage.downloadWithQuality('${song.id}', '${q.quality}', '${q.format}')" style="padding:var(--space-sm);border:1px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-surface);cursor:pointer;text-align:center;">
+          <div style="font-weight:600;font-size:var(--font-size-sm);">${q.label}</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-tertiary);">${q.quality}</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-tertiary);">${q.size}</div>
+        </button>
+      `).join('')}
+    </div>
+    <button onclick="System.hideSheet()" style="width:100%;padding:var(--space-sm);border:none;background:var(--color-background);border-radius:var(--radius-sm);cursor:pointer;">Cancel</button>
+  `;
+  System.showSheet(html);
+};
+
+HomePage.downloadWithQuality = function(videoId, quality, format) {
+  System.hideSheet();
+  DownloadPage.addDownload({ id: videoId, title: 'Downloading...' }, quality);
+  System.toast(`Starting ${quality} ${format} download...`);
+};
+
+// Override openSong to show quality sheet
+HomePage.openSong = function(id) {
+  const song = [...(this.data?.trending || []), ...(this.data?.newReleases || [])].find(s => s.id === id);
+  if (song) {
+    this.showQualitySheet(song);
+  }
+};

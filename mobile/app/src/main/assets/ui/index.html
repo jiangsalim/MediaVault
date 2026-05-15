@@ -38,49 +38,45 @@
       </div>
     </header>
 
+    <!-- Platform Tabs -->
+    <div class="platform-tabs" id="platform-tabs">
+      <button class="tab-chip active" data-platform="all">All</button>
+      <button class="tab-chip" data-platform="youtube">YouTube</button>
+      <button class="tab-chip" data-platform="spotify">Spotify</button>
+      <button class="tab-chip" data-platform="tiktok">TikTok</button>
+      <button class="tab-chip" data-platform="instagram">Instagram</button>
+      <button class="tab-chip" data-platform="facebook">Facebook</button>
+      <button class="tab-chip" data-platform="soundcloud">SoundCloud</button>
+      <button class="tab-chip" data-platform="more">More</button>
+    </div>
+
+    <!-- Search Bar with Paste & Voice -->
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input-main" placeholder="Search or paste URL..." autocomplete="off">
+      <button class="paste-btn" id="btn-paste-url" title="Paste URL">📋</button>
+      <button class="voice-btn" id="btn-voice-search" title="Voice Search">🎤</button>
+      <button class="search-submit" id="btn-search-submit">Search</button>
+    </div>
+
     <!-- Pages -->
     <main id="main-content">
-      <!-- Home Page -->
-      <section id="page-home" class="page active">
-        <div id="home-content"></div>
-      </section>
-      <!-- Search Page -->
-      <section id="page-search" class="page">
-        <div id="search-content"></div>
-      </section>
-      <!-- Downloads Page -->
-      <section id="page-downloads" class="page">
-        <div id="downloads-content"></div>
-      </section>
-      <!-- Profile Page -->
-      <section id="page-profile" class="page">
-        <div id="profile-content"></div>
-      </section>
+      <section id="page-home" class="page active"><div id="home-content"></div></section>
+      <section id="page-search" class="page"><div id="search-content"></div></section>
+      <section id="page-downloads" class="page"><div id="downloads-content"></div></section>
+      <section id="page-profile" class="page"><div id="profile-content"></div></section>
     </main>
 
     <!-- Bottom Navigation -->
     <nav id="bottom-nav">
-      <button class="nav-item active" data-page="home">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Home</span>
-      </button>
-      <button class="nav-item" data-page="search">
-        <span class="nav-icon">🔍</span>
-        <span class="nav-label">Search</span>
-      </button>
-      <button class="nav-item" data-page="downloads">
-        <span class="nav-icon">⬇</span>
-        <span class="nav-label">Downloads</span>
-        <span class="nav-badge" id="bottom-download-badge"></span>
-      </button>
-      <button class="nav-item" data-page="profile">
-        <span class="nav-icon">👤</span>
-        <span class="nav-label">Profile</span>
-      </button>
+      <button class="nav-item active" data-page="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+      <button class="nav-item" data-page="search"><span class="nav-icon">🔍</span><span class="nav-label">Search</span></button>
+      <button class="nav-item" data-page="downloads"><span class="nav-icon">⬇</span><span class="nav-label">Downloads</span><span class="nav-badge" id="bottom-download-badge"></span></button>
+      <button class="nav-item" data-page="profile"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
     </nav>
   </div>
 
-  <!-- Bottom Sheet -->
+  <!-- Bottom Sheet for Quality Selection -->
   <div class="bottom-sheet-overlay" id="sheet-overlay"></div>
   <div class="bottom-sheet" id="bottom-sheet">
     <div class="sheet-handle"></div>
@@ -97,7 +93,9 @@
   <script src="js/pages/home.js"></script>
   <script src="js/pages/search.js"></script>
   <script src="js/pages/download.js"></script>
+  <script src="js/pages/player.js"></script>
   <script src="js/pages/profile.js"></script>
+  <script src="js/pages/tools.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
