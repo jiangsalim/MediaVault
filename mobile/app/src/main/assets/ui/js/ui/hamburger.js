@@ -25,7 +25,6 @@ const HamburgerMenu = {
         </div>
         <div class="drawer-menu">
           <button class="drawer-item" onclick="HamburgerMenu.navigate('home')">🏠 Home</button>
-          <button class="drawer-item" onclick="HamburgerMenu.navigate('search')">🔍 Search</button>
           <button class="drawer-item" onclick="HamburgerMenu.navigate('downloads')">⬇ Downloads</button>
           <button class="drawer-item" onclick="HamburgerMenu.navigate('profile')">👤 Profile</button>
           <div class="drawer-divider"></div>
@@ -35,7 +34,12 @@ const HamburgerMenu = {
           <button class="drawer-item" onclick="HamburgerMenu.openTool('files')">📂 File Manager</button>
           <div class="drawer-divider"></div>
           <button class="drawer-item" onclick="HamburgerMenu.toggleTheme()">${this.getThemeIcon()} Theme</button>
+  rateApp() { System.toast("Opening store..."); this.close(); },
+  shareApp() { System.toast("Share options coming soon"); this.close(); },
           <a class="drawer-item" href="https://herman-software-website.vercel.app" target="_blank">🌐 HERMAN Software</a>
+          <div class="drawer-divider"></div>
+          <button class="drawer-item" onclick="HamburgerMenu.rateApp()">⭐ Rate App</button>
+          <button class="drawer-item" onclick="HamburgerMenu.shareApp()">📤 Share App</button>
         </div>
         <div class="drawer-footer">
           <span style="font-size:var(--font-size-xs);color:var(--color-text-tertiary);">v${CONFIG.APP_VERSION}</span>
@@ -70,6 +74,8 @@ const HamburgerMenu = {
   },
 
   toggleTheme() {
+  rateApp() { System.toast("Opening store..."); this.close(); },
+  shareApp() { System.toast("Share options coming soon"); this.close(); },
     const current = document.documentElement.getAttribute('data-theme') || 'light';
     const next = current === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', next);
