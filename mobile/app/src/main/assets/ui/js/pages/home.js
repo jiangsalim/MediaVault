@@ -41,7 +41,6 @@ const HomePage = {
     }, 1000);
   },
     const input = document.getElementById('search-input-main');
-    const submitBtn = document.getElementById('btn-search-submit');
     const voiceBtn = document.getElementById('btn-voice-search');
     const pasteBtn = document.getElementById('btn-paste-url');
 
@@ -49,7 +48,6 @@ const HomePage = {
     input?.addEventListener('focus', () => {
       if (!this.isSearching) this.showSuggestions();
     });
-    submitBtn?.addEventListener('click', () => {
       const q = input.value.trim();
       if (q) this.search(q);
     });
