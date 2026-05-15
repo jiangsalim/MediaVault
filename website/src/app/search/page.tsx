@@ -89,7 +89,8 @@ function SearchContent() {
 
   return (
     <>
-      <form onSubmit={handleSearch} className="mb-4">
+      <div className="relative mb-4" ref={searchRef}>
+      <form onSubmit={handleSearch}>
         <div className="flex gap-3">
           <input type="text" value={searchInput} onChange={e => setSearchInput(e.target.value)} onFocus={() => {}} placeholder="Search songs, artists..." className="flex-1 rounded-full border border-gray-light bg-white px-5 py-3 text-sm text-charcoal placeholder:text-gray-medium focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal dark:bg-navy dark:text-white dark:border-navy-light" />
           <button type="submit" className="rounded-full bg-gray-light dark:bg-navy px-6 py-3 text-sm font-medium text-charcoal dark:text-white hover:bg-gray-medium/20 transition-colors">🔍</button>
