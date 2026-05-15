@@ -67,7 +67,7 @@ function SearchContent() {
   }, [query]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting && nextPageToken && !loadingMore) loadMore(); }, { threshold: 0.1 });
+    const observer = new IntersectionObserver((entries) => { if (entries[0].isIntersecting if (entries[0].isIntersecting && nextPageToken && !loadingMore) loadMore();if (entries[0].isIntersecting && nextPageToken && !loadingMore) loadMore(); !loadingMore) loadMore(); }, { threshold: 0.1 });
     if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
   }, [nextPageToken, loadingMore]);
