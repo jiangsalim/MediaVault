@@ -12,13 +12,10 @@ export default function SongPage() {
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [downloading, setDownloading] = useState(false);
-  const [streamUrl, setStreamUrl] = useState("");
 
   useEffect(() => {
     if (id) {
       getSongDetails(id).then(res => {
-    fetch(`https://mediavault-website-api.onrender.com/api/stream/${id}`).then(r => r.json()).then(d => { if (d.success) setStreamUrl(d.streamUrl); }).catch(() => {});
         setSong(res.data);
         setLoading(false);
       }).catch(() => setLoading(false));
@@ -64,7 +61,6 @@ export default function SongPage() {
       window.open(`https://www.youtube.com/watch?v=${id}`, "_blank");
     }
   };
-  };
 
   if (loading) {
     return (
@@ -89,11 +85,7 @@ export default function SongPage() {
           <div className="lg:w-[65%] lg:max-h-screen lg:overflow-y-auto">
             <div className="lg:sticky lg:top-16 z-30 bg-black">
               <div className="aspect-video">
-                {streamUrl ? (
-                  <video src={streamUrl} className="w-full h-full" controls autoPlay playsInline />
-                ) : (
-                  <iframe src={`https://www.youtube.com/embed/${id}?autoplay=1`} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
-                )}
+                <iframe src={`https://www.youtube.com/embed/${id}?autoplay=1`} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
               </div>
             </div>
 
@@ -125,15 +117,13 @@ export default function SongPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <button onClick={handleDownload} disabled={downloading} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors disabled:opacity-50">
-                  {downloading ? '⏳ Loading...' : '🎵 Download MP3'}
-                </button>
-                <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">📥 Download Video (via APK)</a>
+                <button onClick={handleDownload} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors">📥 Download</button>
+                <a href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">▶ Watch on YouTube</a>
               </div>
 
-                <button onClick={handleDownload} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors">
-                  📥 Download
-                </button>
+              {song.description && (
+                <div className="card-base p-4 mb-4">
+                  <div className={`text-sm text-charcoal dark:text-gray-light whitespace-pre-wrap ${!showDesc && 'line-clamp-3'}`}>{song.description}</div>
                   {song.description.length > 150 && (
                     <button onClick={() => setShowDesc(!showDesc)} className="text-sm text-teal mt-1 hover:underline">{showDesc ? 'Show less' : 'Show more'}</button>
                   )}
