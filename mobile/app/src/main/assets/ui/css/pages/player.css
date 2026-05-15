@@ -3,3 +3,34 @@
   padding: var(--space-md);
   text-align: center;
 }
+.player-fullscreen {
+  min-height: 100vh;
+  background: var(--color-background);
+}
+
+.player-btn {
+  width: 44px; height: 44px;
+  border: none; background: var(--color-surface);
+  border-radius: var(--radius-full);
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast);
+}
+
+.player-btn:active { transform: scale(0.9); }
+
+.player-btn-lg {
+  width: 64px; height: 64px;
+  border: none; background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-full);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-fast);
+}
+
+.player-btn-lg:active { transform: scale(0.9); }
