@@ -93,7 +93,14 @@ export default function SongPage() {
           <div className="lg:w-[65%] lg:max-h-screen lg:overflow-y-auto">
             <div className="lg:sticky lg:top-16 z-30 bg-black">
               <div className="aspect-video">
-                <iframe src={`https://www.youtube.com/embed/${id}?autoplay=1`} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
+                <iframe
+                id="yt-player"
+                src={`https://inv.nadeko.net/embed/${id}`}
+                className="w-full h-full"
+                allowFullScreen
+                allow="autoplay; encrypted-media"
+                onError={(e) => { e.currentTarget.src = `https://www.youtube.com/embed/${id}?autoplay=1`; }}
+              />
               </div>
             </div>
 
