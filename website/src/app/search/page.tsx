@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Layout } from "@/components/layout/Layout";
-import { searchMusic, searchNextPage } from "@/lib/api";
+import { searchMusic, searchNextPage, scrapeYouTube } from "@/lib/api";
 
 const FILTERS = ["All", "Songs", "Videos", "Artists"];
 const API_BASE = 'https://mediavault-website-api.onrender.com/api';
@@ -71,6 +71,15 @@ function SearchContent() {
   }, [nextPageToken, loadingMore]);
 
   const loadMore = async () => {
+      // If no results from variations, try scraping YouTube directly
+      if (newVideos.length === 0 && !nextPageToken) {
+        try {
+          const scraped = await scrapeYouTube(query);
+          const existingIds = new Set(results.map((r: any) => r.id));
+          const freshVideos = scraped.filter((v: any) => !existingIds.has(v.id));
+          setResults(prev => [...prev, ...freshVideos]);
+        } catch {}
+      }
     if (loadingMore) return;
     setLoadingMore(true);
     try {
