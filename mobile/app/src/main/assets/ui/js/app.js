@@ -225,3 +225,89 @@ document.addEventListener('click', function(e) {
     Sound.play();
   }
 });
+
+// ── Dark Mode Scheduler ──
+(function() {
+  function autoTheme() {
+    var hour = new Date().getHours();
+    var theme = (hour >= 18 || hour < 6) ? 'dark' : 'light';
+    var saved = localStorage.getItem(CONFIG.STORAGE.THEME + '_auto');
+    if (saved === 'true') {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  }
+  autoTheme();
+  setInterval(autoTheme, 60000);
+
+  // Toggle in profile will set this
+  window.enableAutoTheme = function() {
+    localStorage.setItem(CONFIG.STORAGE.THEME + '_auto', 'true');
+    autoTheme();
+    Toast.show('Auto theme enabled');
+  };
+  window.disableAutoTheme = function() {
+    localStorage.setItem(CONFIG.STORAGE.THEME + '_auto', 'false');
+    Toast.show('Auto theme disabled');
+  };
+})();
+
+// ── Download Scheduler ──
+var DownloadScheduler = {
+  enabled: false,
+  startHour: 0,
+  endHour: 6,
+
+  init: function() {
+    var saved = JSON.parse(localStorage.getItem('mv_scheduler') || '{}');
+    if (saved.enabled) {
+      this.enabled = saved.enabled;
+      this.startHour = saved.startHour || 0;
+      this.endHour = saved.endHour || 6;
+    }
+    this.check();
+    setInterval(this.check.bind(this), 30000);
+  },
+
+  check: function() {
+    if (!this.enabled) return;
+    var hour = new Date().getHours();
+    var inWindow = hour >= this.startHour && hour < this.endHour;
+    var q = JSON.parse(localStorage.getItem(CONFIG.STORAGE.QUEUE) || '[]');
+    q.forEach(function(d) {
+      if (d.status === 'pending' && inWindow && typeof Downloads !== 'undefined') {
+        Downloads.start(d.id);
+      }
+    });
+  },
+
+  configure: function(enabled, start, end) {
+    this.enabled = enabled;
+    this.startHour = start;
+    this.endHour = end;
+    localStorage.setItem('mv_scheduler', JSON.stringify({ enabled: enabled, startHour: start, endHour: end }));
+    Toast.show(enabled ? 'Scheduler: ' + start + ':00-' + end + ':00' : 'Scheduler disabled');
+  },
+};
+DownloadScheduler.init();
+
+// ── Data Saver Mode ──
+var DataSaver = {
+  enabled: false,
+
+  init: function() {
+    this.enabled = localStorage.getItem('mv_data_saver') === 'true';
+  },
+
+  toggle: function() {
+    this.enabled = !this.enabled;
+    localStorage.setItem('mv_data_saver', this.enabled.toString());
+    Toast.show('Data saver: ' + (this.enabled ? 'ON' : 'OFF'));
+  },
+
+  getQuality: function() {
+    if (this.enabled) return '360p';
+    var isWifi = navigator.connection ? navigator.connection.type === 'wifi' : true;
+    return isWifi ? CONFIG.DEFAULTS.WIFI_QUALITY : CONFIG.DEFAULTS.MOBILE_QUALITY;
+  },
+};
+DataSaver.init();

@@ -174,3 +174,41 @@ var Player = {
       + '</div>';
   },
 };
+
+// ── Share Current Song ──
+Player.share = function() {
+  if (!this.track) return;
+  var url = 'https://youtube.com/watch?v=' + (this.track.videoId || '');
+  var text = 'Check out ' + this.track.title + ' — ' + url;
+  if (navigator.share) {
+    navigator.share({ title: this.track.title, text: text, url: url }).catch(function(){});
+  } else {
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(text).then(function() {
+      Toast.show('Link copied!');
+    });
+  }
+};
+
+// ── Equalizer Presets ──
+var Equalizer = {
+  presets: ['Normal', 'Bass Boost', 'Treble Boost', 'Vocal', 'Classical', 'Jazz', 'Rock', 'Pop'],
+  current: 'Normal',
+
+  apply: function(preset) {
+    this.current = preset;
+    // Apply via Web Audio API
+    Toast.show('EQ: ' + preset);
+    // Real implementation needs AudioContext filters
+  },
+
+  showUI: function() {
+    var self = this;
+    var html = '<h3 style="font-size:16px;margin-bottom:12px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Equalizer</h3>';
+    this.presets.forEach(function(p) {
+      html += '<button onclick="Equalizer.apply(\'' + p + '\');Sheet.hide()" style="width:100%;padding:12px;border:none;background:' + (self.current === p ? 'var(--accent)' : 'var(--surface)') + ';color:' + (self.current === p ? 'var(--accent-text)' : 'var(--text)') + ';border-radius:8px;cursor:pointer;margin-bottom:6px;text-align:left;font-size:14px;">' + p + '</button>';
+    });
+    html += '<button onclick="Sheet.hide()" style="width:100%;padding:10px;border:none;background:var(--surface);border-radius:8px;cursor:pointer;margin-top:8px;">Cancel</button>';
+    Sheet.show(html);
+  },
+};

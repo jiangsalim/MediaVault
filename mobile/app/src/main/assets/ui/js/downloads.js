@@ -230,3 +230,42 @@ var Downloads = {
     return html;
   },
 };
+
+// ── File Converter ──
+Downloads.convertToAudio = function(id) {
+  var dl = this.queue.find(function(d) { return d.id === id; });
+  if (!dl) return;
+  if (dl.format === 'mp3') { Toast.show('Already audio format'); return; }
+  dl.format = 'mp3';
+  dl.quality = '128kbps';
+  dl.status = 'pending';
+  dl.progress = 0;
+  this.save();
+  this.render();
+  Toast.show('Converting to MP3...');
+  this.start(id);
+};
+
+// ── Parallel Downloads ──
+Downloads.startAllPending = function() {
+  var self = this;
+  var pending = this.queue.filter(function(d) { return d.status === 'pending'; });
+  var active = this.queue.filter(function(d) { return d.status === 'downloading'; }).length;
+  var max = CONFIG.DEFAULTS.MAX_CONCURRENT;
+  var slots = max - active;
+  pending.slice(0, slots).forEach(function(d) {
+    self.start(d.id);
+  });
+  Toast.show('Started ' + Math.min(slots, pending.length) + ' downloads');
+};
+
+// ── Reorder Queue (Move to Top) ──
+Downloads.moveToTop = function(id) {
+  var idx = this.queue.findIndex(function(d) { return d.id === id; });
+  if (idx <= 0) return;
+  var item = this.queue.splice(idx, 1)[0];
+  this.queue.unshift(item);
+  this.save();
+  this.render();
+  Toast.show('Moved to top');
+};
