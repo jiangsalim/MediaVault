@@ -79,3 +79,17 @@
     init();
   }
 })();
+
+// Helper functions for drawer onclick handlers
+function HamburgerMenu_close() {
+  var d = document.getElementById('hamburger-drawer');
+  if (d) d.classList.remove('open');
+}
+
+function HamburgerMenu_toggleTheme() {
+  var c = document.documentElement.getAttribute('data-theme') || 'light';
+  var n = c === 'light' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', n);
+  localStorage.setItem('mv_theme', n);
+  if (typeof System !== 'undefined') System.toast('Theme: ' + (n === 'dark' ? 'Dark' : 'Light'));
+}

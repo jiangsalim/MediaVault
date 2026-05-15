@@ -93,7 +93,21 @@
         <svg width="36" height="36" viewBox="0 0 40 40"><polygon points="20,2 36,11 36,29 20,38 4,29 4,11" stroke="#00C2BA" stroke-width="2.5" fill="none"/><polyline points="12,18 20,26 28,18" stroke="#00C2BA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
         <div><div style="font-weight:700;">MediaVault</div><div style="font-size:12px;color:var(--color-text-tertiary);">Free Media Toolkit</div></div>
       </div>
-      <div class="drawer-menu" id="drawer-menu"></div>
+      <div class="drawer-menu">
+        <button class="drawer-item" onclick="HamburgerMenu_close();Router.navigate('home')">🏠 Home</button>
+        <button class="drawer-item" onclick="HamburgerMenu_close();Router.navigate('downloads')">⬇ Downloads</button>
+        <button class="drawer-item" onclick="HamburgerMenu_close();Router.navigate('player')">▶ Player</button>
+        <button class="drawer-item" onclick="HamburgerMenu_close();Router.navigate('profile')">👤 Profile</button>
+        <div class="drawer-divider"></div>
+        <button class="drawer-item" onclick="HamburgerMenu_close();System.toast('Opening...')">💬 Status Saver</button>
+        <button class="drawer-item" onclick="HamburgerMenu_close();System.toast('Opening...')">🔒 Private Vault</button>
+        <button class="drawer-item" onclick="HamburgerMenu_close();System.toast('Opening...')">🧹 Phone Cleaner</button>
+        <div class="drawer-divider"></div>
+        <button class="drawer-item" onclick="HamburgerMenu_close();HamburgerMenu_toggleTheme()">🌙 Theme</button>
+        <button class="drawer-item" onclick="HamburgerMenu_close();System.toast('⭐ Rate us!')">⭐ Rate App</button>
+        <button class="drawer-item" onclick="HamburgerMenu_close();System.toast('📤 Share')">📤 Share App</button>
+        <a class="drawer-item" href="https://herman-software-website.vercel.app" target="_blank">🌐 HERMAN Software</a>
+      </div>
       <div class="drawer-footer"><span style="font-size:12px;color:var(--color-text-tertiary);">v2.0.0</span></div>
     </div>
   </div>
