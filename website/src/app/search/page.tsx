@@ -70,7 +70,26 @@ function SearchContent() {
     return () => observer.disconnect();
   }, [nextPageToken, loadingMore]);
 
-  const loadMore = async () => { if (!nextPageToken) return; setLoadingMore(true); try { const res = await searchNextPage(query, nextPageToken); setResults(prev => [...prev, ...(res.data?.videos || [])]); setNextPageToken(res.data?.nextPageToken || ""); } catch {} setLoadingMore(false); };
+  const loadMore = async () => {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    try {
+      if (nextPageToken) {
+        const res = await searchNextPage(query, nextPageToken);
+        setResults(prev => [...prev, ...(res.data?.videos || [])]);
+        setNextPageToken(res.data?.nextPageToken || "");
+      } else {
+        // No pagination token — search with a related query
+        const variations = [`${query} songs`, `${query} music`, `${query} hits`, `${query} trending`];
+        const vq = variations[Math.floor(Math.random() * variations.length)];
+        const res = await searchMusic(vq);
+        const existingIds = new Set(results.map((r: any) => r.id));
+        const newVideos = (res.data?.videos || []).filter((v: any) => !existingIds.has(v.id));
+        setResults(prev => [...prev, ...newVideos]);
+      }
+    } catch {}
+    setLoadingMore(false);
+  };
 
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setShowSuggestions(false); setSuggestions([]); if (searchInput.trim()) { initialLoadDone.current = false; window.location.href = `/search?q=${encodeURIComponent(searchInput.trim())}`; } };
   const selectSuggestion = (s: string) => { setSearchInput(s); setShowSuggestions(false); initialLoadDone.current = false; window.location.href = `/search?q=${encodeURIComponent(s)}`; };
