@@ -56,20 +56,14 @@ export default function SongPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = async () => {
-    setDownloading(true);
-    try {
-      const res = await fetch(`https://mediavault-website-api.onrender.com/api/download/audio/${id}`);
-      const data = await res.json();
-      if (data.redirectUrl) {
-        window.open(data.redirectUrl, '_blank');
-      } else {
-        window.open(`https://youtube.com/watch?v=${id}`, '_blank');
-      }
-    } catch {
-      window.open(`https://youtube.com/watch?v=${id}`, '_blank');
+  const handleDownload = () => {
+    const isAndroid = /android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      window.open("https://apkpure.com/mediavault", "_blank");
+    } else {
+      window.open(`https://www.youtube.com/watch?v=${id}`, "_blank");
     }
-    setDownloading(false);
+  };
   };
 
   if (loading) {
@@ -137,9 +131,9 @@ export default function SongPage() {
                 <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">📥 Download Video (via APK)</a>
               </div>
 
-              {song.description && (
-                <div className="card-base p-4 mb-4">
-                  <div className={`text-sm text-charcoal dark:text-gray-light whitespace-pre-wrap ${!showDesc && 'line-clamp-3'}`}>{song.description}</div>
+                <button onClick={handleDownload} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors">
+                  📥 Download
+                </button>
                   {song.description.length > 150 && (
                     <button onClick={() => setShowDesc(!showDesc)} className="text-sm text-teal mt-1 hover:underline">{showDesc ? 'Show less' : 'Show more'}</button>
                   )}
