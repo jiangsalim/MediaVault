@@ -55,6 +55,7 @@ const Router = {
     if (page === 'home' && typeof HomePage !== 'undefined') HomePage.load();
     if (page === 'search' && typeof SearchPage !== 'undefined') SearchPage.init();
     if (page === 'downloads' && typeof DownloadPage !== 'undefined') DownloadPage.load();
+    if (page === 'more' && typeof MorePage !== 'undefined') MorePage.init();
     if (page === 'profile' && typeof ProfilePage !== 'undefined') ProfilePage.load();
   },
 };

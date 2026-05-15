@@ -19,6 +19,7 @@ const System = {
         if (typeof HomePage !== 'undefined') HomePage.filterByPlatform(this.currentPlatform);
       });
         if (this.currentPlatform === "music" && typeof MusicPage !== "undefined") { MusicPage.init(); return; }
+        if (this.currentPlatform === "more" && typeof MorePage !== "undefined") { MorePage.init(); return; }
     });
   },
 
