@@ -141,3 +141,18 @@ async def health(): return {"status": "healthy"}
 @router.get("/latest-version")
 async def latest_version():
     return {"version":"1.0.0","versionCode":1,"apkUrl":"https://apkpure.com/mediavault/download","apkSizeBytes":8500000,"isMandatory":False}
+
+@router.get("/stream/{video_id}")
+async def stream_video(video_id: str):
+    """Get direct video stream URL using yt-dlp"""
+    import asyncio
+    try:
+        ydl_opts = {'quiet': True, 'no_warnings': True, 'format': 'best[height<=720]', 'get-url': True}
+        def run():
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                return ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
+        loop = asyncio.get_event_loop()
+        info = await loop.run_in_executor(None, run)
+        return {"success": True, "streamUrl": info.get("url", ""), "title": info.get("title", "")}
+    except Exception as e:
+        return {"success": False, "error": str(e)}

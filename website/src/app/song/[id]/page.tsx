@@ -9,10 +9,23 @@ import { getSongDetails } from "@/lib/api";
 export default function SongPage() {
   const { id } = useParams<{ id: string }>();
   const [song, setSong] = useState<any>(null);
+  const [streamUrl, setStreamUrl] = useState("");
+  const [useFallback, setUseFallback] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
+    // Try direct stream first
+    fetch(`https://mediavault-website-api.onrender.com/api/stream/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.streamUrl) {
+          setStreamUrl(data.streamUrl);
+        } else {
+          setUseFallback(true);
+        }
+      })
+      .catch(() => setUseFallback(true));
 
   useEffect(() => {
     if (id) {
