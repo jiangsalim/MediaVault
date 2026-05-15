@@ -10,14 +10,11 @@ const genreList = ['Gospel','Dancehall','Afrobeat','Hip Hop','Reggae','Bongo Fla
 const trendingSearches = ['trending music', 'top hits', 'popular songs', 'best music', 'viral songs', 'chart hits', 'most played', 'new hits'];
 
 export default function Home() {
-  const [trending, setTrending] = useState<any[]>(() => {
-    try { return JSON.parse(localStorage.getItem('mv_trending') || '[]'); } catch { return []; }
+  const [trending, setTrending] = useState<any[]>([]);
   });
-  const [newReleases, setNewReleases] = useState<any[]>(() => {
-    try { return JSON.parse(localStorage.getItem('mv_new') || '[]'); } catch { return []; }
+  const [newReleases, setNewReleases] = useState<any[]>([]);
   });
-  const [artists, setArtists] = useState<any[]>(() => {
-    try { return JSON.parse(localStorage.getItem('mv_artists') || '[]'); } catch { return []; }
+  const [artists, setArtists] = useState<any[]>([]);
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,9 +32,6 @@ export default function Home() {
         const n = secondBatch.length >= 8 ? secondBatch.slice(0, 8) : [...secondBatch, ...allSongs.filter(s => !secondBatch.find(nn => nn.id === s.id))].slice(0, 8);
         const ch = (channelsRes.data || []).map((c: any) => ({ name: c.title, videoCount: c.videoCount, subscribers: c.subscriberCount, image: c.thumbnail, id: c.id, customUrl: c.customUrl })).slice(0, 6);
         setTrending(t); setNewReleases(n); setArtists(ch);
-        localStorage.setItem('mv_trending', JSON.stringify(t));
-        localStorage.setItem('mv_new', JSON.stringify(n));
-        localStorage.setItem('mv_artists', JSON.stringify(ch));
         setLoading(false);
       })
       .catch(() => { setError("Failed to load. Pull down to refresh."); setLoading(false); });

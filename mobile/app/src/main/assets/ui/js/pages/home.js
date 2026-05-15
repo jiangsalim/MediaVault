@@ -14,10 +14,6 @@ const HomePage = {
 
   async fetchData() {
     // Try cache first
-    const cached = localStorage.getItem(CONFIG.STORAGE_KEYS.HOME_CACHE);
-    if (cached) {
-      try { this.data = JSON.parse(cached); } catch {}
-    }
 
     // Fetch fresh data
     try {
@@ -40,7 +36,6 @@ const HomePage = {
         channels: (channelsRes.data || []).slice(0, 6),
       };
 
-      localStorage.setItem(CONFIG.STORAGE_KEYS.HOME_CACHE, JSON.stringify(this.data));
     } catch (e) {
       console.error('Home fetch error:', e);
     }
