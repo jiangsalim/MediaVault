@@ -21,96 +21,73 @@ async def search_next(q: str = Query(...), page_token: str = Query(...), limit: 
 
 @router.get("/song/{video_id}")
 async def song_detail(video_id: str):
-    """Try YouTube API first, then Invidious as fallback"""
-    import httpx, random
+    """Get song details from YouTube oEmbed + search for related"""
+    import httpx
 
-    api_keys = [
-        "AIzaSyDgQGhyPpKM7QIJWZomw61RbVbeB9kBkng", "AIzaSyAX5f9v2uYNL5jDVOlxhVp4IuK_cy68e2I",
-        "AIzaSyAjtwWKRi6-FZ20jruoQWx4LuC6gZiuqLk", "AIzaSyBhJjuscU8TP72FQUt7qcj3hfNKuZ-nlnE",
-        "AIzaSyBbHs7soVbyWqCvafvZaMjcNhs36NMF_Oc", "AIzaSyBu3YhONuYaSf3iYFDftLlNAurwDqnTjdc",
-        "AIzaSyDvUcaijDrsGDLX6iU7J45xlhQHiPZgnaU", "AIzaSyClsLzCXlNhTzzEernLvbCF5M3TH1kzlQA",
-        "AIzaSyDt8znupiOA5iWHocls-5wny-R9G_ql5zQ", "AIzaSyCI_KHaET_L5TvcKELVhQxT7QN6TTnz0PU",
-    ]
-    INVIDIOUS = ["https://inv.nadeko.net", "https://yewtu.be", "https://iv.ggtyler.dev"]
-
-    # METHOD 1: YouTube API
-    for _ in range(3):
-        try:
-            key = random.choice(api_keys)
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    "https://www.googleapis.com/youtube/v3/videos",
-                    params={"part": "snippet,contentDetails,statistics", "id": video_id, "key": key},
-                    timeout=10
-                )
-                data = resp.json()
-            if "error" in data:
-                continue
-            if data.get("items"):
-                item = data["items"][0]
-                s = item["snippet"]
-                c = item.get("contentDetails", {})
-                st = item.get("statistics", {})
-                snippet = {
-                    "title": s.get("title", ""), "artist": s.get("channelTitle", ""),
-                    "channelId": s.get("channelId", ""), "description": s.get("description", ""),
-                    "thumbnail": s.get("thumbnails", {}).get("high", {}).get("url", ""),
-                    "publishedAt": s.get("publishedAt", ""),
-                }
-                video_data = {
-                    "duration": parse_duration_local(c.get("duration", "")),
-                    "views": int(st.get("viewCount", 0)) if st.get("viewCount") else 0,
-                    "likes": int(st.get("likeCount", 0)) if st.get("likeCount") else 0,
-                }
-                channel_id = s.get("channelId", "")
-                channel_data = {}
-                if channel_id:
-                    channels = await get_channel_details([channel_id])
-                    channel_data = channels.get(channel_id, {})
-                artist = s.get("channelTitle", "")
-                related = []
-                if artist:
-                    related_results, _ = await search_music(artist + " songs", limit=16)
-                    for v in related_results.get("videos", []):
-                        if v.get("id") != video_id:
-                            related.append({"id": v.get("id", ""), "title": v.get("title", ""), "artist": v.get("artist", ""), "thumbnail": v.get("thumbnail", "")})
-                return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
-        except:
-            continue
-
-    # METHOD 2: Invidious (no API key, no bot detection)
-    for _ in range(3):
-        try:
-            instance = random.choice(INVIDIOUS)
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(instance + "/api/v1/videos/" + video_id, timeout=10)
-                data = resp.json()
-            snippet = {
-                "title": data.get("title", ""), "artist": data.get("author", ""),
-                "channelId": data.get("authorId", ""), "description": data.get("description", "") or "",
-                "thumbnail": data.get("videoThumbnails", [{}])[-1].get("url", "") if data.get("videoThumbnails") else "https://i.ytimg.com/vi/" + video_id + "/hqdefault.jpg",
-                "publishedAt": data.get("publishedText", ""),
-            }
-            video_data = {"duration": data.get("lengthSeconds", 0) or 0, "views": data.get("viewCount", 0) or 0, "likes": data.get("likeCount", 0) or 0}
-            channel_id = snippet.get("channelId", "")
-            channel_data = {}
-            if channel_id:
-                channels = await get_channel_details([channel_id])
-                channel_data = channels.get(channel_id, {})
+    # METHOD 1: YouTube oEmbed API (free, no key needed)
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://www.youtube.com/oembed",
+                params={"url": "https://www.youtube.com/watch?v=" + video_id, "format": "json"},
+                timeout=10
+            )
+            data = resp.json()
+            title = data.get("title", "")
+            artist = data.get("author_name", "")
+            
+            # Search for related using the artist name
             related = []
-            for r in data.get("recommendedVideos", [])[:16]:
-                related.append({"id": r.get("videoId", ""), "title": r.get("title", ""), "artist": r.get("author", ""), "thumbnail": r.get("videoThumbnails", [{}])[-1].get("url", "") if r.get("videoThumbnails") else "https://i.ytimg.com/vi/" + r.get("videoId", "") + "/mqdefault.jpg"})
-            return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
-        except:
-            continue
+            if artist:
+                related_results, _ = await search_music(artist + " songs", limit=16)
+                for v in related_results.get("videos", []):
+                    if v.get("id") != video_id:
+                        related.append({
+                            "id": v.get("id", ""), "title": v.get("title", ""),
+                            "artist": v.get("artist", ""), "thumbnail": v.get("thumbnail", ""),
+                        })
+
+            return {"success": True, "data": {
+                "id": video_id,
+                "title": title,
+                "artist": artist,
+                "channelId": "",
+                "description": "",
+                "thumbnail": "https://i.ytimg.com/vi/" + video_id + "/hqdefault.jpg",
+                "publishedAt": "",
+                "duration": 0,
+                "views": 0,
+                "likes": 0,
+                "channel": {"id": "", "title": artist, "subscriberCount": 0, "thumbnail": ""},
+                "related": related[:16],
+            }}
+    except Exception as e:
+        pass
+
+    # METHOD 2: Search fallback
+    try:
+        results, _ = await search_music(video_id, limit=1)
+        if results.get("videos"):
+            v = results["videos"][0]
+            related = []
+            artist = v.get("artist", "")
+            if artist:
+                related_results, _ = await search_music(artist + " songs", limit=16)
+                for r in related_results.get("videos", []):
+                    if r.get("id") != video_id:
+                        related.append({"id": r.get("id", ""), "title": r.get("title", ""), "artist": r.get("artist", ""), "thumbnail": r.get("thumbnail", "")})
+            return {"success": True, "data": {
+                "id": video_id, "title": v.get("title", ""), "artist": v.get("artist", ""),
+                "channelId": v.get("channelId", ""), "description": v.get("description", ""),
+                "thumbnail": v.get("thumbnail", ""), "publishedAt": v.get("publishedAt", ""),
+                "duration": v.get("duration", 0), "views": v.get("views", 0), "likes": v.get("likes", 0),
+                "channel": {"id": v.get("channelId", ""), "title": v.get("artist", ""), "subscriberCount": 0, "thumbnail": ""},
+                "related": related[:16],
+            }}
+    except:
+        pass
 
     return {"success": False, "error": "All methods failed", "data": None}
-
-def parse_duration_local(d: str) -> int:
-    import re
-    m = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', d)
-    if not m: return 0
-    return int(m.group(1) or 0)*3600 + int(m.group(2) or 0)*60 + int(m.group(3) or 0)
 
 @router.get("/channels/trending")
 async def trending_channels():
@@ -135,7 +112,7 @@ async def trending(region: str = Query("UG")):
 
 @router.get("/suggest")
 async def suggest(q: str = Query(...)):
-    import json as j, re
+    import json, re
     try:
         import httpx as hx
         async with hx.AsyncClient() as client:
@@ -143,8 +120,7 @@ async def suggest(q: str = Query(...)):
             text = resp.text
             match = re.search(r'\["([^"]+)",(\[.*?\])', text)
             if match:
-                suggestions = j.loads(match.group(2))
-                return {"success": True, "data": suggestions}
+                return {"success": True, "data": json.loads(match.group(2))}
     except: pass
     return {"success": True, "data": []}
 
