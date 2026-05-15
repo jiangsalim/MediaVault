@@ -8,7 +8,7 @@ import { HeroSearch } from "@/components/home/HeroSearch";
 
 const genreList = ['Gospel','Dancehall','Afrobeat','Hip Hop','Reggae','Bongo Flava','Zouk','R&B','Amapiano','Singeli'];
 
-const trendingSearches = ['trending music', 'top hits', 'popular songs', 'best music', 'viral songs', 'chart hits', 'most played', 'new hits'];
+const trendingSearches = ["trending music 2026", "top hits this week", "popular songs now", "viral songs today", "chart hits", "new music releases", "best songs right now", "hot tracks", "trending afrobeat", "trending bongo flava", "trending dancehall", "trending gospel", "trending hip hop", "new ugandan music"];
 
 export default function Home() {
   const [trending, setTrending] = useState<any[]>([]);
@@ -20,7 +20,7 @@ export default function Home() {
   useEffect(() => {
     const shuffled = [...trendingSearches].sort(() => Math.random() - 0.5);
     setLoading(true);
-    Promise.all([searchMusic(shuffled[0]), searchMusic(shuffled[1]), getTrendingChannels()])
+    Promise.all([searchMusic(shuffled[0], "youtube", 50), searchMusic(shuffled[1], "youtube", 50), searchMusic(shuffled[Math.floor(Math.random()*shuffled.length)], "youtube", 50), getTrendingChannels()])
       .then(([r1, r2, channelsRes]) => {
         const allSongs: any[] = []; const ids = new Set<string>();
         (r1.data?.videos || []).forEach((s: any) => { if (!ids.has(s.id)) { ids.add(s.id); allSongs.push(s); } });
