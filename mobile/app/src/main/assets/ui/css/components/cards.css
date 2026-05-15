@@ -185,3 +185,28 @@
 .download-card-btn:active { background: var(--color-primary-hover); }
 
 .quality-chip:active { background: var(--color-primary-surface); border-color: var(--color-primary); }
+
+.filter-chips { scrollbar-width: none; }
+.filter-chips::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.filter-chip.active {
+  background: var(--color-primary-dark);
+  color: white;
+  border-color: var(--color-primary-dark);
+}
+
+.filter-chip:active { transform: scale(0.95); }

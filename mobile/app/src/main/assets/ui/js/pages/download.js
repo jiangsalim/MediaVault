@@ -1,5 +1,8 @@
 const DownloadPage = {
   queue: [],
+  filter: 'all',
+  selectMode: false,
+  selected: new Set(),
 
   load() {
     this.queue = System.getDownloadQueue();
@@ -11,10 +14,44 @@ const DownloadPage = {
     const active = this.queue.filter(d => d.status === 'downloading' || d.status === 'pending');
     const completed = this.queue.filter(d => d.status === 'completed');
 
+    // Apply filter
+    let filteredActive = active;
+    let filteredCompleted = completed;
+    if (this.filter === 'audio') {
+      filteredActive = active.filter(d => d.format === 'mp3');
+      filteredCompleted = completed.filter(d => d.format === 'mp3');
+    } else if (this.filter === 'video') {
+      filteredActive = active.filter(d => d.format !== 'mp3');
+      filteredCompleted = completed.filter(d => d.format !== 'mp3');
+    }
+
     container.innerHTML = `
-      ${active.length > 0 ? `<div class="section-header"><span class="section-title">Active (${active.length})</span></div>${active.map(d => this.downloadCard(d)).join('')}` : ''}
-      ${completed.length > 0 ? `<div class="section-header"><span class="section-title">Completed (${completed.length})</span><button class="section-link" onclick="DownloadPage.clearCompleted()">Clear</button></div>${completed.map(d => this.downloadCard(d)).join('')}` : ''}
-      ${active.length === 0 && completed.length === 0 ? this.emptyState() : ''}
+      <!-- Filter Chips -->
+      <div class="filter-chips" style="display:flex;gap:var(--space-sm);padding:var(--space-md);overflow-x:auto;">
+        <button class="filter-chip ${this.filter==='all'?'active':''}" onclick="DownloadPage.setFilter('all')">All</button>
+        <button class="filter-chip ${this.filter==='audio'?'active':''}" onclick="DownloadPage.setFilter('audio')">🎵 Audio</button>
+        <button class="filter-chip ${this.filter==='video'?'active':''}" onclick="DownloadPage.setFilter('video')">🎬 Video</button>
+        ${completed.length > 0 ? `<button class="filter-chip ${this.selectMode?'active':''}" onclick="DownloadPage.toggleSelectMode()">${this.selectMode ? '✅ Done' : '☐ Select'}</button>` : ''}
+        ${this.selectMode ? `<button class="filter-chip" onclick="DownloadPage.deleteSelected()">🗑 Delete</button>` : ''}
+      </div>
+
+      <!-- Active Downloads -->
+      ${filteredActive.length > 0 ? `
+        <div class="section-header"><span class="section-title">Active (${filteredActive.length})</span></div>
+        ${filteredActive.map(d => this.downloadCard(d)).join('')}
+      ` : ''}
+
+      <!-- Completed Downloads -->
+      ${filteredCompleted.length > 0 ? `
+        <div class="section-header">
+          <span class="section-title">Completed (${filteredCompleted.length})</span>
+          ${!this.selectMode ? `<button class="section-link" onclick="DownloadPage.clearCompleted()">Clear</button>` : ''}
+        </div>
+        ${filteredCompleted.map(d => this.downloadCard(d)).join('')}
+      ` : ''}
+
+      <!-- Empty State -->
+      ${filteredActive.length === 0 && filteredCompleted.length === 0 ? this.emptyState() : ''}
     `;
 
     System.updateDownloadBadge();
@@ -23,9 +60,11 @@ const DownloadPage = {
   downloadCard(dl) {
     const progress = dl.status === 'completed' ? 100 : dl.progress || 0;
     const isActive = dl.status === 'downloading';
+    const checked = this.selected.has(dl.id);
 
     return `
-      <div class="download-card">
+      <div class="download-card" style="${this.selectMode ? 'cursor:pointer' : ''}" onclick="${this.selectMode ? `DownloadPage.toggleSelect('${dl.id}')` : ''}">
+        ${this.selectMode ? `<div style="width:24px;height:24px;border:2px solid ${checked ? 'var(--color-primary)' : 'var(--color-border)'};border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:${checked ? 'var(--color-primary)' : 'transparent'};color:white;font-size:14px;">${checked ? '✓' : ''}</div>` : ''}
         <div class="dl-thumb">${dl.format === 'mp3' ? '🎵' : '🎬'}</div>
         <div class="dl-info">
           <div class="dl-title">${this.escapeHtml(dl.title || 'Unknown')}</div>
@@ -35,13 +74,42 @@ const DownloadPage = {
             <div class="dl-meta">${System.formatFileSize(dl.downloaded || 0)} / ${System.formatFileSize(dl.size || 0)} • ${dl.speed || ''}</div>
           ` : ''}
         </div>
-        <div class="dl-actions">
-          ${isActive ? `<button class="dl-btn" onclick="DownloadPage.pauseDownload('${dl.id}')">⏸</button>` : ''}
-          ${dl.status === 'pending' ? `<button class="dl-btn" onclick="DownloadPage.startDownload('${dl.id}')">▶</button>` : ''}
-          ${dl.status === 'completed' ? `<button class="dl-btn" onclick="DownloadPage.openFile('${dl.id}')">📂</button>` : ''}
-          <button class="dl-btn" onclick="DownloadPage.removeDownload('${dl.id}')">🗑</button>
-        </div>
+        ${!this.selectMode ? `
+          <div class="dl-actions">
+            ${isActive ? `<button class="dl-btn" onclick="event.stopPropagation();DownloadPage.pauseDownload('${dl.id}')">⏸</button>` : ''}
+            ${dl.status === 'pending' ? `<button class="dl-btn" onclick="event.stopPropagation();DownloadPage.startDownload('${dl.id}')">▶</button>` : ''}
+            ${dl.status === 'completed' ? `<button class="dl-btn" onclick="event.stopPropagation();DownloadPage.openFile('${dl.id}')">📂</button>` : ''}
+            <button class="dl-btn" onclick="event.stopPropagation();DownloadPage.removeDownload('${dl.id}')">🗑</button>
+          </div>
+        ` : ''}
       </div>`;
+  },
+
+  setFilter(filter) {
+    this.filter = filter;
+    this.render();
+  },
+
+  toggleSelectMode() {
+    this.selectMode = !this.selectMode;
+    this.selected.clear();
+    this.render();
+  },
+
+  toggleSelect(id) {
+    if (this.selected.has(id)) this.selected.delete(id);
+    else this.selected.add(id);
+    this.render();
+  },
+
+  deleteSelected() {
+    if (this.selected.size === 0) { System.toast('No items selected'); return; }
+    this.queue = this.queue.filter(d => !this.selected.has(d.id));
+    this.selected.clear();
+    this.selectMode = false;
+    System.saveDownloadQueue(this.queue);
+    this.render();
+    System.toast(`Deleted ${this.selected.size} items`);
   },
 
   addDownload(video, quality) {
@@ -58,7 +126,6 @@ const DownloadPage = {
       status: 'pending',
       addedAt: new Date().toISOString(),
     };
-
     this.queue.unshift(dl);
     System.saveDownloadQueue(this.queue);
     this.render();
@@ -75,12 +142,10 @@ const DownloadPage = {
   },
 
   simulateDownload(dl) {
-    // Simulate progress (replace with real download logic)
     const interval = setInterval(() => {
       dl.progress = Math.min((dl.progress || 0) + Math.random() * 15, 100);
       dl.downloaded = Math.floor((dl.size || 10000000) * dl.progress / 100);
       dl.speed = (Math.random() * 5 + 1).toFixed(1) + ' MB/s';
-
       if (dl.progress >= 100) {
         dl.status = 'completed';
         dl.progress = 100;
@@ -111,8 +176,7 @@ const DownloadPage = {
   },
 
   openFile(id) {
-    const dl = this.queue.find(d => d.id === id);
-    if (dl) System.toast('Opening file...');
+    System.toast('Opening file...');
   },
 
   emptyState() {
