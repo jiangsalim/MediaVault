@@ -113,36 +113,42 @@ async def search_via_ytdlp(query: str, limit: int = 25):
     return {"videos": videos, "nextPageToken": ""}
 
 async def get_channel_details(channel_ids: list) -> dict:
+    """Try YouTube API first, then Invidious fallback"""
+    import random
+    
+    # METHOD 1: YouTube API
     try:
+        key = random.choice(YOUTUBE_API_KEYS)
         url = f"{YOUTUBE_API_BASE}/channels"
-        params = {"part": "snippet,statistics", "id": ",".join(channel_ids), "key": get_api_key()}
+        params = {"part": "snippet,statistics", "id": ",".join(channel_ids), "key": key}
         async with httpx.AsyncClient() as client:
             resp = await client.get(url, params=params, timeout=10)
             data = resp.json()
-        result = {}
-        for item in data.get("items", []):
-            cid = item["id"]
-            s = item.get("snippet", {})
-            st = item.get("statistics", {})
-            result[cid] = {"id": cid, "title": s.get("title", ""), "thumbnail": s.get("thumbnails", {}).get("medium", {}).get("url", ""), "subscriberCount": int(st.get("subscriberCount", 0)), "videoCount": int(st.get("videoCount", 0)), "customUrl": s.get("customUrl", "")}
-        if result: return result
-    except: pass
+        if "error" not in data:
+            result = {}
+            for item in data.get("items", []):
+                cid = item["id"]
+                s = item.get("snippet", {})
+                st = item.get("statistics", {})
+                result[cid] = {"id": cid, "title": s.get("title", ""), "thumbnail": s.get("thumbnails", {}).get("medium", {}).get("url", ""), "subscriberCount": int(st.get("subscriberCount", 0)), "videoCount": int(st.get("videoCount", 0)), "customUrl": s.get("customUrl", "")}
+            if result:
+                return result
+    except:
+        pass
+    
+    # METHOD 2: Invidious
+    INVIDIOUS = ["https://inv.nadeko.net", "https://yewtu.be", "https://iv.ggtyler.dev"]
+    for cid in channel_ids:
+        try:
+            instance = random.choice(INVIDIOUS)
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(f"{instance}/api/v1/channels/{cid}", timeout=10)
+                data = resp.json()
+            return {cid: {"id": cid, "title": data.get("author", cid), "thumbnail": (data.get("authorThumbnails", [{}])[-1].get("url", "") if data.get("authorThumbnails") else ""), "subscriberCount": data.get("subCount", 0) or 0, "videoCount": 0, "customUrl": data.get("authorUrl", "")}}
+        except:
+            continue
+    
     return {cid: {"id": cid, "title": cid, "subscriberCount": 0, "thumbnail": ""} for cid in channel_ids}
-
-async def get_video_details(video_ids: list) -> dict:
-    try:
-        url = f"{YOUTUBE_API_BASE}/videos"
-        params = {"part": "contentDetails,statistics", "id": ",".join(video_ids), "key": get_api_key()}
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(url, params=params, timeout=10)
-            data = resp.json()
-        result = {}
-        for item in data.get("items", []):
-            c = item.get("contentDetails", {})
-            s = item.get("statistics", {})
-            result[item["id"]] = {"duration": parse_duration(c.get("duration", "")), "views": int(s.get("viewCount", 0)) if s.get("viewCount") else 0, "likes": int(s.get("likeCount", 0)) if s.get("likeCount") else 0}
-        return result
-    except: return {}
 
 async def get_trending(region: str = "UG"):
     result, _ = await search_music("trending music", limit=25)
