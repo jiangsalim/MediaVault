@@ -16,14 +16,13 @@
   <link rel="stylesheet" href="css/components/hamburger.css">
   <link rel="stylesheet" href="css/components/system.css">
   <link rel="stylesheet" href="css/pages/home.css">
-  <link rel="stylesheet" href="css/pages/search.css">
   <link rel="stylesheet" href="css/pages/download.css">
   <link rel="stylesheet" href="css/pages/player.css">
   <link rel="stylesheet" href="css/pages/profile.css">
 </head>
 <body>
   <div id="app">
-    <!-- Header -->
+    <!-- Simple Top Bar — Logo + Hamburger + Download Badge -->
     <header id="app-header">
       <div class="header-left">
         <button class="icon-button" id="btn-hamburger" aria-label="Menu">☰</button>
@@ -33,55 +32,55 @@
         </span>
       </div>
       <div class="header-right">
-        <button class="icon-button" id="btn-search-icon" aria-label="Search">🔍</button>
         <button class="icon-button download-icon" id="btn-download-icon" aria-label="Downloads">⬇<span class="icon-badge" id="download-badge"></span></button>
       </div>
     </header>
 
-    <!-- Platform Tabs -->
-    <div class="platform-tabs" id="platform-tabs">
-      <button class="tab-chip active" data-platform="all">All</button>
-      <button class="tab-chip" data-platform="youtube">YouTube</button>
-      <button class="tab-chip" data-platform="spotify">Spotify</button>
-      <button class="tab-chip" data-platform="tiktok">TikTok</button>
-      <button class="tab-chip" data-platform="instagram">Instagram</button>
-      <button class="tab-chip" data-platform="facebook">Facebook</button>
-      <button class="tab-chip" data-platform="soundcloud">SoundCloud</button>
-      <button class="tab-chip" data-platform="music">🎵 Music</button>
-      <button class="tab-chip" data-platform="more">More</button>
-    </div>
-
-    <!-- Search Bar with Paste & Voice -->
-    <div class="search-bar">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="search-input-main" placeholder="Search or paste URL..." autocomplete="off">
-      <button class="paste-btn" id="btn-paste-url" title="Paste URL">📋</button>
-      <button class="voice-btn" id="btn-voice-search" title="Voice Search">🎤</button>
-      <button class="search-submit" id="btn-search-submit">Search</button>
-    </div>
-
-    <!-- Pages -->
+    <!-- Main Content — Single Page, No Tabs -->
     <main id="main-content">
-      <section id="page-home" class="page active"><div id="home-content"></div></section>
-      <section id="page-search" class="page"><div id="search-content"></div></section>
-      <section id="page-music" class="page"><div id="music-content"></div></section>
+      <!-- Home Page (Default) -->
+      <section id="page-home" class="page active">
+        <!-- Google-Style Centered Search -->
+        <div class="hero-search" style="padding:var(--space-xl) var(--space-md);">
+          <h1 style="text-align:center;font-size:1.5rem;font-weight:700;margin-bottom:var(--space-lg);color:var(--color-text-primary);">What do you want to download?</h1>
+          <div class="search-bar-main" style="max-width:600px;margin:0 auto;">
+            <div class="search-input-wrapper" style="display:flex;align-items:center;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-full);padding:4px 4px 4px 20px;box-shadow:var(--shadow-sm);">
+              <span style="color:var(--color-text-tertiary);margin-right:12px;">🔍</span>
+              <input type="text" id="search-input-main" placeholder="Search or paste URL..." autocomplete="off" style="flex:1;border:none;outline:none;font-size:var(--font-size-base);background:transparent;color:var(--color-text-primary);padding:12px 0;">
+              <button class="icon-button" id="btn-paste-url" title="Paste URL" style="margin-right:4px;">📋</button>
+              <button class="icon-button" id="btn-voice-search" title="Voice Search">🎤</button>
+              <button id="btn-search-submit" style="background:var(--color-primary);color:white;border:none;padding:10px 24px;border-radius:var(--radius-full);font-weight:600;font-size:var(--font-size-sm);cursor:pointer;">Search</button>
+            </div>
+          </div>
+          <!-- Suggestions Dropdown -->
+          <div id="suggestions-container" style="max-width:600px;margin:8px auto 0;display:none;"></div>
+        </div>
+
+        <!-- Results Container (shows when searching) -->
+        <div id="results-container" style="display:none;"></div>
+
+        <!-- Default Home Content (shows when not searching) -->
+        <div id="home-content"></div>
+      </section>
+
+      <!-- Player Page -->
       <section id="page-player" class="page"><div id="player-content"></div></section>
-      <section id="page-more" class="page"><div id="more-content"></div></section>
+      <!-- Downloads Page -->
       <section id="page-downloads" class="page"><div id="downloads-content"></div></section>
+      <!-- Profile Page -->
       <section id="page-profile" class="page"><div id="profile-content"></div></section>
     </main>
 
     <!-- Bottom Navigation -->
     <nav id="bottom-nav">
       <button class="nav-item active" data-page="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
-      <button class="nav-item" data-page="search"><span class="nav-icon">🔍</span><span class="nav-label">Search</span></button>
       <button class="nav-item" data-page="player"><span class="nav-icon">▶</span><span class="nav-label">Player</span></button>
       <button class="nav-item" data-page="downloads"><span class="nav-icon">⬇</span><span class="nav-label">Downloads</span><span class="nav-badge" id="bottom-download-badge"></span></button>
       <button class="nav-item" data-page="profile"><span class="nav-icon">👤</span><span class="nav-label">Profile</span></button>
     </nav>
   </div>
 
-  <!-- Bottom Sheet for Quality Selection -->
+  <!-- Bottom Sheet -->
   <div class="bottom-sheet-overlay" id="sheet-overlay"></div>
   <div class="bottom-sheet" id="bottom-sheet">
     <div class="sheet-handle"></div>
@@ -98,7 +97,6 @@
   <script src="js/ui/hamburger.js"></script>
   <script src="js/ui/system.js"></script>
   <script src="js/pages/home.js"></script>
-  <script src="js/pages/search.js"></script>
   <script src="js/pages/download.js"></script>
   <script src="js/pages/player.js"></script>
   <script src="js/pages/profile.js"></script>
