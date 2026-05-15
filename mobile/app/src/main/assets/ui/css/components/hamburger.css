@@ -1,5 +1,5 @@
-.hamburger-drawer { display: none; }
-.hamburger-drawer.open { display: block; }
+.hamburger-drawer { visibility: hidden; }
+.hamburger-drawer.open { visibility: visible; }
 
 .drawer-overlay {
   position: fixed; inset: 0;
