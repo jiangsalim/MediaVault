@@ -97,7 +97,18 @@ function SearchContent() {
 
   const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
   // Filter results based on active tab
-  const filteredResults = activeFilter === "All" ? results : activeFilter === "Songs" ? results.filter((s: any) => s.title && s.duration < 600) : activeFilter === "Videos" ? results.filter((s: any) => s.duration >= 600 || !s.duration) : results.filter((s: any) => s.artist && s.channelId);
+  const filteredResults = (() => {
+  if (activeFilter === "All") return results;
+  if (activeFilter === "Songs") return results.filter((s: any) => {
+    const t = (s.title || "").toLowerCase();
+    return t.includes("official") || t.includes("music") || t.includes("audio") || t.includes("lyric") || t.includes("video") || (s.duration > 0 && s.duration < 600);
+  });
+  if (activeFilter === "Videos") return results.filter((s: any) => {
+    const t = (s.title || "").toLowerCase();
+    return !t.includes("music") && !t.includes("audio") && !t.includes("lyric");
+  });
+  return results;
+})();
   const fmt = (n: number) => { if (!n) return ''; if (n>=1e9) return (n/1e9).toFixed(1)+'B'; if (n>=1e6) return (n/1e6).toFixed(1)+'M'; if (n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); };
   const timeAgo = (d: string) => { if(!d) return ''; const diff=Date.now()-new Date(d).getTime(); const m=Math.floor(diff/6e4),h=Math.floor(diff/36e5),days=Math.floor(diff/864e5); if(m<1)return'Just now';if(m<60)return m+'m ago';if(h<24)return h+'h ago';if(days<7)return days+'d ago';return Math.floor(days/7)+'w ago'; };
 
