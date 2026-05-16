@@ -96,6 +96,8 @@ function SearchContent() {
   const clearHistory = () => { setSearchHistory([]); localStorage.removeItem('mv_search_history'); };
 
   const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+  // Filter results based on active tab
+  const filteredResults = activeFilter === "All" ? results : activeFilter === "Songs" ? results.filter((s: any) => s.title && s.duration < 600) : activeFilter === "Videos" ? results.filter((s: any) => s.duration >= 600 || !s.duration) : results.filter((s: any) => s.artist && s.channelId);
   const fmt = (n: number) => { if (!n) return ''; if (n>=1e9) return (n/1e9).toFixed(1)+'B'; if (n>=1e6) return (n/1e6).toFixed(1)+'M'; if (n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); };
   const timeAgo = (d: string) => { if(!d) return ''; const diff=Date.now()-new Date(d).getTime(); const m=Math.floor(diff/6e4),h=Math.floor(diff/36e5),days=Math.floor(diff/864e5); if(m<1)return'Just now';if(m<60)return m+'m ago';if(h<24)return h+'h ago';if(days<7)return days+'d ago';return Math.floor(days/7)+'w ago'; };
 
@@ -141,7 +143,7 @@ function SearchContent() {
           {loading ? <div className="space-y-4">{Array.from({length:8}).map((_,i)=><div key={i} className="flex gap-4 animate-pulse"><div className="h-36 w-64 rounded-xl bg-gray-light flex-shrink-0" /><div className="flex-1 space-y-2"><div className="h-5 w-3/4 rounded bg-gray-light" /><div className="h-3 w-1/3 rounded bg-gray-light" /></div></div>)}</div> :
            results.length===0 ? <p className="text-center text-charcoal dark:text-gray-light py-10">No results found.</p> :
            <div className="space-y-0 divide-y divide-gray-light dark:divide-navy-light">
-            {results.map((song:any)=>(
+            {filteredResults.map((song:any)=>(
               <a key={song.id} href={`/song/${song.id}`} className="flex gap-4 py-4 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
                 <div className="relative flex-shrink-0 w-40 md:w-56 aspect-video rounded-xl overflow-hidden bg-navy">
                   <img src={thumb(song.id)} alt="" className="w-full h-full object-cover" onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
