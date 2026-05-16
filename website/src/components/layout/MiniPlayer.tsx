@@ -4,6 +4,11 @@ import { useSong } from "@/lib/song-context";
 import { usePathname } from "next/navigation";
 
 export function MiniPlayer() {
+  const ctx = useSong();
+  if (typeof window !== "undefined" && !window._debugMini) {
+    window._debugMini = true;
+    alert("MiniPlayer mounted. Song: " + (ctx.currentSong?.title || "NULL") + " Playing: " + ctx.isPlaying);
+  }
   const { currentSong, isPlaying, pause, resume, stop } = useSong();
   const pathname = usePathname();
 
