@@ -20,7 +20,7 @@ export default function SongPage() {
       getSongDetails(id).then(res => {
         setSong(res.data);
         setLoading(false);
-        if (res.data?.title) play({ id, title: res.data.title, artist: res.data.artist });
+        if (res.data?.title) { const songData = { id, title: res.data.title, artist: res.data.artist }; play(songData); }
       }).catch(() => setLoading(false));
     }
   }, [id]);

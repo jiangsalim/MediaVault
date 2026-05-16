@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useRef } from "react";
+import { createContext, useContext, useState } from "react";
+import { usePathname } from "next/navigation";
 
 interface Song {
   id: string;
@@ -25,16 +26,20 @@ const SongContext = createContext<SongContextType>({
 export function SongProvider({ children }: { children: React.ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const pathname = usePathname();
 
   const play = (song: Song) => { setCurrentSong(song); setIsPlaying(true); };
   const pause = () => setIsPlaying(false);
   const resume = () => setIsPlaying(true);
   const stop = () => { setCurrentSong(null); setIsPlaying(false); };
 
+  // Hide background iframe when on the song page (the song page has its own player)
+  const isOnSongPage = pathname.startsWith("/song/");
+
   return (
     <SongContext.Provider value={{ currentSong, isPlaying, play, pause, resume, stop }}>
       {children}
-      {currentSong && (
+      {currentSong && !isOnSongPage && (
         <iframe
           key={currentSong.id}
           src={`https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0`}
