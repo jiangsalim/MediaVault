@@ -7,10 +7,10 @@ export function MiniPlayer() {
   const { currentSong, isPlaying, pause, resume, stop } = useSong();
   const pathname = usePathname();
 
-  if (!currentSong || pathname.startsWith("/song/")) return null;
+  if (!currentSong) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-navy-dark border-t border-gray-light dark:border-navy-light shadow-lg">
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] bg-white dark:bg-navy-dark border-t border-gray-light dark:border-navy-light shadow-lg">
       <div className="container-site flex items-center gap-3 py-2">
         <img
           src={`https://i.ytimg.com/vi/${currentSong.id}/default.jpg`}
