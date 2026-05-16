@@ -4,7 +4,7 @@ import { useSong } from "@/lib/song-context";
 import { usePathname } from "next/navigation";
 
 export function MiniPlayer() {
-  const { currentSong, isPlaying, togglePlay, stop } = useSong();
+  const { currentSong, isPlaying, pause, resume, stop } = useSong();
   const pathname = usePathname();
 
   if (!currentSong || pathname.startsWith("/song/")) return null;
