@@ -22,7 +22,7 @@ export function MiniPlayer() {
           <div className="text-xs text-gray-medium truncate">{currentSong.artist}</div>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-light dark:hover:bg-navy transition-colors">
+          <button onClick={() => isPlaying ? pause() : resume()} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-light dark:hover:bg-navy transition-colors">
             {isPlaying ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
             ) : (
