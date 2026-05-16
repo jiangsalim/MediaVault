@@ -1,5 +1,4 @@
 "use client";
-import { VideoCard } from "@/components/shared/VideoCard";
 
 import { Suspense, useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
@@ -142,10 +141,18 @@ function SearchContent() {
           {loading ? <div className="space-y-4">{Array.from({length:8}).map((_,i)=><div key={i} className="flex gap-4 animate-pulse"><div className="h-36 w-64 rounded-xl bg-gray-light flex-shrink-0" /><div className="flex-1 space-y-2"><div className="h-5 w-3/4 rounded bg-gray-light" /><div className="h-3 w-1/3 rounded bg-gray-light" /></div></div>)}</div> :
            results.length===0 ? <p className="text-center text-charcoal dark:text-gray-light py-10">No results found.</p> :
            <div className="space-y-0 divide-y divide-gray-light dark:divide-navy-light">
-            <div className="grid gap-4 sm:grid-cols-2">
             {results.map((song:any)=>(
-              <VideoCard key={song.id} id={song.id} title={song.title} artist={song.artist} views={song.views || 0} duration={song.duration || 0} publishedAt={song.publishedAt} />
-            ))}
+              <a key={song.id} href={`/song/${song.id}`} className="flex gap-4 py-4 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
+                <div className="relative flex-shrink-0 w-40 md:w-56 aspect-video rounded-xl overflow-hidden bg-navy">
+                  <img src={thumb(song.id)} alt="" className="w-full h-full object-cover" onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
+                  {song.duration>0&&<span className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1.5 py-0.5 rounded">{Math.floor(song.duration/60)+':'+String(Math.floor(song.duration%60)).padStart(2,'0')}</span>}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-navy dark:text-white line-clamp-2 mb-1 group-hover:text-teal transition-colors">{song.title}</h3>
+                  <p className="text-xs text-gray-medium mb-1">{fmt(song.views)}{song.views?' views':''}{song.publishedAt&&<> • {timeAgo(song.publishedAt)}</>}</p>
+                  <p className="text-xs text-gray-medium">{song.artist}</p>
+                </div>
+              </a>
             ))}
             {nextPageToken&&<div ref={loaderRef} className="py-6 text-center">{loadingMore?<span className="text-sm text-gray-medium animate-pulse">Loading more...</span>:<span className="text-sm text-gray-medium">Scroll for more</span>}</div>}
           </div>}
