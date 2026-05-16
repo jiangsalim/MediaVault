@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { SongProvider } from "@/lib/song-context";
+import { MiniPlayer } from "@/components/layout/MiniPlayer";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
