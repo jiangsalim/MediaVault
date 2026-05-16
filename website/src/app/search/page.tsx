@@ -58,6 +58,8 @@ function SearchContent() {
       setShowSuggestions(false);
       setSuggestions([]);
       initialLoadDone.current = true;
+      setShowSuggestions(false);
+      setSuggestions([]);
       setLoading(true);
       saveToHistory(query);
       searchMusic(query).then(res => { setResults(res.data?.videos || []); setNextPageToken(res.data?.nextPageToken || ""); setLoading(false); }).catch(() => setLoading(false));
