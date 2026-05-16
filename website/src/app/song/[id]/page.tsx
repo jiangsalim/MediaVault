@@ -10,10 +10,22 @@ import { getSongDetails } from "@/lib/api";
 export default function SongPage() {
   const { id } = useParams<{ id: string }>();
   const [song, setSong] = useState<any>(null);
-  const { play } = useSong();
+  const { play, setTime } = useSong();
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    // Save playback position before leaving
+    return () => {
+      try {
+        const iframe = document.querySelector('iframe[src*="youtube.com/embed"]') as HTMLIFrameElement;
+        if (iframe?.contentWindow) {
+          iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*');
+        }
+      } catch {}
+    };
+  }, []);
 
   useEffect(() => {
     if (id) {
