@@ -1,7 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { createContext, useContext, useState, useRef, useEffect } from "react";
 
 interface Song {
   id: string;
@@ -13,8 +12,7 @@ interface SongContextType {
   currentSong: Song | null;
   isPlaying: boolean;
   play: (song: Song) => void;
-  pause: () => void;
-  resume: () => void;
+  togglePlay: () => void;
   stop: () => void;
 }
 
@@ -22,43 +20,80 @@ const SongContext = createContext<SongContextType>({
   currentSong: null,
   isPlaying: false,
   play: () => {},
-  pause: () => {},
-  resume: () => {},
+  togglePlay: () => {},
   stop: () => {},
 });
 
 export function SongProvider({ children }: { children: React.ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const pathname = usePathname();
-  const isOnSongPage = pathname.startsWith("/song/");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const play = (song: Song) => {
+  useEffect(() => {
+    // Create a single global audio element
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.addEventListener("ended", () => setIsPlaying(false));
+      audioRef.current.addEventListener("pause", () => setIsPlaying(false));
+      audioRef.current.addEventListener("play", () => setIsPlaying(true));
+    }
+  }, []);
+
+  const play = async (song: Song) => {
     setCurrentSong(song);
+
+    if (!audioRef.current) return;
+
+    // Fetch audio stream URL from Invidious
+    try {
+      const instances = ["https://inv.nadeko.net", "https://yewtu.be", "https://iv.ggtyler.dev"];
+      for (const instance of instances) {
+        try {
+          const res = await fetch(`${instance}/api/v1/videos/${song.id}`);
+          const data = await res.json();
+          const adaptiveFormats = data.adaptiveFormats || [];
+          const formatFiles = data.formatStreams || [];
+          
+          // Find audio-only format
+          const audioFormat = [...adaptiveFormats, ...formatFiles].find(
+            (f: any) => f.type?.startsWith("audio/") || f.audioQuality || f.bitrate
+          );
+          
+          if (audioFormat?.url) {
+            audioRef.current.src = audioFormat.url;
+            audioRef.current.play();
+            setIsPlaying(true);
+            return;
+          }
+        } catch {}
+      }
+    } catch {}
+
+    // Fallback: try YouTube oEmbed (won't give audio stream but marks song as playing)
     setIsPlaying(true);
   };
 
-  const pause = () => setIsPlaying(false);
-  const resume = () => setIsPlaying(true);
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (audioRef.current.paused) {
+      audioRef.current.play();
+    } else {
+      audioRef.current.pause();
+    }
+  };
+
   const stop = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = "";
+    }
     setCurrentSong(null);
     setIsPlaying(false);
   };
 
   return (
-    <SongContext.Provider value={{ currentSong, isPlaying, play, pause, resume, stop }}>
+    <SongContext.Provider value={{ currentSong, isPlaying, play, togglePlay, stop }}>
       {children}
-      {/* Hidden iframe kept alive across pages for background play */}
-      {currentSong && !isOnSongPage && (
-        <div style={{ position: "fixed", top: -9999, left: -9999, width: 1, height: 1, opacity: 0, pointerEvents: "none" }}>
-          <iframe
-            ref={iframeRef}
-            src={`https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0&modestbranding=1`}
-            allow="autoplay"
-          />
-        </div>
-      )}
     </SongContext.Provider>
   );
 }
