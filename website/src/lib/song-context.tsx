@@ -44,7 +44,7 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
       {children}
       {currentSong && !isOnSongPage && (
         <iframe
-          key={currentSong.id + "-" + Math.floor(currentTime)}
+          key={currentSong.id}
           src={`https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0&start=${Math.floor(currentTime)}`}
           allow="autoplay"
           style={{ position: "fixed", bottom: 0, right: 0, width: "1px", height: "1px", border: "none", zIndex: -1 }}
