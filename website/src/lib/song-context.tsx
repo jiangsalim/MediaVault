@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 interface Song {
   id: string;
@@ -30,6 +31,8 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const pathname = usePathname();
+  const isOnSongPage = pathname.startsWith("/song/");
 
   const play = (song: Song) => {
     setCurrentSong(song);
@@ -47,7 +50,7 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
     <SongContext.Provider value={{ currentSong, isPlaying, play, pause, resume, stop }}>
       {children}
       {/* Hidden iframe kept alive across pages for background play */}
-      {currentSong && (
+      {currentSong && !isOnSongPage && (
         <div style={{ position: "fixed", top: -9999, left: -9999, width: 1, height: 1, opacity: 0, pointerEvents: "none" }}>
           <iframe
             ref={iframeRef}
