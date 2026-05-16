@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSong } from "@/lib/song-context";
 import { useParams } from "next/navigation";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/shared/Button";
@@ -9,6 +10,7 @@ import { getSongDetails } from "@/lib/api";
 export default function SongPage() {
   const { id } = useParams<{ id: string }>();
   const [song, setSong] = useState<any>(null);
+  const { play } = useSong();
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -18,6 +20,7 @@ export default function SongPage() {
       getSongDetails(id).then(res => {
         setSong(res.data);
         setLoading(false);
+        if (res.data?.title) play({ id, title: res.data.title, artist: res.data.artist });
       }).catch(() => setLoading(false));
     }
   }, [id]);

@@ -22,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-NPHMPBV309');` }} />
       </head>
       <body className="flex min-h-screen flex-col bg-white text-charcoal dark:bg-navy-dark dark:text-gray-light transition-colors">
+        <SongProvider>
         {children}
+                      <MiniPlayer />
+        </SongProvider>
       </body>
     </html>
   );
