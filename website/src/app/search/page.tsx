@@ -146,7 +146,6 @@ function SearchContent() {
             {results.map((song:any)=>(
               <VideoCard key={song.id} id={song.id} title={song.title} artist={song.artist} views={song.views || 0} duration={song.duration || 0} publishedAt={song.publishedAt} />
             ))}
-            </div>
             ))}
             {nextPageToken&&<div ref={loaderRef} className="py-6 text-center">{loadingMore?<span className="text-sm text-gray-medium animate-pulse">Loading more...</span>:<span className="text-sm text-gray-medium">Scroll for more</span>}</div>}
           </div>}
