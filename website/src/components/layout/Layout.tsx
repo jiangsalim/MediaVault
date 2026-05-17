@@ -12,6 +12,7 @@ const NAV = [
   { label: "Home", href: "/" },
   { label: "Search", href: "/search" },
   { label: "About", href: "/about" },
+  { label: "TikTok", href: "/tiktok" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
