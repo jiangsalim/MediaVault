@@ -21,7 +21,7 @@ export interface TikTokVideo {
 // ── Trending Feed ──
 export async function getTrendingFeed(): Promise<TikTokVideo[]> {
   try {
-    const res = await fetch(`${TIKTOK_API}/feed/list?region=US&count=20`);
+    const res = await fetch(`${TIKTOK_API}/feed/list?region=US&count=50`);
     const data = await res.json();
     if (data.code === 0 && data.data) {
       return data.data.map(formatVideo);
@@ -33,7 +33,7 @@ export async function getTrendingFeed(): Promise<TikTokVideo[]> {
 // ── Search ──
 export async function searchTikTok(query: string): Promise<TikTokVideo[]> {
   try {
-    const res = await fetch(`${TIKTOK_API}/video/search?q=${encodeURIComponent(query)}&count=20`);
+    const res = await fetch(`${TIKTOK_API}/video/search?q=${encodeURIComponent(query)}&count=50`);
     const data = await res.json();
     if (data.code === 0 && data.data) {
       return (data.data.videos || data.data || []).map(formatVideo);

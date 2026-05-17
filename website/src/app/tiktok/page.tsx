@@ -38,6 +38,12 @@ export default function TikTokPage() {
   // Scroll to change video
   const handleWheel = useCallback((e: React.WheelEvent) => {
     if (e.deltaY > 50 && current < videos.length - 1) {
+        // Load more when near the end
+        if (current >= videos.length - 5) {
+          getTrendingFeed().then(data => {
+            setVideos(prev => [...prev, ...data]);
+          });
+        }
       setCurrent(c => c + 1);
     } else if (e.deltaY < -50 && current > 0) {
       setCurrent(c => c - 1);
@@ -51,7 +57,15 @@ export default function TikTokPage() {
   };
   const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStart.current - e.changedTouches[0].clientY;
-    if (diff > 50 && current < videos.length - 1) setCurrent(c => c + 1);
+    if (diff > 50 && current < videos.length - 1) {
+        setCurrent(c => c + 1);
+        // Load more when near the end
+        if (current >= videos.length - 5) {
+          getTrendingFeed().then(data => {
+            setVideos(prev => [...prev, ...data]);
+          });
+        }
+      }
     if (diff < -50 && current > 0) setCurrent(c => c - 1);
   };
 
@@ -77,7 +91,7 @@ export default function TikTokPage() {
               type="text"
               value={searchInput}
               onChange={e => setSearchInput(e.target.value)}
-              placeholder="Search TikTok..."
+              placeholder="🔍 Search TikTok..."
               className="flex-1 rounded-full bg-white/20 text-white placeholder-white/60 px-4 py-2 text-sm border border-white/30 focus:outline-none"
             />
             <button type="submit" className="rounded-full bg-teal px-4 py-2 text-sm font-semibold text-white">Search</button>
