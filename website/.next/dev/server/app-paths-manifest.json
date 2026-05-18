@@ -1,3 +1,4 @@
 {
+  "/page": "app/page.js",
   "/tiktok/page": "app/tiktok/page.js"
 }

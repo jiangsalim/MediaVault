@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query # type: ignore
 from services.extractor import search_music, get_trending, get_channel_details, get_video_details
 
 router = APIRouter()
@@ -22,7 +22,7 @@ async def search_next(q: str = Query(...), page_token: str = Query(...), limit: 
 @router.get("/song/{video_id}")
 async def song_detail(video_id: str):
     """oEmbed for basic info + API for stats"""
-    import httpx
+    import httpx  # type: ignore
 
     snippet = {"title": "", "artist": "", "channelId": "", "description": "", "thumbnail": "", "publishedAt": ""}
     video_data = {"duration": 0, "views": 0, "likes": 0}
@@ -123,7 +123,7 @@ async def trending(region: str = Query("UG")):
 async def suggest(q: str = Query(...)):
     import json
     try:
-        import httpx as hx
+        import httpx as hx  # type: ignore
         async with hx.AsyncClient() as client:
             resp = await client.get("https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=" + q, timeout=10)
             text = resp.text
@@ -149,7 +149,7 @@ async def stream_video(video_id: str):
     try:
         ydl_opts = {'quiet': True, 'no_warnings': True, 'format': 'best[height<=720]', 'get-url': True}
         def run():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:  # type: ignore
                 return ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
         loop = asyncio.get_event_loop()
         info = await loop.run_in_executor(None, run)
@@ -159,15 +159,42 @@ async def stream_video(video_id: str):
     
 @router.get("/tiktok/search")
 async def tiktok_search(q: str = Query(...), count: int = Query(50)):
-    """Proxy TikTok search through Render to bypass CORS"""
-    import httpx
+    """Search TikTok videos using multiple fallback APIs"""
+    import httpx  
+    
+    # Try tikwm first
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 f"https://www.tikwm.com/api/video/search?q={q}&count={count}",
-                timeout=15
+                timeout=15,
+                headers={"User-Agent": "Mozilla/5.0"}
             )
-            data = resp.json()
-            return {"success": True, "data": data}
-    except Exception as e:
-        return {"success": False, "error": str(e), "data": []}
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get("data"):
+                    return {"success": True, "data": data}
+    except: pass
+    
+    # Fallback: use trending feed and filter
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://www.tikwm.com/api/feed/list?region=US&count=100",
+                timeout=15,
+                headers={"User-Agent": "Mozilla/5.0"}
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get("data"):
+                    # Filter by search term
+                    term = q.lower()
+                    filtered = [
+                        v for v in data["data"]
+                        if term in (v.get("title", "") or "").lower()
+                        or term in (v.get("author", {}).get("nickname", "") or "").lower()
+                    ]
+                    return {"success": True, "data": {"videos": filtered[:count]}}
+    except: pass
+    
+    return {"success": False, "error": "All APIs failed", "data": []}
