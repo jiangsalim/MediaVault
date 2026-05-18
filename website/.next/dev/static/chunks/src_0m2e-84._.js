@@ -740,10 +740,11 @@ async function getTrendingFeed(count = 50) {
 }
 async function searchTikTok(query, count = 50) {
     try {
-        const res = await fetch(`${TIKTOK_API}/video/search?q=${encodeURIComponent(query)}&count=${count}`);
-        const data = await res.json();
-        if (data.code === 0 && data.data) {
-            return (data.data.videos || data.data || []).map(formatVideo);
+        // Route through Render to bypass CORS
+        const res = await fetch(`https://mediavault-website-api.onrender.com/api/tiktok/search?q=${encodeURIComponent(query)}&count=${count}`);
+        const result = await res.json();
+        if (result.success && result.data?.data?.videos) {
+            return result.data.data.videos.map(formatVideo);
         }
     } catch  {}
     return [];
@@ -804,7 +805,6 @@ function TikTokPage() {
     const [videos, setVideos] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
     const [current, setCurrent] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
-    const [showSearch, setShowSearch] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [searchInput, setSearchInput] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("");
     const touchStartY = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(0);
     const loadMore = async ()=>{
@@ -818,7 +818,6 @@ function TikTokPage() {
             ];
         });
     };
-    // Auto-load when near the end
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
         "TikTokPage.useEffect": ()=>{
             if (current >= videos.length - 3 && videos.length > 0) {
@@ -832,12 +831,8 @@ function TikTokPage() {
         "TikTokPage.useEffect": ()=>{
             (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$tiktok$2d$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["getTrendingFeed"])(50).then({
                 "TikTokPage.useEffect": (data)=>{
-                    if (data.length > 0) {
-                        setVideos(data);
-                    } else {
-                        // Fallback: use YouTube shorts as demo
-                        setVideos([]);
-                    }
+                    if (data.length > 0) setVideos(data);
+                    else setVideos([]);
                     setLoading(false);
                 }
             }["TikTokPage.useEffect"]);
@@ -846,7 +841,6 @@ function TikTokPage() {
     const handleSearch = async (e)=>{
         e.preventDefault();
         if (!searchInput.trim()) return;
-        setShowSearch(false);
         setLoading(true);
         const data = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$tiktok$2d$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["searchTikTok"])(searchInput.trim(), 50);
         setVideos(data);
@@ -854,9 +848,7 @@ function TikTokPage() {
         setLoading(false);
     };
     const goNext = ()=>{
-        if (current < videos.length - 1) {
-            setCurrent((c)=>c + 1);
-        }
+        if (current < videos.length - 1) setCurrent((c)=>c + 1);
     };
     const goPrev = ()=>{
         if (current > 0) setCurrent((c)=>c - 1);
@@ -877,17 +869,17 @@ function TikTokPage() {
                     className: "animate-spin h-10 w-10 border-4 border-teal border-t-transparent rounded-full"
                 }, void 0, false, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 84,
+                    lineNumber: 76,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/tiktok/page.tsx",
-                lineNumber: 83,
+                lineNumber: 75,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/tiktok/page.tsx",
-            lineNumber: 82,
+            lineNumber: 74,
             columnNumber: 7
         }, this);
     }
@@ -903,7 +895,7 @@ function TikTokPage() {
                             children: "🎵"
                         }, void 0, false, {
                             fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 95,
+                            lineNumber: 87,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -911,7 +903,7 @@ function TikTokPage() {
                             children: "TikTok API unavailable"
                         }, void 0, false, {
                             fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 96,
+                            lineNumber: 88,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -919,23 +911,23 @@ function TikTokPage() {
                             children: "Try again later"
                         }, void 0, false, {
                             fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 97,
+                            lineNumber: 89,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 94,
+                    lineNumber: 86,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/tiktok/page.tsx",
-                lineNumber: 93,
+                lineNumber: 85,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/src/app/tiktok/page.tsx",
-            lineNumber: 92,
+            lineNumber: 84,
             columnNumber: 7
         }, this);
     }
@@ -948,140 +940,75 @@ function TikTokPage() {
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                     className: "absolute top-0 left-0 right-0 z-50 pt-4 pb-2 bg-gradient-to-b from-black/60 to-transparent",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                            className: "flex justify-center gap-8",
-                            children: [
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                    className: "text-sm font-semibold text-white/60 pb-1",
-                                    children: "Following"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/tiktok/page.tsx",
-                                    lineNumber: 113,
-                                    columnNumber: 13
-                                }, this),
-                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                    className: "text-sm font-semibold text-white border-b-2 border-teal pb-1",
-                                    children: "For You"
-                                }, void 0, false, {
-                                    fileName: "[project]/src/app/tiktok/page.tsx",
-                                    lineNumber: 114,
-                                    columnNumber: 13
-                                }, this)
-                            ]
-                        }, void 0, true, {
-                            fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 112,
-                            columnNumber: 11
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            onClick: ()=>setShowSearch(true),
-                            className: "absolute right-4 top-4 text-white",
-                            "aria-label": "Search",
-                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
-                                width: "24",
-                                height: "24",
-                                viewBox: "0 0 24 24",
-                                fill: "none",
-                                stroke: "white",
-                                strokeWidth: "2",
-                                strokeLinecap: "round",
-                                strokeLinejoin: "round",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("circle", {
-                                        cx: "11",
-                                        cy: "11",
-                                        r: "8"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/tiktok/page.tsx",
-                                        lineNumber: 124,
-                                        columnNumber: 15
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
-                                        x1: "21",
-                                        y1: "21",
-                                        x2: "16.65",
-                                        y2: "16.65"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/tiktok/page.tsx",
-                                        lineNumber: 124,
-                                        columnNumber: 46
-                                    }, this)
-                                ]
-                            }, void 0, true, {
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex justify-center gap-8",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "text-sm font-semibold text-white/60 pb-1",
+                                children: "Following"
+                            }, void 0, false, {
                                 fileName: "[project]/src/app/tiktok/page.tsx",
-                                lineNumber: 123,
+                                lineNumber: 105,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                className: "text-sm font-semibold text-white border-b-2 border-teal pb-1",
+                                children: "For You"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/tiktok/page.tsx",
+                                lineNumber: 106,
                                 columnNumber: 13
                             }, this)
-                        }, void 0, false, {
-                            fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 118,
-                            columnNumber: 11
-                        }, this)
-                    ]
-                }, void 0, true, {
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/tiktok/page.tsx",
+                        lineNumber: 104,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/src/app/tiktok/page.tsx",
+                    lineNumber: 103,
+                    columnNumber: 9
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "absolute top-14 left-0 right-0 z-50 px-4",
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
+                        onSubmit: handleSearch,
+                        className: "flex gap-2 max-w-md mx-auto",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
+                                type: "text",
+                                value: searchInput,
+                                onChange: (e)=>setSearchInput(e.target.value),
+                                placeholder: "Search TikTok...",
+                                className: "flex-1 rounded-full bg-white/10 text-white placeholder-white/40 px-4 py-2 text-sm border border-white/20 focus:outline-none focus:border-teal"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/tiktok/page.tsx",
+                                lineNumber: 113,
+                                columnNumber: 13
+                            }, this),
+                            searchInput && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
+                                type: "submit",
+                                className: "rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white",
+                                children: "Search"
+                            }, void 0, false, {
+                                fileName: "[project]/src/app/tiktok/page.tsx",
+                                lineNumber: 121,
+                                columnNumber: 15
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/src/app/tiktok/page.tsx",
+                        lineNumber: 112,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
                     lineNumber: 111,
                     columnNumber: 9
                 }, this),
-                showSearch && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "absolute inset-0 z-[70] bg-black/95 flex flex-col items-center justify-center p-6",
-                    children: [
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
-                            onSubmit: handleSearch,
-                            className: "w-full max-w-md",
-                            children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                className: "flex gap-3 mb-4",
-                                children: [
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
-                                        type: "text",
-                                        value: searchInput,
-                                        onChange: (e)=>setSearchInput(e.target.value),
-                                        placeholder: "Search TikTok",
-                                        className: "flex-1 rounded-full bg-white/20 text-white placeholder-white/50 px-5 py-3 text-base border border-white/30 focus:outline-none focus:border-teal",
-                                        autoFocus: true
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/tiktok/page.tsx",
-                                        lineNumber: 134,
-                                        columnNumber: 17
-                                    }, this),
-                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                                        type: "submit",
-                                        className: "rounded-full bg-teal px-6 py-3 text-white font-semibold text-sm",
-                                        children: "Search"
-                                    }, void 0, false, {
-                                        fileName: "[project]/src/app/tiktok/page.tsx",
-                                        lineNumber: 142,
-                                        columnNumber: 17
-                                    }, this)
-                                ]
-                            }, void 0, true, {
-                                fileName: "[project]/src/app/tiktok/page.tsx",
-                                lineNumber: 133,
-                                columnNumber: 15
-                            }, this)
-                        }, void 0, false, {
-                            fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 132,
-                            columnNumber: 13
-                        }, this),
-                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-                            onClick: ()=>setShowSearch(false),
-                            className: "text-white/60 text-sm",
-                            children: "Cancel"
-                        }, void 0, false, {
-                            fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 145,
-                            columnNumber: 13
-                        }, this)
-                    ]
-                }, void 0, true, {
-                    fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 131,
-                    columnNumber: 11
-                }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "absolute top-16 left-0 right-0 text-center z-50",
+                    className: "absolute top-24 left-0 right-0 text-center z-50",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                         className: "text-white/50 text-xs",
                         children: [
@@ -1091,16 +1018,16 @@ function TikTokPage() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/tiktok/page.tsx",
-                        lineNumber: 151,
+                        lineNumber: 128,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 150,
+                    lineNumber: 127,
                     columnNumber: 9
                 }, this),
                 video && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "h-full w-full flex items-center justify-center",
+                    className: "h-full w-full flex items-center justify-center pt-20 pb-16",
                     children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("iframe", {
                         src: `https://www.tiktok.com/embed/v2/${video.id}`,
                         className: "w-full h-full max-w-[400px]",
@@ -1111,32 +1038,68 @@ function TikTokPage() {
                         }
                     }, void 0, false, {
                         fileName: "[project]/src/app/tiktok/page.tsx",
-                        lineNumber: 158,
+                        lineNumber: 134,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 157,
+                    lineNumber: 133,
                     columnNumber: 11
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                     onClick: goPrev,
                     disabled: current === 0,
                     className: "absolute left-2 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white disabled:opacity-30",
-                    children: "▲"
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                        width: "24",
+                        height: "24",
+                        viewBox: "0 0 24 24",
+                        fill: "none",
+                        stroke: "white",
+                        strokeWidth: "2",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
+                            points: "18 15 12 9 6 15"
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/tiktok/page.tsx",
+                            lineNumber: 147,
+                            columnNumber: 102
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/tiktok/page.tsx",
+                        lineNumber: 147,
+                        columnNumber: 11
+                    }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 169,
+                    lineNumber: 145,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                     onClick: goNext,
                     disabled: current >= videos.length - 1,
                     className: "absolute right-2 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white disabled:opacity-30",
-                    children: "▼"
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                        width: "24",
+                        height: "24",
+                        viewBox: "0 0 24 24",
+                        fill: "none",
+                        stroke: "white",
+                        strokeWidth: "2",
+                        children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
+                            points: "6 9 12 15 18 9"
+                        }, void 0, false, {
+                            fileName: "[project]/src/app/tiktok/page.tsx",
+                            lineNumber: 151,
+                            columnNumber: 102
+                        }, this)
+                    }, void 0, false, {
+                        fileName: "[project]/src/app/tiktok/page.tsx",
+                        lineNumber: 151,
+                        columnNumber: 11
+                    }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 176,
+                    lineNumber: 149,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1147,7 +1110,7 @@ function TikTokPage() {
                             children: video?.title || "TikTok Video"
                         }, void 0, false, {
                             fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 186,
+                            lineNumber: 156,
                             columnNumber: 11
                         }, this),
                         video?.author && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1158,13 +1121,13 @@ function TikTokPage() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/src/app/tiktok/page.tsx",
-                            lineNumber: 188,
-                            columnNumber: 13
+                            lineNumber: 157,
+                            columnNumber: 29
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 185,
+                    lineNumber: 155,
                     columnNumber: 9
                 }, this),
                 video?.downloadUrl && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -1172,25 +1135,66 @@ function TikTokPage() {
                     target: "_blank",
                     rel: "noopener noreferrer",
                     className: "absolute bottom-6 right-4 z-50 rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white",
-                    children: "⬇ Download"
-                }, void 0, false, {
+                    children: [
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                            width: "14",
+                            height: "14",
+                            viewBox: "0 0 24 24",
+                            fill: "none",
+                            stroke: "white",
+                            strokeWidth: "2",
+                            className: "inline mr-1",
+                            children: [
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("path", {
+                                    d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/tiktok/page.tsx",
+                                    lineNumber: 164,
+                                    columnNumber: 128
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("polyline", {
+                                    points: "7 10 12 15 17 10"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/tiktok/page.tsx",
+                                    lineNumber: 164,
+                                    columnNumber: 181
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                    x1: "12",
+                                    y1: "15",
+                                    x2: "12",
+                                    y2: "3"
+                                }, void 0, false, {
+                                    fileName: "[project]/src/app/tiktok/page.tsx",
+                                    lineNumber: 164,
+                                    columnNumber: 218
+                                }, this)
+                            ]
+                        }, void 0, true, {
+                            fileName: "[project]/src/app/tiktok/page.tsx",
+                            lineNumber: 164,
+                            columnNumber: 13
+                        }, this),
+                        "Download"
+                    ]
+                }, void 0, true, {
                     fileName: "[project]/src/app/tiktok/page.tsx",
-                    lineNumber: 194,
+                    lineNumber: 162,
                     columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/src/app/tiktok/page.tsx",
-            lineNumber: 108,
+            lineNumber: 100,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/src/app/tiktok/page.tsx",
-        lineNumber: 107,
+        lineNumber: 99,
         columnNumber: 5
     }, this);
 }
-_s(TikTokPage, "r4y5M3l69I3FRTPLKGxrpfUMtZY=");
+_s(TikTokPage, "VvbDX5BdwLRc33izLDK2UMjUvFk=");
 _c = TikTokPage;
 var _c;
 __turbopack_context__.k.register(_c, "TikTokPage");

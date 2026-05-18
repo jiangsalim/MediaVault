@@ -17,10 +17,11 @@ export async function getTrendingFeed(count = 50): Promise<TikTokVideo[]> {
 
 export async function searchTikTok(query: string, count = 50): Promise<TikTokVideo[]> {
   try {
-    const res = await fetch(`${TIKTOK_API}/video/search?q=${encodeURIComponent(query)}&count=${count}`);
-    const data = await res.json();
-    if (data.code === 0 && data.data) {
-      return (data.data.videos || data.data || []).map(formatVideo);
+    // Route through Render to bypass CORS
+    const res = await fetch(`https://mediavault-website-api.onrender.com/api/tiktok/search?q=${encodeURIComponent(query)}&count=${count}`);
+    const result = await res.json();
+    if (result.success && result.data?.data?.videos) {
+      return result.data.data.videos.map(formatVideo);
     }
   } catch {}
   return [];

@@ -156,3 +156,18 @@ async def stream_video(video_id: str):
         return {"success": True, "streamUrl": info.get("url", ""), "title": info.get("title", "")}
     except Exception as e:
         return {"success": False, "error": str(e)}
+    
+@router.get("/tiktok/search")
+async def tiktok_search(q: str = Query(...), count: int = Query(50)):
+    """Proxy TikTok search through Render to bypass CORS"""
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://www.tikwm.com/api/video/search?q={q}&count={count}",
+                timeout=15
+            )
+            data = resp.json()
+            return {"success": True, "data": data}
+    except Exception as e:
+        return {"success": False, "error": str(e), "data": []}
