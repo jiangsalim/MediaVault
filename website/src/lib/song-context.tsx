@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 
 interface Song {
@@ -25,10 +25,6 @@ const SongContext = createContext<SongContextType>({
   play: () => {}, pause: () => {}, resume: () => {}, stop: () => {}, setTime: () => {},
 });
 
-// Store player references globally so they survive re-renders
-let playerInstance: any = null;
-let playerReady = false;
-
 export function SongProvider({ children }: { children: React.ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -39,35 +35,53 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
   // Restore from localStorage on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("mv_current_song");
-      if (saved) {
-        const song = JSON.parse(saved);
-        setCurrentSong(song);
-        setIsPlaying(true);
+      const savedSong = localStorage.getItem("mv_current_song");
+      const savedTime = localStorage.getItem("mv_current_time");
+      if (savedSong) {
+        setCurrentSong(JSON.parse(savedSong));
+        if (savedTime) setCurrentTime(parseInt(savedTime) || 0);
+        const playing = localStorage.getItem("mv_is_playing") === "true";
+        setIsPlaying(playing);
       }
     } catch {}
   }, []);
 
-  // YouTube API ready callback
+  // Poll time from iframe
   useEffect(() => {
-    if (currentSong && !pathname.startsWith("/song/")) {
-      // Load YouTube IFrame API
-      if (!(window as any).onYouTubeIframeAPIReady) {
-        const tag = document.createElement("script");
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName("script")[0];
-        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-        (window as any).onYouTubeIframeAPIReady = () => {
-          playerReady = true;
-        };
+    if (!isPlaying || !currentSong || pathname.startsWith("/song/")) return;
+    
+    const interval = setInterval(() => {
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          JSON.stringify({ event: "command", func: "getCurrentTime", args: "" }),
+          "*"
+        );
       }
-    }
-  }, [currentSong, pathname]);
+    }, 2000);
 
-  const postMessage = (command: string) => {
+    const handleMessage = (e: MessageEvent) => {
+      try {
+        const data = JSON.parse(e.data);
+        if (data.info?.currentTime !== undefined) {
+          const t = Math.floor(data.info.currentTime);
+          setCurrentTime(t);
+          localStorage.setItem("mv_current_time", t.toString());
+        }
+      } catch {}
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [isPlaying, currentSong?.id, pathname]);
+
+  // Simple postMessage
+  const postMsg = (cmd: string, args: any = "") => {
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: "command", func: command, args: "" }),
+        JSON.stringify({ event: "command", func: cmd, args: args }),
         "*"
       );
     }
@@ -76,20 +90,22 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
   const play = (song: Song) => {
     setCurrentSong(song);
     setIsPlaying(true);
+    setCurrentTime(0);
     localStorage.setItem("mv_current_song", JSON.stringify(song));
+    localStorage.setItem("mv_current_time", "0");
     localStorage.setItem("mv_is_playing", "true");
   };
 
   const pause = () => {
     setIsPlaying(false);
     localStorage.setItem("mv_is_playing", "false");
-    postMessage("pauseVideo");
+    postMsg("pauseVideo");
   };
 
   const resume = () => {
     setIsPlaying(true);
     localStorage.setItem("mv_is_playing", "true");
-    postMessage("playVideo");
+    postMsg("playVideo");
   };
 
   const stop = () => {
@@ -97,8 +113,8 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
     setIsPlaying(false);
     setCurrentTime(0);
     localStorage.removeItem("mv_current_song");
+    localStorage.removeItem("mv_current_time");
     localStorage.removeItem("mv_is_playing");
-    postMessage("stopVideo");
   };
 
   const setTime = (time: number) => setCurrentTime(time);
@@ -111,8 +127,7 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
       {currentSong && !isOnSongPage && (
         <iframe
           ref={iframeRef}
-          key={currentSong.id}
-          src={`https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0&enablejsapi=1&start=${Math.floor(currentTime)}`}
+          src={`https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0&enablejsapi=1`}
           allow="autoplay"
           style={{ position: "fixed", bottom: 0, right: 0, width: "1px", height: "1px", border: "none", zIndex: -1 }}
         />
