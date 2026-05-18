@@ -47,6 +47,13 @@ function SearchContent() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
+  // Auto-clear query when input is manually emptied
+  useEffect(() => {
+  if (searchInput.trim() === '' && query) {
+    window.location.href = '/search';
+  }
+}, [searchInput]);
+
   // Close suggestions on outside click
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -181,34 +188,34 @@ function SearchContent() {
           </div>
         </form>
         
-        {/* Suggestions Dropdown */}
-        {showSuggestions && suggestions.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-navy-dark rounded-xl border border-gray-light dark:border-navy-light shadow-2xl z-50 overflow-hidden">
-            {suggestions.map((s, i) => (
-              <button key={i} onClick={() => selectSuggestion(s)} className="flex items-center gap-3 w-full px-5 py-3 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
-        
-        {/* Search History (only when no query) */}
-        {!query && searchHistory.length > 0 && showSuggestions && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-navy-dark rounded-xl border border-gray-light dark:border-navy-light shadow-2xl z-50 overflow-hidden">
-            <div className="flex items-center justify-between px-5 py-2">
-              <span className="text-xs font-medium text-gray-medium">Recent Searches</span>
-              <button onClick={clearHistory} className="text-xs text-teal hover:underline">Clear</button>
-            </div>
-            {searchHistory.map((h, i) => (
-              <button key={i} onClick={() => selectSuggestion(h)} className="flex items-center gap-3 w-full px-5 py-2.5 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                {h}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+        {showSuggestions && !query && (
+  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-navy-dark rounded-xl border border-gray-light dark:border-navy-light shadow-2xl z-50 overflow-hidden">
+    {/* Suggestions first */}
+    {suggestions.length > 0 && suggestions.map((s, i) => (
+      <button key={i} onClick={() => selectSuggestion(s)} className="flex items-center gap-3 w-full px-5 py-3 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        {s}
+      </button>
+    ))}
+    {/* Recent searches below, with divider if suggestions also shown */}
+    {searchHistory.length > 0 && (
+      <>
+        {suggestions.length > 0 && <div className="border-t border-gray-light dark:border-navy-light"></div>}
+        <div className="flex items-center justify-between px-5 py-2">
+          <span className="text-xs font-medium text-gray-medium">Recent Searches</span>
+          <button onClick={clearHistory} className="text-xs text-teal hover:underline">Clear</button>
+        </div>
+        {searchHistory.map((h, i) => (
+          <button key={i} onClick={() => selectSuggestion(h)} className="flex items-center gap-3 w-full px-5 py-2.5 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            {h}
+          </button>
+        ))}
+      </>
+    )}
+  </div>
+)}
+       </div>  
 
       {query && (
         <>
