@@ -1,15 +1,9 @@
 {
   "app": {
-    "[project]/src/app/about/page": [
-      "static/media/0c89a48fa5027cee-s.p.0rd3rjvnnhw7n.woff2"
-    ],
     "[project]/src/app/page": [
       "static/media/0c89a48fa5027cee-s.p.0rd3rjvnnhw7n.woff2"
     ],
-    "[project]/src/app/search/page": [
-      "static/media/0c89a48fa5027cee-s.p.0rd3rjvnnhw7n.woff2"
-    ],
-    "[project]/src/app/song/[id]/page": [
+    "[project]/src/app/tiktok/page": [
       "static/media/0c89a48fa5027cee-s.p.0rd3rjvnnhw7n.woff2"
     ]
   },

@@ -1,6 +1,4 @@
 {
-  "/about/page": "app/about/page.js",
   "/page": "app/page.js",
-  "/search/page": "app/search/page.js",
-  "/song/[id]/page": "app/song/[id]/page.js"
+  "/tiktok/page": "app/tiktok/page.js"
 }

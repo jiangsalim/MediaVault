@@ -17,23 +17,35 @@ export default function TikTokPage() {
   const [loading, setLoading] = useState(true);
   const [showSearch, setShowSearch] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const [transitioning, setTransitioning] = useState(false);
   const touchStartY = useRef(0);
-  const touchStartTime = useRef(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
+
+ const loadMore = async () => {
+    const data = await getTrendingFeed(30);
+    setVideos(prev => {
+      const existingIds = new Set(prev.map(v => v.id));
+      const newVideos = data.filter(v => !existingIds.has(v.id));
+      return [...prev, ...newVideos];
+    });
+  };
+  
+    // Auto-load when near the end
+  useEffect(() => {
+    if (current >= videos.length - 3 && videos.length > 0) {
+      loadMore();
+    }
+  }, [current]);
 
   useEffect(() => {
     getTrendingFeed(50).then(data => {
-      setVideos(data);
+      if (data.length > 0) {
+        setVideos(data);
+      } else {
+        // Fallback: use YouTube shorts as demo
+        setVideos([]);
+      }
       setLoading(false);
     });
   }, []);
-
-  const loadMore = async () => {
-    const data = await getTrendingFeed(30);
-    setVideos(prev => [...prev, ...data]);
-  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,54 +58,30 @@ export default function TikTokPage() {
     setLoading(false);
   };
 
-  const goNext = () => {
-    if (current < videos.length - 1 && !transitioning) {
-      setTransitioning(true);
+    const goNext = () => {
+    if (current < videos.length - 1) {
       setCurrent(c => c + 1);
-      if (current >= videos.length - 5) loadMore();
-      setTimeout(() => setTransitioning(false), 400);
     }
   };
-
   const goPrev = () => {
-    if (current > 0 && !transitioning) {
-      setTransitioning(true);
-      setCurrent(c => c - 1);
-      setTimeout(() => setTransitioning(false), 400);
-    }
+    if (current > 0) setCurrent(c => c - 1);
   };
 
-  // Touch handlers for smooth swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartY.current = e.touches[0].clientY;
-    touchStartTime.current = Date.now();
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStartY.current - e.changedTouches[0].clientY;
-    const timeDiff = Date.now() - touchStartTime.current;
-    const velocity = Math.abs(diff) / timeDiff; // px per ms
-
-    // Fast swipe or significant distance triggers change
-    if ((velocity > 0.3 && Math.abs(diff) > 30) || Math.abs(diff) > 80) {
-      if (diff > 0) goNext();
-      else goPrev();
-    }
-  };
-
-  // Pause/play on tap
-  const handleVideoTap = () => {
-    const video = videoRefs.current.get(current);
-    if (!video) return;
-    if (video.paused) video.play();
-    else video.pause();
+    if (diff > 60) goNext();
+    if (diff < -60) goPrev();
   };
 
   if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-screen bg-black">
-          <div className="animate-spin h-10 w-10 border-4 border-white border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-10 w-10 border-4 border-teal border-t-transparent rounded-full"></div>
         </div>
       </Layout>
     );
@@ -105,26 +93,28 @@ export default function TikTokPage() {
         <div className="flex items-center justify-center min-h-screen bg-black text-white">
           <div className="text-center">
             <div className="text-5xl mb-4">🎵</div>
-            <p>No videos found</p>
+            <p className="mb-2">TikTok API unavailable</p>
+            <p className="text-sm text-white/60">Try again later</p>
           </div>
         </div>
       </Layout>
     );
   }
 
+  const video = videos[current];
+
   return (
     <Layout>
-      <div className="fixed inset-0 bg-black z-40 overflow-hidden" ref={containerRef}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}>
-
+      <div className="fixed inset-0 bg-black z-40" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        
         {/* Top Bar */}
         <div className="absolute top-0 left-0 right-0 z-50 pt-4 pb-2 bg-gradient-to-b from-black/60 to-transparent">
           <div className="flex justify-center gap-8">
             <button className="text-sm font-semibold text-white/60 pb-1">Following</button>
-            <button className="text-sm font-semibold text-white border-b-2 border-white pb-1">For You</button>
+            <button className="text-sm font-semibold text-white border-b-2 border-teal pb-1">For You</button>
           </div>
-          {/* Search Icon */}
+          
+          {/* Search Button */}
           <button
             onClick={() => setShowSearch(true)}
             className="absolute right-4 top-4 text-white"
@@ -156,89 +146,60 @@ export default function TikTokPage() {
           </div>
         )}
 
-        {/* Video Container with smooth transition */}
-        <div className="h-full w-full" onClick={handleVideoTap}>
-          {videos.map((video, index) => (
-            <div
-              key={video.id || index}
-              className={`absolute inset-0 transition-transform duration-400 ease-out ${
-                index === current ? 'translate-y-0 opacity-100' :
-                index < current ? '-translate-y-full opacity-0' : 'translate-y-full opacity-0'
-              }`}
-            >
-              <video
-                ref={el => { if (el) videoRefs.current.set(index, el); }}
-                src={video.playUrl}
-                poster={video.cover}
-                className="h-full w-full object-cover"
-                autoPlay={index === current}
-                loop
-                playsInline
-                muted={false}
-                preload={index >= current - 1 && index <= current + 1 ? "auto" : "none"}
-              />
-            </div>
-          ))}
-
-          {/* Pause Indicator Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center opacity-0" id="pause-indicator">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </div>
-          </div>
+        {/* Video Counter */}
+        <div className="absolute top-16 left-0 right-0 text-center z-50">
+          <span className="text-white/50 text-xs">{current + 1} / {videos.length}</span>
         </div>
 
-        {/* Right Side Actions */}
-        {videos[current] && (
-          <>
-            <div className="absolute right-3 bottom-32 z-50 flex flex-col items-center gap-5">
-              <div className="flex flex-col items-center gap-1">
-                <img src={videos[current].avatar} alt="" className="w-11 h-11 rounded-full border-2 border-white object-cover" />
-                <button className="w-6 h-6 rounded-full bg-teal flex items-center justify-center text-white text-xs font-bold shadow-lg">+</button>
-              </div>
-              <button className="flex flex-col items-center gap-0.5 text-white">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <span className="text-xs font-semibold">{formatNum(videos[current].likes)}</span>
-              </button>
-              <button className="flex flex-col items-center gap-0.5 text-white">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span className="text-xs font-semibold">{formatNum(videos[current].comments)}</span>
-              </button>
-              <button className="flex flex-col items-center gap-0.5 text-white">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                <span className="text-xs font-semibold">{formatNum(videos[current].shares)}</span>
-              </button>
-            </div>
 
-            {/* Bottom Info */}
-            <div className="absolute bottom-16 left-4 right-20 z-50">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-white font-semibold text-sm">@{videos[current].author}</span>
-                <button className="text-white text-xs border border-white/40 rounded-full px-3 py-0.5 hover:bg-white/10 transition">Follow</button>
-              </div>
-              <p className="text-white text-sm mb-2 line-clamp-2">{videos[current].title}</p>
-              <div className="flex items-center gap-1 text-white/80 text-xs">
-                <span>🎵</span>
-                <span className="truncate">Original Sound - {videos[current].author}</span>
-              </div>
-            </div>
-
-            {/* Download Button */}
-            <a
-              href={videos[current].downloadUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="absolute bottom-4 left-4 z-50 rounded-full bg-teal/90 px-4 py-2 text-xs font-semibold text-white hover:bg-teal transition"
-            >
-              ⬇ Download
-            </a>
-          </>
+        {/* TikTok Embed Player */}
+        {video && (
+          <div className="h-full w-full flex items-center justify-center">
+            <iframe
+              src={`https://www.tiktok.com/embed/v2/${video.id}`}
+              className="w-full h-full max-w-[400px]"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              style={{ border: "none" }}
+            />
+          </div>
         )}
 
-        {/* Progress Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/30 z-50">
-          <div className="h-full bg-white transition-all duration-300" style={{ width: `${((current + 1) / videos.length) * 100}%` }}></div>
+        {/* Navigation Arrows */}
+        <button
+          onClick={goPrev}
+          disabled={current === 0}
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white disabled:opacity-30"
+        >
+          ▲
+        </button>
+        <button
+          onClick={goNext}
+          disabled={current >= videos.length - 1}
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-50 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white disabled:opacity-30"
+        >
+          ▼
+        </button>
+
+        {/* Bottom Info */}
+        <div className="absolute bottom-6 left-4 right-16 z-50">
+          <p className="text-white text-sm font-medium line-clamp-2">{video?.title || "TikTok Video"}</p>
+          {video?.author && (
+            <p className="text-white/60 text-xs mt-1">@{video.author}</p>
+          )}
         </div>
+
+        {/* Download Button */}
+        {video?.downloadUrl && (
+          <a
+            href={video.downloadUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-6 right-4 z-50 rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white"
+          >
+            ⬇ Download
+          </a>
+        )}
       </div>
     </Layout>
   );
