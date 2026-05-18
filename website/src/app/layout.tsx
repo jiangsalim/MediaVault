@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={spaceGrotesk.variable} suppressHydrationWarning>
+    <html lang="en" className={spaceGrotesk.variable} suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
   {/* Theme — must run first, before any rendering */}
   <script
