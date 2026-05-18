@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/shared/Button";
+import { VideoCard } from "@/components/shared/VideoCard";
 import { searchMusic, getTrendingChannels } from "@/lib/api";
 import { HeroSearch } from "@/components/home/HeroSearch";
 
@@ -35,8 +36,6 @@ export default function Home() {
       .catch(() => { setError("Failed to load. Pull down to refresh."); setLoading(false); });
   }, []);
 
-  const thumb = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-  const fmt = (n: number) => { if (!n) return ''; if (n>=1e9) return (n/1e9).toFixed(1)+'B'; if (n>=1e6) return (n/1e6).toFixed(1)+'M'; if (n>=1e3) return (n/1e3).toFixed(0)+'K'; return n.toString(); };
   const fmtSubs = (n: number) => { if (n>=1e6) return (n/1e6).toFixed(1)+'M subs'; if (n>=1e3) return (n/1e3).toFixed(0)+'K subs'; return n+' subs'; };
 
   const Skeleton = () => (
@@ -59,51 +58,66 @@ export default function Home() {
         </div>
       </div>
       {error && <div className="container-site pb-4"><div className="card-base p-4 text-center text-error text-sm">{error}</div></div>}
+      
+      {/* Trending Now — VideoCard Grid */}
       <div className="pb-8">
         <div className="container-site">
           <div className="grid gap-8 lg:grid-cols-2">
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🔥 Trending Now</h2>
-              <div className="divide-y divide-gray-light dark:divide-navy-light">
-                {trending.length === 0 && loading ? Array.from({length:8}).map((_,i) => <Skeleton key={i} />) :
-                  trending.length === 0 ? <p className="py-4 text-sm text-gray-medium">No trending songs. Pull to refresh.</p> :
-                  trending.map((s,i) => (
-                    <a key={s.id} href={`/song/${s.id}`} className="flex gap-3 py-3 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
-                      <span className="w-5 text-center text-sm font-bold text-teal flex-shrink-0 pt-1">{i+1}</span>
-                      <div className="relative flex-shrink-0 w-36 aspect-video rounded-lg overflow-hidden bg-navy">
-                        <img src={thumb(s.id)} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-navy dark:text-white line-clamp-2 group-hover:text-teal transition-colors">{s.title}</div>
-                        <div className="text-xs text-gray-medium mt-1">{s.artist}</div>
-                        <div className="text-xs text-gray-medium">{fmt(s.views)} views</div>
-                      </div>
-                    </a>
-                  ))
-                }
-              </div>
+              {trending.length === 0 && loading ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {Array.from({length:4}).map((_,i) => <Skeleton key={i} />)}
+                </div>
+              ) : trending.length === 0 ? (
+                <p className="py-4 text-sm text-gray-medium">No trending songs. Pull to refresh.</p>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {trending.map((s, i) => (
+                    <VideoCard
+                      key={s.id}
+                      id={s.id}
+                      title={s.title}
+                      artist={s.artist}
+                      views={s.views || 0}
+                      duration={s.duration || 0}
+                      publishedAt={s.publishedAt}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
+            
+            {/* New Releases — VideoCard Grid */}
             <div>
               <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🆕 New Releases</h2>
-              <div className="divide-y divide-gray-light dark:divide-navy-light">
-                {newReleases.length === 0 && loading ? Array.from({length:8}).map((_,i) => <Skeleton key={i} />) :
-                  newReleases.length === 0 ? <p className="py-4 text-sm text-gray-medium">No new releases. Pull to refresh.</p> :
-                  newReleases.map(s => (
-                    <a key={s.id} href={`/song/${s.id}`} className="flex gap-3 py-3 hover:bg-gray-light/50 dark:hover:bg-navy/50 transition-colors group">
-                      <div className="relative flex-shrink-0 w-36 aspect-video rounded-lg overflow-hidden bg-navy"><img src={thumb(s.id)} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} /></div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-navy dark:text-white line-clamp-2 group-hover:text-teal transition-colors">{s.title}</div>
-                        <div className="text-xs text-gray-medium mt-1">{s.artist}</div>
-                        <div className="text-xs text-gray-medium">{fmt(s.views)} views</div>
-                      </div>
-                    </a>
-                  ))
-                }
-              </div>
+              {newReleases.length === 0 && loading ? (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {Array.from({length:4}).map((_,i) => <Skeleton key={i} />)}
+                </div>
+              ) : newReleases.length === 0 ? (
+                <p className="py-4 text-sm text-gray-medium">No new releases. Pull to refresh.</p>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {newReleases.map(s => (
+                    <VideoCard
+                      key={s.id}
+                      id={s.id}
+                      title={s.title}
+                      artist={s.artist}
+                      views={s.views || 0}
+                      duration={s.duration || 0}
+                      publishedAt={s.publishedAt}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
+      
+      {/* Trending Channels */}
       <div className="py-10 bg-gray-light dark:bg-navy">
         <div className="container-site">
           <h2 className="mb-6 text-xl font-bold text-navy dark:text-white">🎤 Trending Channels</h2>
@@ -121,6 +135,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      {/* APK Banner */}
       <div className="py-12 bg-navy text-white">
         <div className="container-site">
           <div className="flex flex-col md:flex-row items-center gap-6">
