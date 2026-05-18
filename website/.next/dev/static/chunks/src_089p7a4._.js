@@ -26,22 +26,83 @@ const SongContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project
     stop: ()=>{},
     setTime: ()=>{}
 });
+// Store player references globally so they survive re-renders
+let playerInstance = null;
+let playerReady = false;
 function SongProvider({ children }) {
     _s();
     const [currentSong, setCurrentSong] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [isPlaying, setIsPlaying] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
     const [currentTime, setCurrentTime] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
+    const iframeRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
     const pathname = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["usePathname"])();
+    // Restore from localStorage on mount
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "SongProvider.useEffect": ()=>{
+            try {
+                const saved = localStorage.getItem("mv_current_song");
+                if (saved) {
+                    const song = JSON.parse(saved);
+                    setCurrentSong(song);
+                    setIsPlaying(true);
+                }
+            } catch  {}
+        }
+    }["SongProvider.useEffect"], []);
+    // YouTube API ready callback
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "SongProvider.useEffect": ()=>{
+            if (currentSong && !pathname.startsWith("/song/")) {
+                // Load YouTube IFrame API
+                if (!window.onYouTubeIframeAPIReady) {
+                    const tag = document.createElement("script");
+                    tag.src = "https://www.youtube.com/iframe_api";
+                    const firstScriptTag = document.getElementsByTagName("script")[0];
+                    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+                    window.onYouTubeIframeAPIReady = ({
+                        "SongProvider.useEffect": ()=>{
+                            playerReady = true;
+                        }
+                    })["SongProvider.useEffect"];
+                }
+            }
+        }
+    }["SongProvider.useEffect"], [
+        currentSong,
+        pathname
+    ]);
+    const postMessage = (command)=>{
+        if (iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.postMessage(JSON.stringify({
+                event: "command",
+                func: command,
+                args: ""
+            }), "*");
+        }
+    };
     const play = (song)=>{
         setCurrentSong(song);
         setIsPlaying(true);
+        localStorage.setItem("mv_current_song", JSON.stringify(song));
+        localStorage.setItem("mv_is_playing", "true");
     };
-    const pause = ()=>setIsPlaying(false);
-    const resume = ()=>setIsPlaying(true);
+    const pause = ()=>{
+        setIsPlaying(false);
+        localStorage.setItem("mv_is_playing", "false");
+        postMessage("pauseVideo");
+    };
+    const resume = ()=>{
+        setIsPlaying(true);
+        localStorage.setItem("mv_is_playing", "true");
+        postMessage("playVideo");
+    };
     const stop = ()=>{
         setCurrentSong(null);
         setIsPlaying(false);
         setCurrentTime(0);
+        localStorage.removeItem("mv_current_song");
+        localStorage.removeItem("mv_is_playing");
+        postMessage("stopVideo");
     };
     const setTime = (time)=>setCurrentTime(time);
     const isOnSongPage = pathname.startsWith("/song/");
@@ -59,7 +120,8 @@ function SongProvider({ children }) {
         children: [
             children,
             currentSong && !isOnSongPage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("iframe", {
-                src: `https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0&start=${Math.floor(currentTime)}`,
+                ref: iframeRef,
+                src: `https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0&enablejsapi=1&start=${Math.floor(currentTime)}`,
                 allow: "autoplay",
                 style: {
                     position: "fixed",
@@ -72,17 +134,17 @@ function SongProvider({ children }) {
                 }
             }, currentSong.id, false, {
                 fileName: "[project]/src/lib/song-context.tsx",
-                lineNumber: 46,
+                lineNumber: 112,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/lib/song-context.tsx",
-        lineNumber: 43,
+        lineNumber: 109,
         columnNumber: 5
     }, this);
 }
-_s(SongProvider, "SH3KHNHFXv+96LEcug4Ns4lf4DI=", false, function() {
+_s(SongProvider, "AW+G9wF5OZP1sDQCq6DAsQOFrVU=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["usePathname"]
     ];
