@@ -45,6 +45,15 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
   type __Unused = __Check
 }
 
+// Validate ../../../src/app/genre/[slug]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/genre/[slug]">> = Specific
+  const handler = {} as typeof import("../../../src/app/genre/[slug]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/">> = Specific
@@ -58,6 +67,24 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
 {
   type __IsExpected<Specific extends AppPageConfig<"/search">> = Specific
   const handler = {} as typeof import("../../../src/app/search/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/song/[id]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/song/[id]">> = Specific
+  const handler = {} as typeof import("../../../src/app/song/[id]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/tiktok/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/tiktok">> = Specific
+  const handler = {} as typeof import("../../../src/app/tiktok/page.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
