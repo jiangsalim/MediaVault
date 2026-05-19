@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/layout/Layout";
-import { getTrendingFeed, searchTikTok } from "@/lib/tiktok-api";
+import { getTrendingFeed } from "@/lib/tiktok-api";
 
 function formatNum(n: number) {
   if (!n) return "0";
@@ -15,7 +15,6 @@ export default function TikTokPage() {
   const [videos, setVideos] = useState<any[]>([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [searchInput, setSearchInput] = useState("");
   const touchStartY = useRef(0);
 
   const loadMore = async () => {
@@ -40,16 +39,6 @@ export default function TikTokPage() {
       setLoading(false);
     });
   }, []);
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchInput.trim()) return;
-    setLoading(true);
-    const data = await searchTikTok(searchInput.trim(), 50);
-    setVideos(data);
-    setCurrent(0);
-    setLoading(false);
-  };
 
   const goNext = () => {
     if (current < videos.length - 1) setCurrent(c => c + 1);
@@ -84,9 +73,7 @@ export default function TikTokPage() {
       <Layout>
         <div className="flex items-center justify-center min-h-screen bg-black text-white">
           <div className="text-center">
-            <div className="text-5xl mb-4">&#x1F3B5;</div>
-            <p className="mb-2">TikTok API unavailable</p>
-            <p className="text-sm text-white/60">Try again later</p>
+            <p>No videos available</p>
           </div>
         </div>
       </Layout>
@@ -107,30 +94,14 @@ export default function TikTokPage() {
           </div>
         </div>
 
-        {/* Permanent Search Bar */}
-        <div className="absolute top-14 left-0 right-0 z-50 px-4">
-          <form onSubmit={handleSearch} className="flex gap-2 max-w-md mx-auto">
-            <input
-              type="text"
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              placeholder="Search TikTok..."
-              className="flex-1 rounded-full bg-white/10 text-white placeholder-white/40 px-4 py-2 text-sm border border-white/20 focus:outline-none focus:border-teal"
-            />
-            {searchInput && (
-              <button type="submit" className="rounded-full bg-teal px-4 py-2 text-xs font-semibold text-white">Search</button>
-            )}
-          </form>
-        </div>
-
         {/* Video Counter */}
-        <div className="absolute top-24 left-0 right-0 text-center z-50">
+        <div className="absolute top-16 left-0 right-0 text-center z-50">
           <span className="text-white/50 text-xs">{current + 1} / {videos.length}</span>
         </div>
 
         {/* TikTok Embed Player */}
         {video && (
-          <div className="h-full w-full flex items-center justify-center pt-20 pb-16">
+          <div className="h-full w-full flex items-center justify-center pt-16 pb-16">
             <iframe
               src={`https://www.tiktok.com/embed/v2/${video.id}`}
               className="w-full h-full max-w-[400px]"
