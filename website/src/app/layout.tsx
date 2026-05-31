@@ -3,6 +3,7 @@ import { SongProvider } from "@/lib/song-context";
 import { MiniPlayer } from "@/components/layout/MiniPlayer";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
@@ -45,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
                       <MiniPlayer />
         </SongProvider>
+        <Analytics />
       </body>
     </html>
   );
