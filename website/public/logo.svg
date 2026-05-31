@@ -1,21 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1A1A1A"/>
-      <stop offset="100%" stop-color="#0f0f0f"/>
-    </linearGradient>
-  </defs>
-  <rect width="512" height="512" rx="92" fill="url(#bg)"/>
-  <g transform="translate(76, 56)">
-    <path d="M180 0 L0 35 L0 80 C0 140 90 200 180 220 C270 200 360 140 360 80 L360 35 Z" fill="#1A1A1A" stroke="#333" stroke-width="2"/>
-    <path d="M180 15 L15 48 L15 85 C15 138 95 192 180 210 C265 192 345 138 345 85 L345 48 Z" fill="#e53935"/>
-    <path d="M180 40 L40 70 L40 90 C40 132 105 175 180 190 C255 175 320 132 320 90 L320 70 Z" fill="#cc0000"/>
-    <path d="M135 80 L135 150 L225 150 L225 80 Z" fill="#1A1A1A"/>
-    <path d="M145 90 L145 140 L215 140 L215 90 Z" fill="#ffffff" rx="4"/>
-    <path d="M155 100 L155 130 L205 130 L205 100 Z" fill="#1A1A1A"/>
-    <path d="M170 85 L170 115 L190 110 L190 90 Z" fill="#ffffff"/>
-    <path d="M195 85 L195 108 L215 112 L215 90 Z" fill="#ffffff"/>
-    <rect x="176" y="112" width="28" height="6" rx="2" fill="#ffffff"/>
-  </g>
-  <text x="256" y="465" text-anchor="middle" fill="#999999" font-family="'Inter','Segoe UI',Arial,sans-serif" font-size="36" font-weight="700" letter-spacing="3">MEDIAVAULT</text>
+<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Navy Background -->
+  <rect width="40" height="40" rx="10" fill="#0A1F3F"/>
+  
+  <!-- M Letter -->
+  <path d="M8 28V12L16 22L16 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Play Triangle (Teal) -->
+  <polygon points="20,14 20,26 28,20" fill="#00C2BA"/>
+  
+  <!-- V Letter -->
+  <path d="M30 12L34 28L38 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
 </svg>
