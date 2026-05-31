@@ -11,8 +11,8 @@ export const metadata: Metadata = {
   title: "MediaVault — Free Music Downloads | Uganda",
   description: "Download videos and music from YouTube, Spotify, TikTok, and more. Free, fast, and reliable.",
   verification: {
-    google: "googlea89e39fb82cbfeee.html",
-  },
+  google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION || "",
+},
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
