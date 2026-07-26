@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Query
-from fastapi.responses import StreamingResponse
-from services.extractor import search_music, get_trending, get_channel_details, get_video_details
 from fastapi import APIRouter, Query, HTTPException
+from fastapi.responses import StreamingResponse, RedirectResponse
+from services.extractor import search_music, get_trending, get_channel_details, get_video_details
 import re
 import os
 import asyncio
 import yt_dlp
+import httpx
 
 router = APIRouter()
 
+# ============================================================
+# SEARCH ENDPOINTS
+# ============================================================
 @router.get("/search")
 async def search(q: str = Query(...), platform: str = Query("youtube"), limit: int = Query(25)):
     try:
@@ -28,14 +31,11 @@ async def search_next(q: str = Query(...), page_token: str = Query(...), limit: 
 @router.get("/song/{video_id}")
 async def song_detail(video_id: str):
     """oEmbed for basic info + API for stats"""
-    import httpx
-
     snippet = {"title": "", "artist": "", "channelId": "", "description": "", "thumbnail": "", "publishedAt": ""}
     video_data = {"duration": 0, "views": 0, "likes": 0}
     channel_data = {}
     related = []
 
-    # METHOD 1: oEmbed for basic info (free)
     try:
         async with httpx.AsyncClient() as client:
             resp = await client.get(
@@ -49,19 +49,16 @@ async def song_detail(video_id: str):
             snippet["thumbnail"] = "https://i.ytimg.com/vi/" + video_id + "/hqdefault.jpg"
     except: pass
 
-    # METHOD 2: YouTube API for stats + channel (uses keys)
     try:
         stats = await get_video_details([video_id])
         if stats and video_id in stats:
             video_data = stats[video_id]
-
         if snippet.get("channelId"):
             channels = await get_channel_details([snippet["channelId"]])
             if channels:
                 channel_data = channels.get(snippet["channelId"], {})
     except: pass
 
-    # METHOD 3: Related via search (free)
     artist = snippet.get("artist", "")
     if artist:
         try:
@@ -74,7 +71,6 @@ async def song_detail(video_id: str):
     if snippet["title"]:
         return {"success": True, "data": {"id": video_id, **snippet, **video_data, "channel": channel_data, "related": related[:16]}}
 
-    # Ultimate fallback: search
     try:
         results, _ = await search_music(video_id, limit=1)
         if results.get("videos"):
@@ -92,7 +88,6 @@ async def song_detail(video_id: str):
 
 @router.get("/channels/trending")
 async def trending_channels():
-    """YouTube API ONLY for channel details"""
     try:
         results, _ = await search_music("trending music 2026", limit=30)
         channel_ids = list(set(v.get("channelId", "") for v in results.get("videos", []) if v.get("channelId")))
@@ -101,15 +96,13 @@ async def trending_channels():
             channel_list = sorted(channels.values(), key=lambda c: c.get("subscriberCount", 0), reverse=True)[:8]
             if channel_list and channel_list[0].get("subscriberCount", 0) > 0:
                 return {"success": True, "data": channel_list}
-
         channel_map = {}
         for v in results.get("videos", []):
             cid = v.get("channelId", "")
             artist = v.get("artist", "")
             if cid and cid not in channel_map:
                 channel_map[cid] = {"id": cid, "title": artist or cid, "subscriberCount": 0, "thumbnail": v.get("thumbnail", ""), "videoCount": 0, "customUrl": ""}
-        fallback = list(channel_map.values())[:8]
-        return {"success": True, "data": fallback}
+        return {"success": True, "data": list(channel_map.values())[:8]}
     except:
         return {"success": True, "data": []}
 
@@ -125,14 +118,11 @@ async def trending(region: str = Query("UG")):
 async def suggest(q: str = Query(...)):
     import json
     try:
-        import httpx as hx
-        async with hx.AsyncClient() as client:
+        async with httpx.AsyncClient() as client:
             resp = await client.get("https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=" + q, timeout=10)
-            text = resp.text
-            text = text.replace("window.google.ac.h(", "").rstrip(")")
+            text = resp.text.replace("window.google.ac.h(", "").rstrip(")")
             data = json.loads(text)
-            suggestions = [s[0] for s in data[1]]
-            return {"success": True, "data": suggestions[:8]}
+            return {"success": True, "data": [s[0] for s in data[1]][:8]}
     except: pass
     return {"success": True, "data": []}
 
@@ -146,271 +136,38 @@ async def latest_version():
 
 @router.get("/stream/{video_id}")
 async def stream_video(video_id: str):
-    """Get direct video stream URL using yt-dlp"""
     try:
         ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'format': 'best[height<=720]',
-            'get-url': True,
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['web', 'android', 'ios'],
-                }
-            },
+            'quiet': True, 'no_warnings': True,
+            'format': 'best[height<=720]', 'get-url': True,
+            'http_headers': {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'},
+            'extractor_args': {'youtube': {'player_client': ['web', 'android', 'ios']}},
         }
         def run():
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 return ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
-        loop = asyncio.get_event_loop()
-        info = await loop.run_in_executor(None, run)
+        info = await asyncio.get_event_loop().run_in_executor(None, run)
         return {"success": True, "streamUrl": info.get("url", ""), "title": info.get("title", "")}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
 # ============================================================
-# DOWNLOAD ENDPOINTS
+# DOWNLOAD: Redirect to Y2mate
 # ============================================================
-
-# List of Invidious instances (free YouTube proxies)
-INVIDIOUS_INSTANCES = [
-    "https://inv.nadeko.net",
-    "https://invidious.fdn.fr",
-    "https://invidious.privacyredirect.com",
-    "https://vid.puffyan.us",
-    "https://invidious.nerdvpn.de",
-    "https://inv.riverside.rocks",
-    "https://yewtu.be",
-]
+Y2MATE_BASE = "https://v27.www-y2mate.com"
 
 @router.get("/download/mp3/{video_id}")
 async def download_mp3(video_id: str):
-    """Download audio as MP3 file - tries multiple methods"""
-    import random
-    
-    # Method 1: Try Invidious proxy for audio URL
-    for instance in random.sample(INVIDIOUS_INSTANCES, min(3, len(INVIDIOUS_INSTANCES))):
-        try:
-            import httpx
-            async with httpx.AsyncClient(timeout=15) as client:
-                resp = await client.get(f"{instance}/api/v1/videos/{video_id}")
-                if resp.status_code == 200:
-                    data = resp.json()
-                    # Get audio-only format
-                    audio_formats = [f for f in data.get("formatStreams", []) if "audio" in f.get("type", "")]
-                    if audio_formats:
-                        audio_url = audio_formats[0]["url"]
-                        title = data.get("title", "audio")
-                        safe_title = re.sub(r'[\\/*?:"<>|]', "", title)
-                        
-                        # Download the audio
-                        async with client.stream("GET", audio_url) as stream:
-                            tmp_path = f"/tmp/{video_id}.audio"
-                            with open(tmp_path, "wb") as f:
-                                async for chunk in stream.aiter_bytes():
-                                    f.write(chunk)
-                        
-                        # Convert to MP3 with FFmpeg
-                        mp3_path = f"/tmp/{video_id}.mp3"
-                        os.system(f'ffmpeg -y -i "{tmp_path}" -codec:a libmp3lame -qscale:a 2 "{mp3_path}" 2>/dev/null')
-                        if os.path.exists(tmp_path):
-                            os.remove(tmp_path)
-                        
-                        if os.path.exists(mp3_path):
-                            def iterfile():
-                                with open(mp3_path, mode="rb") as f:
-                                    yield from f
-                                try:
-                                    os.remove(mp3_path)
-                                except:
-                                    pass
-                            
-                            return StreamingResponse(
-                                iterfile(),
-                                media_type="audio/mpeg",
-                                headers={
-                                    "Content-Disposition": f'attachment; filename="{safe_title}.mp3"',
-                                    "Content-Length": str(os.path.getsize(mp3_path))
-                                }
-                            )
-        except Exception:
-            continue
-    
-    # Method 2: Fallback to yt-dlp with aggressive evasion
-    try:
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'outtmpl': f'/tmp/{video_id}.%(ext)s',
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'ios', 'web'],
-                    'player_skip': ['webpage', 'configs'],
-                }
-            },
-            'geo_bypass': True,
-            'socket_timeout': 30,
-            'extract_flat': False,
-        }
-
-        def run():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                return ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=True)
-
-        loop = asyncio.get_event_loop()
-        info = await loop.run_in_executor(None, run)
-
-        title = info.get("title", "audio")
-        safe_title = re.sub(r'[\\/*?:"<>|]', "", title)
-        mp3_path = f"/tmp/{video_id}.mp3"
-
-        if not os.path.exists(mp3_path):
-            for ext in ['m4a', 'webm', 'opus', 'ogg']:
-                alt = f"/tmp/{video_id}.{ext}"
-                if os.path.exists(alt):
-                    mp3_path = alt
-                    break
-
-        if os.path.exists(mp3_path):
-            def iterfile():
-                with open(mp3_path, mode="rb") as f:
-                    yield from f
-                try:
-                    os.remove(mp3_path)
-                except:
-                    pass
-
-            return StreamingResponse(
-                iterfile(),
-                media_type="audio/mpeg",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{safe_title}.mp3"',
-                    "Content-Length": str(os.path.getsize(mp3_path))
-                }
-            )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"All download methods failed: {str(e)}")
-
+    """Redirect to Y2mate for MP3 download"""
+    return RedirectResponse(
+        f"{Y2MATE_BASE}/convert/?videoId={video_id}",
+        status_code=302
+    )
 
 @router.get("/download/video/{video_id}")
 async def download_video(video_id: str, quality: str = Query("720")):
-    """Download video as MP4 file - tries multiple methods"""
-    import random
-    
-    # Method 1: Try Invidious proxy
-    for instance in random.sample(INVIDIOUS_INSTANCES, min(3, len(INVIDIOUS_INSTANCES))):
-        try:
-            import httpx
-            async with httpx.AsyncClient(timeout=15) as client:
-                resp = await client.get(f"{instance}/api/v1/videos/{video_id}")
-                if resp.status_code == 200:
-                    data = resp.json()
-                    video_formats = [f for f in data.get("formatStreams", []) if "video" in f.get("type", "")]
-                    if video_formats:
-                        # Pick best quality
-                        video_url = video_formats[-1]["url"]
-                        title = data.get("title", "video")
-                        safe_title = re.sub(r'[\\/*?:"<>|]', "", title)
-                        
-                        tmp_path = f"/tmp/{video_id}.video"
-                        async with client.stream("GET", video_url) as stream:
-                            with open(tmp_path, "wb") as f:
-                                async for chunk in stream.aiter_bytes():
-                                    f.write(chunk)
-                        
-                        video_path = f"/tmp/{video_id}.mp4"
-                        os.system(f'ffmpeg -y -i "{tmp_path}" -c copy "{video_path}" 2>/dev/null')
-                        if os.path.exists(tmp_path):
-                            os.remove(tmp_path)
-                        
-                        if os.path.exists(video_path):
-                            def iterfile():
-                                with open(video_path, mode="rb") as f:
-                                    yield from f
-                                try:
-                                    os.remove(video_path)
-                                except:
-                                    pass
-                            
-                            return StreamingResponse(
-                                iterfile(),
-                                media_type="video/mp4",
-                                headers={
-                                    "Content-Disposition": f'attachment; filename="{safe_title}.mp4"',
-                                    "Content-Length": str(os.path.getsize(video_path))
-                                }
-                            )
-        except Exception:
-            continue
-    
-    # Method 2: Fallback to yt-dlp
-    try:
-        format_map = {
-            "360": "best[height<=360]",
-            "480": "best[height<=480]",
-            "720": "best[height<=720]",
-            "1080": "best[height<=1080]",
-        }
-        fmt = format_map.get(quality, format_map["720"])
-
-        ydl_opts = {
-            'quiet': True,
-            'no_warnings': True,
-            'format': f'{fmt}+bestaudio/best',
-            'merge_output_format': 'mp4',
-            'outtmpl': f'/tmp/{video_id}.%(ext)s',
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'ios', 'web'],
-                    'player_skip': ['webpage', 'configs'],
-                }
-            },
-            'geo_bypass': True,
-            'socket_timeout': 30,
-        }
-
-        def run():
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                return ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=True)
-
-        loop = asyncio.get_event_loop()
-        info = await loop.run_in_executor(None, run)
-
-        title = info.get("title", "video")
-        safe_title = re.sub(r'[\\/*?:"<>|]', "", title)
-        video_path = f"/tmp/{video_id}.mp4"
-
-        if os.path.exists(video_path):
-            def iterfile():
-                with open(video_path, mode="rb") as f:
-                    yield from f
-                try:
-                    os.remove(video_path)
-                except:
-                    pass
-
-            return StreamingResponse(
-                iterfile(),
-                media_type="video/mp4",
-                headers={
-                    "Content-Disposition": f'attachment; filename="{safe_title}.mp4"',
-                    "Content-Length": str(os.path.getsize(video_path))
-                }
-            )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"All download methods failed: {str(e)}")
+    """Redirect to Y2mate for MP4 download"""
+    return RedirectResponse(
+        f"{Y2MATE_BASE}/convert/?videoId={video_id}",
+        status_code=302
+    )
