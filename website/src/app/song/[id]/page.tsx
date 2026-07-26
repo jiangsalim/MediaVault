@@ -14,6 +14,9 @@ export default function SongPage() {
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState<'mp3' | 'video' | null>(null);
+
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mediavault-website-api.onrender.com';
 
   useEffect(() => {
     // Save playback position before leaving
@@ -68,13 +71,25 @@ export default function SongPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = () => {
-    const isAndroid = /android/i.test(navigator.userAgent);
-    if (isAndroid) {
-      window.open("https://apkpure.com/mediavault", "_blank");
-    } else {
-      window.open(`https://www.youtube.com/watch?v=${id}`, "_blank");
-    }
+  const handleDownload = (type: 'mp3' | 'video') => {
+    setDownloading(type);
+    
+    const url = type === 'mp3'
+      ? `${backendUrl}/api/download/mp3/${id}`
+      : `${backendUrl}/api/download/video/${id}`;
+
+    // Create an anchor and trigger download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Reset button after a moment
+    setTimeout(() => setDownloading(null), 2000);
   };
 
   if (loading) {
@@ -132,7 +147,20 @@ export default function SongPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <button onClick={handleDownload} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors">📥 Download</button>
+                <button 
+                  onClick={() => handleDownload('mp3')} 
+                  disabled={downloading === 'mp3'}
+                  className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors disabled:opacity-50"
+                >
+                  {downloading === 'mp3' ? '⏳ Preparing MP3...' : '🎵 Download MP3'}
+                </button>
+                <button 
+                  onClick={() => handleDownload('video')} 
+                  disabled={downloading === 'video'}
+                  className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors disabled:opacity-50"
+                >
+                  {downloading === 'video' ? '⏳ Preparing Video...' : '🎬 Download Video'}
+                </button>
                 <a href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">▶ Watch on YouTube</a>
               </div>
 
