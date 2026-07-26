@@ -155,6 +155,11 @@ async def stream_video(video_id: str):
             'http_headers': {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             },
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['web', 'android', 'ios'],
+                }
+            },
         }
         def run():
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -186,13 +191,15 @@ async def download_mp3(video_id: str):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-us,en;q=0.5',
-            'Sec-Fetch-Mode': 'navigate',
         },
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web'],
+                'player_client': ['web', 'android', 'ios', 'tv', 'mweb'],
+                'player_skip': ['webpage'],
             }
         },
+        'geo_bypass': True,
+        'socket_timeout': 30,
     }
 
     def run():
@@ -253,13 +260,15 @@ async def download_video(video_id: str, quality: str = Query("720")):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-us,en;q=0.5',
-            'Sec-Fetch-Mode': 'navigate',
         },
         'extractor_args': {
             'youtube': {
-                'player_client': ['android', 'web'],
+                'player_client': ['web', 'android', 'ios', 'tv', 'mweb'],
+                'player_skip': ['webpage'],
             }
         },
+        'geo_bypass': True,
+        'socket_timeout': 30,
     }
 
     def run():
