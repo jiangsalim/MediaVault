@@ -16,7 +16,7 @@ export default function SongPage() {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState<'mp3' | 'video' | null>(null);
 
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mediavault-website-api.onrender.com';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mediavault-o52i.onrender.com';
 
   useEffect(() => {
     // Save playback position before leaving
