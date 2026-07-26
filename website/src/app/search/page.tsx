@@ -7,7 +7,7 @@ import { VideoCard } from "@/components/shared/VideoCard";
 import { searchMusic, searchNextPage } from "@/lib/api";
 
 const FILTERS = ["All", "Songs", "Videos", "Artists"];
-const API_BASE = 'https://mediavault-website-api.onrender.com/api';
+const API_BASE = 'https://mediavault-o52i.onrender.com/api';
 
 function SearchContent() {
   const searchParams = useSearchParams();

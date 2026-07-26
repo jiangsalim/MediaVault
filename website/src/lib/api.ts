@@ -1,4 +1,4 @@
-const API_BASE = 'https://mediavault-website-api.onrender.com/api';
+const API_BASE = 'https://mediavault-o52i.onrender.com/api';
 
 export async function searchMusic(query: string, platform = 'youtube') {
   const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&platform=${platform}&limit=25`);

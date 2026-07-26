@@ -12,7 +12,7 @@ export function HeroSearch() {
     if (input.trim().length < 2) { setSuggestions([]); return; }
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`https://mediavault-website-api.onrender.com/api/suggest?q=${encodeURIComponent(input)}`);
+        const res = await fetch(`https://mediavault-o52i.onrender.com/api/suggest?q=${encodeURIComponent(input)}`);
         const data = await res.json();
         setSuggestions(data.data || []);
         setShow(true);
