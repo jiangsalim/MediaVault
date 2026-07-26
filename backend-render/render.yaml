@@ -3,7 +3,7 @@ services:
     name: mediavault-api
     env: python
     rootDir: backend-render
-    buildCommand: apt-get update && apt-get install -y ffmpeg && pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && curl -L https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz -o ffmpeg.tar.xz && tar -xf ffmpeg.tar.xz && mv ffmpeg-master-latest-linux64-gpl/bin/ffmpeg /usr/local/bin/ && mv ffmpeg-master-latest-linux64-gpl/bin/ffprobe /usr/local/bin/
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     plan: free
     envVars:
