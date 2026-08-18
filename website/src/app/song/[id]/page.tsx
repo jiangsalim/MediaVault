@@ -4,13 +4,12 @@ import { useState, useEffect } from "react";
 import { useSong } from "@/lib/song-context";
 import { useParams } from "next/navigation";
 import { Layout } from "@/components/layout/Layout";
-import { Button } from "@/components/shared/Button";
 import { getSongDetails } from "@/lib/api";
 
 export default function SongPage() {
   const { id } = useParams<{ id: string }>();
   const [song, setSong] = useState<any>(null);
-  const { play, setTime } = useSong();
+  const { play } = useSong();
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -18,22 +17,15 @@ export default function SongPage() {
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mediavault-o52i.onrender.com';
 
   useEffect(() => {
-    return () => {
-      try {
-        const iframe = document.querySelector('iframe[src*="youtube.com/embed"]') as HTMLIFrameElement;
-        if (iframe?.contentWindow) {
-          iframe.contentWindow.postMessage('{"event":"command","func":"getCurrentTime","args":""}', '*');
-        }
-      } catch {}
-    };
-  }, []);
-
-  useEffect(() => {
     if (id) {
       getSongDetails(id).then(res => {
         setSong(res.data);
         setLoading(false);
-        if (res.data?.title) { const songData = { id, title: res.data.title, artist: res.data.artist }; play(songData); }
+        // Register the song in context so MiniPlayer knows about it
+        // But MiniPlayer won't render on this page (isOnSongPage = true)
+        if (res.data?.title) {
+          play({ id, title: res.data.title, artist: res.data.artist });
+        }
       }).catch(() => setLoading(false));
     }
   }, [id]);
@@ -45,11 +37,13 @@ export default function SongPage() {
     if (n >= 1e3) return (n/1e3).toFixed(0)+'K';
     return n.toString();
   };
+  
   const formatDur = (s: number) => {
     if (!s) return '0:00';
     const m = Math.floor(s/60), sec = Math.floor(s%60);
     return m+':'+String(sec).padStart(2,'0');
   };
+  
   const thumb = (url: string) => url || `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 
   const handleShare = (platform: string) => {
@@ -97,7 +91,13 @@ export default function SongPage() {
           <div className="lg:w-[65%] lg:max-h-screen lg:overflow-y-auto">
             <div className="lg:sticky lg:top-16 z-30 bg-black">
               <div className="aspect-video">
-                <iframe src={`https://www.youtube.com/embed/${id}?autoplay=1`} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media" />
+                {/* Video plays normally with sound on this page */}
+                <iframe 
+                  src={`https://www.youtube.com/embed/${id}?autoplay=1&controls=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`} 
+                  className="w-full h-full" 
+                  allowFullScreen 
+                  allow="autoplay; encrypted-media" 
+                />
               </div>
             </div>
 
@@ -129,16 +129,10 @@ export default function SongPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                <button 
-                  onClick={() => handleDownload('mp3')} 
-                  className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors"
-                >
+                <button onClick={() => handleDownload('mp3')} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors">
                   🎵 Download MP3
                 </button>
-                <button 
-                  onClick={() => handleDownload('video')} 
-                  className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors"
-                >
+                <button onClick={() => handleDownload('video')} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors">
                   🎬 Download Video
                 </button>
                 <a href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">▶ Watch on YouTube</a>

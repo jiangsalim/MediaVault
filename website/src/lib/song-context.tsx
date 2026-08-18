@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useRef } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 interface Song {
@@ -13,81 +13,65 @@ interface SongContextType {
   currentSong: Song | null;
   isPlaying: boolean;
   currentTime: number;
+  duration: number;
   play: (song: Song) => void;
   pause: () => void;
   resume: () => void;
   stop: () => void;
-  setTime: (time: number) => void;
+  seekTo: (time: number) => void;
+  isMiniPlayerActive: boolean;
 }
 
 const SongContext = createContext<SongContextType>({
-  currentSong: null, isPlaying: false, currentTime: 0,
-  play: () => {}, pause: () => {}, resume: () => {}, stop: () => {}, setTime: () => {},
+  currentSong: null, isPlaying: false, currentTime: 0, duration: 0,
+  play: () => {}, pause: () => {}, resume: () => {}, stop: () => {}, seekTo: () => {},
+  isMiniPlayerActive: false,
 });
 
 export function SongProvider({ children }: { children: React.ReactNode }) {
   const [currentSong, setCurrentSong] = useState<Song | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [duration, setDuration] = useState(0);
   const pathname = usePathname();
 
-  // Restore from localStorage on mount
+  const currentSongId = currentSong?.id;
+  const isOnSongPage = pathname.startsWith(`/song/${currentSongId}`);
+  const isMiniPlayerActive = !!currentSong && !isOnSongPage;
+
+  // Restore from localStorage
   useEffect(() => {
     try {
       const savedSong = localStorage.getItem("mv_current_song");
+      if (savedSong) setCurrentSong(JSON.parse(savedSong));
       const savedTime = localStorage.getItem("mv_current_time");
-      if (savedSong) {
-        setCurrentSong(JSON.parse(savedSong));
-        if (savedTime) setCurrentTime(parseInt(savedTime) || 0);
-        const playing = localStorage.getItem("mv_is_playing") === "true";
-        setIsPlaying(playing);
-      }
+      if (savedTime) setCurrentTime(parseInt(savedTime) || 0);
+      const playing = localStorage.getItem("mv_is_playing");
+      setIsPlaying(playing === "true");
     } catch {}
   }, []);
 
-  // Poll time from iframe
+  // Track time progression every second while playing
   useEffect(() => {
-    if (!isPlaying || !currentSong || pathname.startsWith("/song/")) return;
-    
+    if (!isPlaying || !currentSong) return;
+
     const interval = setInterval(() => {
-      if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: "command", func: "getCurrentTime", args: "" }),
-          "*"
-        );
-      }
-    }, 2000);
+      setCurrentTime(prev => {
+        const newTime = prev + 1;
+        localStorage.setItem("mv_current_time", newTime.toString());
+        return newTime;
+      });
+    }, 1000);
 
-    const handleMessage = (e: MessageEvent) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.info?.currentTime !== undefined) {
-          const t = Math.floor(data.info.currentTime);
-          setCurrentTime(t);
-          localStorage.setItem("mv_current_time", t.toString());
-        }
-      } catch {}
-    };
-
-    window.addEventListener("message", handleMessage);
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener("message", handleMessage);
-    };
-  }, [isPlaying, currentSong?.id, pathname]);
-
-  // Simple postMessage
-  const postMsg = (cmd: string, args: any = "") => {
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: "command", func: cmd, args: args }),
-        "*"
-      );
-    }
-  };
+    return () => clearInterval(interval);
+  }, [isPlaying, currentSong?.id]);
 
   const play = (song: Song) => {
+    if (currentSong?.id === song.id) {
+      setIsPlaying(true);
+      localStorage.setItem("mv_is_playing", "true");
+      return;
+    }
     setCurrentSong(song);
     setIsPlaying(true);
     setCurrentTime(0);
@@ -99,13 +83,11 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
   const pause = () => {
     setIsPlaying(false);
     localStorage.setItem("mv_is_playing", "false");
-    postMsg("pauseVideo");
   };
 
   const resume = () => {
     setIsPlaying(true);
     localStorage.setItem("mv_is_playing", "true");
-    postMsg("playVideo");
   };
 
   const stop = () => {
@@ -117,21 +99,17 @@ export function SongProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("mv_is_playing");
   };
 
-  const setTime = (time: number) => setCurrentTime(time);
-
-  const isOnSongPage = pathname.startsWith("/song/");
+  const seekTo = (time: number) => {
+    setCurrentTime(time);
+    localStorage.setItem("mv_current_time", time.toString());
+  };
 
   return (
-    <SongContext.Provider value={{ currentSong, isPlaying, currentTime, play, pause, resume, stop, setTime }}>
+    <SongContext.Provider value={{ 
+      currentSong, isPlaying, currentTime, duration, 
+      play, pause, resume, stop, seekTo, isMiniPlayerActive 
+    }}>
       {children}
-      {currentSong && !isOnSongPage && (
-        <iframe
-          ref={iframeRef}
-          src={`https://www.youtube.com/embed/${currentSong.id}?autoplay=1&controls=0&enablejsapi=1`}
-          allow="autoplay"
-          style={{ position: "fixed", bottom: 0, right: 0, width: "1px", height: "1px", border: "none", zIndex: -1 }}
-        />
-      )}
     </SongContext.Provider>
   );
 }

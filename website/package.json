@@ -12,7 +12,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.16.0",
-    "next": "latest",
+    "next": "^16.3.1",
     "react": "latest",
     "react-dom": "latest",
     "tailwind-merge": "^3.6.0"
