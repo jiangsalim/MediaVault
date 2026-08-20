@@ -2,23 +2,30 @@ import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://media-vault-website.vercel.app";
+  const now = new Date();
 
-  return [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
-    { url: baseUrl + "/search", lastModified: new Date(), changeFrequency: "weekly", priority: 0.9 },
-    { url: baseUrl + "/about", lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
-    { url: baseUrl + "/contact", lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
-    { url: baseUrl + "/privacy", lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: baseUrl + "/tiktok", lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: baseUrl + "/genre/afrobeat", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/dancehall", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/gospel", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/hip-hop", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/reggae", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/bongo-flava", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/zouk", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/rnb", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/amapiano", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
-    { url: baseUrl + "/genre/singeli", lastModified: new Date(), changeFrequency: "weekly", priority: 0.6 },
+  const staticPages = [
+    { url: baseUrl, changeFrequency: "daily" as const, priority: 1.0 },
+    { url: `${baseUrl}/search`, changeFrequency: "weekly" as const, priority: 0.9 },
+    { url: `${baseUrl}/about`, changeFrequency: "monthly" as const, priority: 0.8 },
+    { url: `${baseUrl}/contact`, changeFrequency: "monthly" as const, priority: 0.7 },
+    { url: `${baseUrl}/privacy`, changeFrequency: "monthly" as const, priority: 0.5 },
+    { url: `${baseUrl}/tiktok`, changeFrequency: "daily" as const, priority: 0.8 },
   ];
+
+  const genres = [
+    "afrobeat", "dancehall", "gospel", "hip-hop", "reggae",
+    "bongo-flava", "zouk", "rnb", "amapiano", "singeli",
+    "pop", "rock", "jazz", "blues", "country",
+    "electronic", "house", "techno", "soul", "funk",
+  ];
+
+  const genrePages = genres.map((genre) => ({
+    url: `${baseUrl}/genre/${genre}`,
+    lastModified: now,
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticPages, ...genrePages];
 }

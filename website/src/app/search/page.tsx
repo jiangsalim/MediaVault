@@ -8,6 +8,7 @@ import { searchMusic, searchNextPage } from "@/lib/api";
 
 const FILTERS = ["All", "Songs", "Videos", "Artists"];
 const API_BASE = 'https://mediavault-o52i.onrender.com/api';
+const SITE_URL = 'https://media-vault-website.vercel.app';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -33,7 +34,18 @@ function SearchContent() {
     localStorage.setItem('mv_search_history', JSON.stringify(updated));
   };
 
-  // Fetch suggestions on input change
+  // Update SEO metadata when query changes
+  useEffect(() => {
+    if (query) {
+      document.title = `${query} — Search Results | MediaVault`;
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute("content", `Search results for "${query}". Download free MP3 music, trending songs, and videos from MediaVault.`);
+      }
+    }
+  }, [query]);
+
+  // Fetch suggestions
   useEffect(() => {
     if (searchInput.trim().length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
     const timer = setTimeout(async () => {
@@ -47,12 +59,12 @@ function SearchContent() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Auto-clear query when input is manually emptied
+  // Auto-clear when input emptied
   useEffect(() => {
-  if (searchInput.trim() === '' && query) {
-    window.location.href = '/search';
-  }
-}, [searchInput]);
+    if (searchInput.trim() === '' && query) {
+      window.location.href = '/search';
+    }
+  }, [searchInput]);
 
   // Close suggestions on outside click
   useEffect(() => {
@@ -65,7 +77,7 @@ function SearchContent() {
     return () => document.removeEventListener('click', handleClick);
   }, []);
 
-  // Load results when query changes
+  // Load results
   useEffect(() => {
     if (query && !initialLoadDone.current) {
       setShowSuggestions(false);
@@ -74,7 +86,6 @@ function SearchContent() {
       setLoading(true);
       saveToHistory(query);
       
-      // Use filter to modify search query
       let searchQuery = query;
       if (activeFilter === "Songs") searchQuery = query + " song";
       else if (activeFilter === "Videos") searchQuery = query + " video";
@@ -88,7 +99,7 @@ function SearchContent() {
     }
   }, [query]);
 
-  // Refetch when filter changes
+  // Refetch on filter change
   useEffect(() => {
     if (query && initialLoadDone.current) {
       setLoading(true);
@@ -166,8 +177,24 @@ function SearchContent() {
     localStorage.removeItem('mv_search_history');
   };
 
+  // Search results JSON-LD
+  const searchResultsLd = {
+    "@context": "https://schema.org",
+    "@type": "SearchResultsPage",
+    name: query || "Search",
+    url: `${SITE_URL}/search?q=${encodeURIComponent(query)}`,
+  };
+
   return (
     <>
+      {query && (
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(searchResultsLd) }}
+        />
+      )}
+
       <div className="relative mb-4" ref={searchRef}>
         <form onSubmit={handleSearch}>
           <div className="flex gap-3">
@@ -177,50 +204,54 @@ function SearchContent() {
               onChange={e => setSearchInput(e.target.value)}
               onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
               placeholder="Search songs, artists..."
+              aria-label="Search music"
               className="flex-1 rounded-full border border-gray-light bg-white px-5 py-3 text-sm text-charcoal placeholder:text-gray-medium focus:border-teal focus:outline-none focus:ring-1 focus:ring-teal dark:bg-navy dark:text-white dark:border-navy-light"
             />
             {query && (
               <button type="button" onClick={clearSearch} className="rounded-full bg-gray-light dark:bg-navy px-4 py-3 text-sm font-medium text-charcoal dark:text-white hover:bg-gray-medium/20 transition-colors">
-                ✕ Clear
+                Clear
               </button>
             )}
-            <button type="submit" className="rounded-full bg-gray-light dark:bg-navy px-6 py-3 text-sm font-medium text-charcoal dark:text-white hover:bg-gray-medium/20 transition-colors">🔍</button>
+            <button type="submit" aria-label="Search" className="rounded-full bg-gray-light dark:bg-navy px-6 py-3 text-sm font-medium text-charcoal dark:text-white hover:bg-gray-medium/20 transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </button>
           </div>
         </form>
         
         {showSuggestions && !query && (
-  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-navy-dark rounded-xl border border-gray-light dark:border-navy-light shadow-2xl z-50 overflow-hidden">
-    {/* Suggestions first */}
-    {suggestions.length > 0 && suggestions.map((s, i) => (
-      <button key={i} onClick={() => selectSuggestion(s)} className="flex items-center gap-3 w-full px-5 py-3 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        {s}
-      </button>
-    ))}
-    {/* Recent searches below, with divider if suggestions also shown */}
-    {searchHistory.length > 0 && (
-      <>
-        {suggestions.length > 0 && <div className="border-t border-gray-light dark:border-navy-light"></div>}
-        <div className="flex items-center justify-between px-5 py-2">
-          <span className="text-xs font-medium text-gray-medium">Recent Searches</span>
-          <button onClick={clearHistory} className="text-xs text-teal hover:underline">Clear</button>
-        </div>
-        {searchHistory.map((h, i) => (
-          <button key={i} onClick={() => selectSuggestion(h)} className="flex items-center gap-3 w-full px-5 py-2.5 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            {h}
-          </button>
-        ))}
-      </>
-    )}
-  </div>
-)}
-       </div>  
+          <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-navy-dark rounded-xl border border-gray-light dark:border-navy-light shadow-2xl z-50 overflow-hidden">
+            {suggestions.length > 0 && suggestions.map((s, i) => (
+              <button key={i} onClick={() => selectSuggestion(s)} className="flex items-center gap-3 w-full px-5 py-3 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                {s}
+              </button>
+            ))}
+            {searchHistory.length > 0 && (
+              <>
+                {suggestions.length > 0 && <div className="border-t border-gray-light dark:border-navy-light"></div>}
+                <div className="flex items-center justify-between px-5 py-2">
+                  <span className="text-xs font-medium text-gray-medium">Recent Searches</span>
+                  <button onClick={clearHistory} className="text-xs text-teal hover:underline">Clear</button>
+                </div>
+                {searchHistory.map((h, i) => (
+                  <button key={i} onClick={() => selectSuggestion(h)} className="flex items-center gap-3 w-full px-5 py-2.5 text-sm text-charcoal dark:text-gray-light hover:bg-gray-light dark:hover:bg-navy transition-colors text-left">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {h}
+                  </button>
+                ))}
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {query && (
         <>
           {/* Filter Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+          <nav aria-label="Search filters" className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {FILTERS.map(f => (
               <button
                 key={f}
@@ -230,14 +261,14 @@ function SearchContent() {
                 {f}
               </button>
             ))}
-          </div>
+          </nav>
 
           {/* Results */}
           {loading ? (
             <div className="space-y-4">
               {Array.from({length:8}).map((_,i) => (
                 <div key={i} className="flex gap-4 animate-pulse">
-                  <div className="h-36 w-64 rounded-xl bg-gray-light flex-shrink-0" />
+                  <div className="h-20 w-36 rounded-xl bg-gray-light flex-shrink-0" />
                   <div className="flex-1 space-y-2">
                     <div className="h-5 w-3/4 rounded bg-gray-light" />
                     <div className="h-3 w-1/3 rounded bg-gray-light" />
@@ -277,8 +308,13 @@ function SearchContent() {
       {/* Empty State */}
       {!query && (
         <div className="text-center py-16">
-          <div className="text-5xl mb-4">🔍</div>
-          <h2 className="text-xl font-bold text-navy dark:text-white mb-2">Search Music</h2>
+          <div className="mb-4 flex justify-center">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-teal">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-navy dark:text-white mb-2">Search Music</h1>
           <p className="text-charcoal dark:text-gray-light">Search for songs, artists, or albums from YouTube.</p>
         </div>
       )}
@@ -295,7 +331,7 @@ export default function SearchPage() {
             <div className="space-y-4">
               {Array.from({length:5}).map((_,i) => (
                 <div key={i} className="flex gap-4 animate-pulse">
-                  <div className="h-36 w-64 rounded-xl bg-gray-light" />
+                  <div className="h-20 w-36 rounded-xl bg-gray-light" />
                   <div className="flex-1 space-y-2">
                     <div className="h-5 w-3/4 rounded bg-gray-light" />
                   </div>

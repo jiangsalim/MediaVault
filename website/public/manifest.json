@@ -1,0 +1,16 @@
+{
+  "name": "MediaVault — Free Music Downloads",
+  "short_name": "MediaVault",
+  "description": "Download free MP3 music and videos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0E21",
+  "theme_color": "#00BFA5",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

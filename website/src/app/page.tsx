@@ -45,26 +45,49 @@ export default function Home() {
     </div>
   );
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: "MediaVault — Free Music Downloads",
+    description: "Download free MP3 music, videos, and trending songs from YouTube, TikTok, and more.",
+    url: "https://media-vault-website.vercel.app",
+  };
+
   return (
     <Layout>
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       <HeroSearch />
+
+      {/* Genre Pills */}
       <div className="py-6">
         <div className="container-site">
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <nav aria-label="Music genres" className="flex gap-2 overflow-x-auto pb-2">
             {genreList.map(g => (
               <a key={g} href={`/search?q=${g.toLowerCase()}`} className="rounded-full bg-gray-light dark:bg-navy px-4 py-1.5 text-xs font-medium text-charcoal dark:text-gray-light whitespace-nowrap hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors">{g}</a>
             ))}
-          </div>
+          </nav>
         </div>
       </div>
+
       {error && <div className="container-site pb-4"><div className="card-base p-4 text-center text-error text-sm">{error}</div></div>}
       
-      {/* Trending Now — VideoCard Grid */}
+      {/* Trending Now + New Releases */}
       <div className="pb-8">
         <div className="container-site">
           <div className="grid gap-8 lg:grid-cols-2">
-            <div>
-              <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🔥 Trending Now</h2>
+            <section aria-label="Trending Now">
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-orange-500">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                  <polyline points="17 6 23 6 23 12"/>
+                </svg>
+                Trending Now
+              </h2>
               {trending.length === 0 && loading ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {Array.from({length:4}).map((_,i) => <Skeleton key={i} />)}
@@ -86,11 +109,16 @@ export default function Home() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
             
-            {/* New Releases — VideoCard Grid */}
-            <div>
-              <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">🆕 New Releases</h2>
+            <section aria-label="New Releases">
+              <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-teal">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                New Releases
+              </h2>
               {newReleases.length === 0 && loading ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {Array.from({length:4}).map((_,i) => <Skeleton key={i} />)}
@@ -112,7 +140,7 @@ export default function Home() {
                   ))}
                 </div>
               )}
-            </div>
+            </section>
           </div>
         </div>
       </div>
@@ -120,7 +148,15 @@ export default function Home() {
       {/* Trending Channels */}
       <div className="py-10 bg-gray-light dark:bg-navy">
         <div className="container-site">
-          <h2 className="mb-6 text-xl font-bold text-navy dark:text-white">🎤 Trending Channels</h2>
+          <h2 className="mb-6 flex items-center gap-2 text-xl font-bold text-navy dark:text-white">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-purple-500">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Trending Channels
+          </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {artists.length === 0 && loading ? Array.from({length:6}).map((_,i) => (<div key={i} className="card-base p-4 text-center animate-pulse"><div className="h-16 w-16 rounded-full bg-gray-light mx-auto mb-2" /><div className="h-3 w-2/3 rounded bg-gray-light mx-auto mb-1" /></div>)) :
               artists.length === 0 ? <p className="col-span-full text-center text-sm text-gray-medium">No channels found.</p> :
@@ -142,7 +178,9 @@ export default function Home() {
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="flex-1 text-center md:text-left">
               <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,marginBottom:12}}>
-                <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"#00C2BA",color:"#fff",padding:"12px 24px",borderRadius:8,textDecoration:"none",fontWeight:600,fontSize:15}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download APK — Free</a>
+                <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"#00C2BA",color:"#fff",padding:"12px 24px",borderRadius:8,textDecoration:"none",fontWeight:600,fontSize:15}}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download APK — Free
+                </a>
                 <div style={{background:"#fff",padding:8,borderRadius:8,display:"inline-block"}}><canvas id="qr-code" width="100" height="100"></canvas></div>
                 <p style={{fontSize:12,color:"#8B9DB5"}}>Scan to download v3.0.0</p>
               </div>
@@ -150,7 +188,12 @@ export default function Home() {
               <p className="text-gray-medium mb-4 text-sm">Video downloads in HD, WhatsApp Status Saver, Private Vault, phone cleaner, and offline access.</p>
               <Button href="https://apkpure.com/mediavault" variant="primary">Download on APKPure — Free</Button>
             </div>
-            <div className="text-6xl">📱</div>
+            <div className="text-6xl" aria-hidden="true">
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-teal">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                <line x1="12" y1="18" x2="12.01" y2="18"/>
+              </svg>
+            </div>
           </div>
         </div>
       </div>
