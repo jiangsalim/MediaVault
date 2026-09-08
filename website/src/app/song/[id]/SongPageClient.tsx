@@ -160,8 +160,8 @@ export default function SongPageClient() {
 
       <div className="max-w-[1400px] mx-auto">
         <div className="flex flex-col lg:flex-row gap-0">
-          <div className="lg:w-[65%] lg:max-h-screen lg:overflow-y-auto">
-            <div className="lg:sticky lg:top-16 z-30 bg-black">
+          <div className="lg:w-[65%] ">
+            <div className="z-30 bg-black">
               <div className="aspect-video">
                 <iframe 
                   src={`https://www.youtube.com/embed/${id}?autoplay=1&controls=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`} 
