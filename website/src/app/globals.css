@@ -21,3 +21,45 @@
   .section-padding { @apply py-12 md:py-16; }
   .card-base { @apply bg-white border border-gray-light rounded-card; }
 }
+
+@keyframes downloadBounce {
+  0%, 100% {
+    transform: translateY(-50%);
+  }
+
+  10% {
+    transform: translateY(calc(-50% + 22px));
+  }
+
+  20% {
+    transform: translateY(-50%);
+  }
+
+  35% {
+    transform: translateY(calc(-50% + 22px));
+  }
+
+  45% {
+    transform: translateY(-50%);
+  }
+
+  60% {
+    transform: translateY(calc(-50% + 22px));
+  }
+
+  70% {
+    transform: translateY(-50%);
+  }
+
+  85% {
+    transform: translateY(calc(-50% + 22px));
+  }
+
+  95% {
+    transform: translateY(-50%);
+  }
+}
+
+.download-bounce {
+  animation: downloadBounce 0.8s ease-in-out;
+}

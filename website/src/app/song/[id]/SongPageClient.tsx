@@ -13,6 +13,7 @@ export default function SongPageClient() {
   const [loading, setLoading] = useState(true);
   const [showDesc, setShowDesc] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
 
   const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'https://mediavault-o52i.onrender.com';
   const siteUrl = "https://media-vault-website.vercel.app";
@@ -47,18 +48,18 @@ export default function SongPageClient() {
 
   const formatNum = (n: number) => {
     if (!n) return '0';
-    if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
-    if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
-    if (n >= 1e3) return (n/1e3).toFixed(0)+'K';
+    if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(0) + 'K';
     return n.toString();
   };
-  
+
   const formatDur = (s: number) => {
     if (!s) return '0:00';
-    const m = Math.floor(s/60), sec = Math.floor(s%60);
-    return m+':'+String(sec).padStart(2,'0');
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
   };
-  
+
   const thumb = (url: string) => url || `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
 
   const handleShare = (platform: string) => {
@@ -162,13 +163,56 @@ export default function SongPageClient() {
         <div className="flex flex-col lg:flex-row gap-0">
           <div className="lg:w-[65%] ">
             <div className="z-30 bg-black">
-              <div className="aspect-video">
-                <iframe 
-                  src={`https://www.youtube.com/embed/${id}?autoplay=1&controls=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`} 
-                  className="w-full h-full" 
-                  allowFullScreen 
-                  allow="autoplay; encrypted-media" 
+              <div className="aspect-video relative">
+                <iframe
+                  src={`https://www.youtube.com/embed/${id}?autoplay=1&controls=1&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+                  className="w-full h-full"
+                  allowFullScreen
+                  allow="autoplay; encrypted-media"
                 />
+                <button onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+                  className="download-bounce absolute top-1/2 right-4 -translate-y-1/2 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-[#00C2BA]/80 backdrop-blur-md text-white shadow-lg border border-white/20 hover:bg-[#00C2BA] hover:scale-105 transition-all duration-200"
+                  aria-label="Download"
+                  title="Download"
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 3v12" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="5" y1="21" x2="19" y2="21" />
+                  </svg>
+                </button>
+
+                {showDownloadMenu && (
+                  <div className="absolute top-1/2 right-16 -translate-y-1/2 z-50 bg-black/90 backdrop-blur-md rounded-lg shadow-lg border border-white/10 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => handleDownload('mp3')}
+                      className="block w-full px-4 py-2 text-sm text-white hover:bg-[#00C2BA]/20 transition-colors whitespace-nowrap"
+                    >
+                      Download MP3
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleDownload('video')}
+                      className="block w-full px-4 py-2 text-sm text-white hover:bg-[#00C2BA]/20 transition-colors whitespace-nowrap"
+                    >
+                      Download Video
+                    </button>
+                  </div>
+                )}
+
+
+
               </div>
             </div>
 
@@ -183,7 +227,7 @@ export default function SongPageClient() {
               </nav>
 
               <h1 className="text-xl md:text-2xl font-bold text-navy dark:text-white mb-2">{song.title}</h1>
-              
+
               <div className="flex items-center gap-3 mb-4">
                 {song.channel?.thumbnail && <img src={song.channel.thumbnail} alt={song.artist} className="h-10 w-10 rounded-full object-cover" />}
                 <div>
@@ -198,19 +242,19 @@ export default function SongPageClient() {
               <div className="flex flex-wrap items-center gap-4 mb-4 p-3 rounded-md bg-gray-light dark:bg-navy">
                 {song.views > 0 && (
                   <span className="flex items-center gap-1 text-sm text-charcoal dark:text-gray-light">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
                     {formatNum(song.views)} views
                   </span>
                 )}
                 {song.likes > 0 && (
                   <span className="flex items-center gap-1 text-sm text-charcoal dark:text-gray-light">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" /></svg>
                     {formatNum(song.likes)}
                   </span>
                 )}
                 {song.duration > 0 && (
                   <span className="flex items-center gap-1 text-sm text-charcoal dark:text-gray-light">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
                     {formatDur(song.duration)}
                   </span>
                 )}
@@ -225,15 +269,15 @@ export default function SongPageClient() {
 
               <div className="flex flex-wrap gap-2 mb-4">
                 <button onClick={() => handleDownload('mp3')} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
                   Download MP3
                 </button>
                 <button onClick={() => handleDownload('video')} className="rounded-full bg-teal px-5 py-2.5 text-sm font-semibold text-white hover:bg-teal-dark transition-colors flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="14" height="18" rx="2"/><polygon points="22 7 16 12 22 17"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="14" height="18" rx="2" /><polygon points="22 7 16 12 22 17" /></svg>
                   Download Video
                 </button>
                 <a href={`https://www.youtube.com/watch?v=${id}`} target="_blank" rel="noopener noreferrer" className="rounded-full border-2 border-navy dark:border-white px-5 py-2.5 text-sm font-semibold text-navy dark:text-white hover:bg-navy hover:text-white dark:hover:bg-white dark:hover:text-navy transition-colors flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3" /></svg>
                   Watch on YouTube
                 </a>
               </div>
