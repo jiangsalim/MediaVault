@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { label: "Home", href: "/" },
   { label: "Search", href: "/search" },
+  { label: "Desktop App", href: "/desktop" },
   { label: "About", href: "/about" },
   { label: "TikTok", href: "/tiktok" },
 ];

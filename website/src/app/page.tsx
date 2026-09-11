@@ -172,28 +172,115 @@ export default function Home() {
         </div>
       </div>
       
-      {/* APK Banner */}
-      <div className="py-12 bg-navy text-white">
+      {/* Get MediaVault Everywhere */}
+      <div className="py-16 bg-navy text-white">
         <div className="container-site">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="flex-1 text-center md:text-left">
-              <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12,marginBottom:12}}>
-                <a href="https://apkpure.com/mediavault" target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:8,background:"#00C2BA",color:"#fff",padding:"12px 24px",borderRadius:8,textDecoration:"none",fontWeight:600,fontSize:15}}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Download APK — Free
-                </a>
-                <div style={{background:"#fff",padding:8,borderRadius:8,display:"inline-block"}}><canvas id="qr-code" width="100" height="100"></canvas></div>
-                <p style={{fontSize:12,color:"#8B9DB5"}}>Scan to download v3.0.0</p>
+          <div className="text-center mb-10">
+            <h2 className="text-white text-3xl md:text-4xl font-bold mb-3">Get MediaVault Everywhere</h2>
+            <p className="text-gray-medium max-w-2xl mx-auto">
+              Download the desktop app for Windows, Mac, or Linux — or grab the Android APK. Free, fast, and no registration required.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+            {/* Desktop App Card */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-all hover:-translate-y-1">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-teal/10 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-teal">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                    <line x1="8" y1="21" x2="16" y2="21"/>
+                    <line x1="12" y1="17" x2="12" y2="21"/>
+                  </svg>
+                </div>
               </div>
-              <h2 className="text-white text-2xl font-bold mb-3">Get the Full Experience</h2>
-              <p className="text-gray-medium mb-4 text-sm">Video downloads in HD, WhatsApp Status Saver, Private Vault, phone cleaner, and offline access.</p>
-              <Button href="https://apkpure.com/mediavault" variant="primary">Download on APKPure — Free</Button>
+              <h3 className="text-xl font-bold text-white mb-2">Desktop App</h3>
+              <p className="text-sm text-gray-medium mb-6 leading-relaxed">
+                Full download manager for Windows, Mac & Linux. Queue downloads, pause and resume, download entire playlists, and get 4K video support — all in one beautiful desktop app.
+              </p>
+              <a
+                href="https://github.com/jiangsalim/Media-Vault-Desktop/releases/latest"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-teal px-7 py-3 text-sm font-semibold text-white hover:bg-teal-dark transition-colors w-full"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download for Desktop
+              </a>
+              <p className="text-xs text-gray-medium mt-3">Windows · Mac · Linux · Free & open source</p>
             </div>
-            <div className="text-6xl" aria-hidden="true">
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-teal">
-                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
-                <line x1="12" y1="18" x2="12.01" y2="18"/>
-              </svg>
+
+            {/* Android APK Card */}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center hover:bg-white/10 transition-all hover:-translate-y-1">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-teal/10 flex items-center justify-center">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-teal">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                    <line x1="12" y1="18" x2="12.01" y2="18"/>
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2">Android App</h3>
+              <p className="text-sm text-gray-medium mb-6 leading-relaxed">
+                Download music and videos directly to your phone using your own network. Save WhatsApp statuses, protect files in a private vault, and enjoy offline playback.
+              </p>
+              <a
+                href="https://apkpure.com/mediavault"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-teal px-7 py-3 text-sm font-semibold text-white hover:bg-teal-dark transition-colors w-full"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download APK
+              </a>
+              <p className="text-xs text-gray-medium mt-3">v3.0.0 · Free download</p>
             </div>
+          </div>
+
+          {/* Feature highlights */}
+          <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            {[
+              { icon: "shield", label: "No registration" },
+              { icon: "zap", label: "Fast downloads" },
+              { icon: "globe", label: "Works offline" },
+              { icon: "heart", label: "100% free" },
+            ].map((item) => (
+              <div key={item.label} className="text-center p-3 rounded-lg bg-white/5">
+                <div className="text-teal mb-1 flex justify-center">
+                  {item.icon === "shield" && (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                  )}
+                  {item.icon === "zap" && (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                  )}
+                  {item.icon === "globe" && (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="2" y1="12" x2="22" y2="12"/>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                  )}
+                  {item.icon === "heart" && (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                  )}
+                </div>
+                <p className="text-xs text-gray-medium">{item.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
