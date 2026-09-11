@@ -171,7 +171,7 @@ export default function SongPageClient() {
                   allow="autoplay; encrypted-media"
                 />
                 <button onClick={() => setShowDownloadMenu(!showDownloadMenu)}
-                  className="download-bounce absolute top-1/2 right-4 -translate-y-1/2 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-[#00C2BA]/80 backdrop-blur-md text-white shadow-lg border border-white/20 hover:bg-[#00C2BA] hover:scale-105 transition-all duration-200"
+                  className="download-bounce absolute top-1/2 right-4 -translate-y-1/2 z-20 flex items-center justify-center w-14 h-14 rounded-full bg-[#00C2BA]/80 backdrop-blur-md text-white shadow-lg border border-white/20 hover:bg-[#00C2BA] hover:scale-105 transition-all duration-200"
                   aria-label="Download"
                   title="Download"
                 >
