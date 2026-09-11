@@ -11,8 +11,8 @@ export function Logo({ className = "" }: LogoProps) {
         MV
       </div>
       <div className="hidden sm:block">
-        <div className="text-lg font-bold leading-tight tracking-tight text-navy">MediaVault</div>
-        <div className="text-[10px] font-light uppercase tracking-[3px] text-charcoal">Music Toolkit</div>
+        <div className="text-lg font-bold dark:text-white leading-tight tracking-tight text-navy">MediaVault</div>
+        <div className="text-[10px] font-light dark:text-gray-medium uppercase tracking-[3px] text-charcoal">Music Toolkit</div>
       </div>
     </Link>
   );

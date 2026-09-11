@@ -161,7 +161,7 @@ export default function Home() {
             {artists.length === 0 && loading ? Array.from({length:6}).map((_,i) => (<div key={i} className="card-base p-4 text-center animate-pulse"><div className="h-16 w-16 rounded-full bg-gray-light mx-auto mb-2" /><div className="h-3 w-2/3 rounded bg-gray-light mx-auto mb-1" /></div>)) :
               artists.length === 0 ? <p className="col-span-full text-center text-sm text-gray-medium">No channels found.</p> :
               artists.map(a => (
-                <a key={a.id} href={`https://youtube.com/${a.customUrl || 'channel/'+a.id}`} target="_blank" rel="noopener noreferrer" className="card-base p-4 text-center transition-all hover:shadow-cardHover hover:-translate-y-1">
+                <a key={a.id} href={`https://youtube.com/${a.customUrl || 'channel/'+a.id}`} target="_blank" rel="noopener noreferrer" className="card-base p-4 text-center transition-all hover:shadow-cardHover hover:-translate-y-1 dark:bg-navy-dark">
                   <div className="h-16 w-16 rounded-full overflow-hidden mx-auto mb-2 bg-gray-light"><img src={a.image} alt={a.name} className="h-full w-full object-cover" /></div>
                   <div className="text-sm font-semibold text-navy dark:text-white truncate">{a.name}</div>
                   <div className="text-xs text-gray-medium">{fmtSubs(a.subscribers)}</div>
