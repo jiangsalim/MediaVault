@@ -106,7 +106,7 @@ export default function AboutPage() {
           <h2 className="mb-8 text-center text-2xl font-bold text-navy dark:text-white">Features</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {features.map(f => (
-              <div key={f.title} className="card-base p-6 text-center transition-all hover:shadow-cardHover hover:-translate-y-1 dark:bg-navy-dark">
+              <div key={f.title} className="card-base p-6 text-center transition-all hover:shadow-cardHover hover:-translate-y-1 ">
                 {f.icon}
                 <h3 className="text-lg font-bold mb-2 text-navy dark:text-white">{f.title}</h3>
                 <p className="text-sm text-charcoal dark:text-gray-light">{f.desc}</p>
